@@ -18,6 +18,7 @@ const REQUIRED_ACTIONS: Dictionary[StringName, float] = {
 	&"gameplay_walk_toggle": 0.5,
 	&"app_pause": 0.5,
 	&"dev_diagnostics_toggle": 0.5,
+	&"dev_performance_toggle": 0.5,
 	&"dev_collision_debug_toggle": 0.5,
 	&"dev_controls_toggle": 0.5,
 	&"dev_accept_visual_standard": 0.5,
@@ -94,6 +95,18 @@ func run(_tree: SceneTree) -> PackedStringArray:
 	_expect(
 		_has_accept_standard_mapping(),
 		"dev_accept_visual_standard uses Ctrl + Alt + physical E",
+	)
+	_expect(
+		_has_key_mapping(&"dev_diagnostics_toggle", KEY_F11, KEY_LOCATION_UNSPECIFIED),
+		"game diagnostics use F11",
+	)
+	_expect(
+		_has_key_mapping(&"dev_performance_toggle", KEY_F12, KEY_LOCATION_UNSPECIFIED),
+		"performance diagnostics use F12",
+	)
+	_expect(
+		not _has_key_mapping(&"dev_diagnostics_toggle", KEY_F3, KEY_LOCATION_UNSPECIFIED),
+		"F3 no longer toggles diagnostics",
 	)
 	for action in REMOVED_VISUAL_LAB_ACTIONS:
 		_expect(

@@ -2,45 +2,51 @@ extends RefCounted
 
 const VISUAL_LAB_SCENE_PATH := "res://scenes/dev/visual_lab.tscn"
 const ULTRA_FRAMES_PATH := (
-	"res://assets/characters/heroes/green_hero/ultra/"
+	"res://tests/assets/characters/heroes/green_hero/ultra/"
 	+ "green_hero_stand_walk_ultra.tres"
 )
 const PIXEL_ART_FRAMES_PATH := (
-	"res://assets/characters/heroes/green_hero/pixel_art/"
+	"res://tests/assets/characters/heroes/green_hero/pixel_art/"
 	+ "green_hero_stand_walk_pixel_art.tres"
+)
+const HD_FRAMES_PATH := (
+	"res://tests/assets/characters/heroes/green_hero/hd/green_hero_stand_walk_hd.tres"
+)
+const TEST_FRAMES_PATH := (
+	"res://tests/assets/characters/heroes/green_hero/test/green_hero_stand_walk_test.tres"
 )
 const SETTINGS_PATH_PROJECT_KEY := "etherfood/development/visual_lab_settings_path"
 const SETTINGS_TEST_PATH := "user://visual_lab_hero_graphics_test.cfg"
 const HERO_GRAPHICS_SETTING := &"hero_graphics"
 const EXPECTED_ANIMATIONS: Array[StringName] = [
-	&"stand_n",
-	&"stand_ne",
-	&"stand_e",
-	&"stand_se",
-	&"stand_s",
-	&"stand_sw",
-	&"stand_w",
-	&"stand_nw",
-	&"walk_n",
-	&"walk_ne",
-	&"walk_e",
-	&"walk_se",
-	&"walk_s",
-	&"walk_sw",
-	&"walk_w",
-	&"walk_nw",
+	&"stand_N",
+	&"stand_NO",
+	&"stand_O",
+	&"stand_SO",
+	&"stand_S",
+	&"stand_SW",
+	&"stand_W",
+	&"stand_NW",
+	&"walk_N",
+	&"walk_NO",
+	&"walk_O",
+	&"walk_SO",
+	&"walk_S",
+	&"walk_SW",
+	&"walk_W",
+	&"walk_NW",
 ]
 const DIRECTION_SUFFIXES: Array[String] = [
-	"n",
-	"ne",
-	"e",
-	"se",
-	"s",
-	"sw",
-	"w",
-	"nw",
+	"N",
+	"NO",
+	"O",
+	"SO",
+	"S",
+	"SW",
+	"W",
+	"NW",
 ]
-const ULTRA_TEXTURE_SCALE := Vector2(80.0 / 618.0, 80.0 / 618.0)
+const ULTRA_TEXTURE_SCALE := Vector2(80.0 / 1205.0, 80.0 / 1205.0)
 const PIXEL_ART_TEXTURE_SCALE := Vector2(80.0 / 245.0, 80.0 / 245.0)
 
 var failures: PackedStringArray = []
@@ -63,6 +69,7 @@ func run(tree: SceneTree) -> PackedStringArray:
 	var visual_lab := await _open_visual_lab(tree, packed_scene)
 	if visual_lab != null:
 		await _expect_graphics_switch(tree, visual_lab, pixel_art_frames)
+		await _expect_additional_variants(tree, visual_lab)
 		await _close_visual_lab(tree, visual_lab)
 
 	var reopened := await _open_visual_lab(tree, packed_scene)
@@ -72,10 +79,25 @@ func run(tree: SceneTree) -> PackedStringArray:
 			PIXEL_ART_FRAMES_PATH,
 			PIXEL_ART_TEXTURE_SCALE,
 			Vector2(0.0, -122.5),
-			"Hero-Grafik: Pixelart · 1 Standbild je Richtung · 265 × 265 px",
+			"Hero-Grafik: Pixel Art · 1 Standbild je Richtung · 265 × 265 px",
 			"saved Pixelart variant reopens",
 		)
 		await _close_visual_lab(tree, reopened)
+
+	for variant_id in ["hd", "test"]:
+		var settings := ConfigFile.new()
+		settings.set_value("meta", "version", 4)
+		settings.set_value("visual_lab", "hero_graphics", variant_id)
+		settings.save(SETTINGS_TEST_PATH)
+		var restored := await _open_visual_lab(tree, packed_scene)
+		if restored != null:
+			var sprite := restored.get_node(
+				"TestWorld/HeroCharacter/Visual/JumpVisual/Appearance/TextureScale/HeroSprite"
+			) as AnimatedSprite2D
+			var expected_path := HD_FRAMES_PATH if variant_id == "hd" else TEST_FRAMES_PATH
+			_expect(sprite.sprite_frames.resource_path == expected_path, "%s reopens" % variant_id)
+			_expect_saved_variant(variant_id)
+			await _close_visual_lab(tree, restored)
 
 	_write_version_three_settings()
 	var migrated := await _open_visual_lab(tree, packed_scene)
@@ -84,8 +106,8 @@ func run(tree: SceneTree) -> PackedStringArray:
 			migrated,
 			ULTRA_FRAMES_PATH,
 			ULTRA_TEXTURE_SCALE,
-			Vector2(0.0, -305.0),
-			"Hero-Grafik: Ultra · 16 Frames je Richtung · 640 × 640 px Referenz",
+			Vector2(0.0, -597.0),
+			"Hero-Grafik: Ultra · 16 Frames je Richtung · 1254 × 1254 px Standreferenz",
 			"schema 3 settings migrate to the safe Ultra default",
 		)
 		_expect_saved_variant("ultra")
@@ -93,6 +115,78 @@ func run(tree: SceneTree) -> PackedStringArray:
 
 	_cleanup()
 	return failures
+
+
+func _expect_additional_variants(tree: SceneTree, visual_lab: Control) -> void:
+	var options := visual_lab.get_node(
+		"InterfaceLayer/Interface/Menu/Pages/RenderingPage/Content/HeroGraphicsOptions"
+	) as GridContainer
+	_expect(options != null and options.columns == 2, "four variants fit into two columns")
+	if options == null:
+		return
+	var hero := visual_lab.get_node("TestWorld/HeroCharacter") as CharacterBody2D
+	var controller := hero.get_node("AnimationController")
+	var texture_scale := hero.get_node("Visual/JumpVisual/Appearance/TextureScale") as Node2D
+	var sprite := texture_scale.get_node("HeroSprite") as AnimatedSprite2D
+	var position_before := hero.position
+	var collision := hero.get_node("CollisionShape2D") as CollisionShape2D
+	var shape_before := collision.shape
+	controller.set_physics_process(false)
+	var cases := [
+		["HdButton", "hd", HD_FRAMES_PATH],
+		["TestButton", "test", TEST_FRAMES_PATH],
+	]
+	for item in cases:
+		var button := options.get_node_or_null(str(item[0])) as Button
+		_expect(button != null, "%s button exists" % item[1])
+		if button == null:
+			continue
+		button.pressed.emit()
+		await tree.process_frame
+		_expect(sprite.sprite_frames.resource_path == item[2], "%s selects its resource" % item[1])
+		_expect_saved_variant(str(item[1]))
+		_expect(button.text.contains("●"), "%s is marked as selected" % item[1])
+		_expect(
+			button.position.x + button.size.x <= options.size.x + 1.0,
+			"%s button fits inside the menu" % item[1],
+		)
+		var layouts := sprite.sprite_frames.get_meta(&"animation_layouts", {}) as Dictionary
+		for direction_index in range(DIRECTION_SUFFIXES.size()):
+			hero.set("animation_direction", direction_index)
+			for action in [&"stand", &"walk"]:
+				controller.call(&"_apply_animation", action, false)
+				var expected := StringName("%s_%s" % [action, DIRECTION_SUFFIXES[direction_index]])
+				_expect(sprite.animation == expected, "%s supports %s" % [item[1], expected])
+				_expect(
+					sprite.is_playing() == (item[1] != "test"),
+					"%s uses its pose playback for %s" % [item[1], expected],
+				)
+				var layout := layouts.get(expected, {}) as Dictionary
+				_expect(not layout.is_empty(), "%s has layout data" % expected)
+				if not layout.is_empty():
+					_expect(texture_scale.scale == layout["scale"], "%s uses its scale" % expected)
+					_expect(sprite.offset == layout["offset"], "%s uses its foot anchor" % expected)
+		_expect(hero.position == position_before, "%s preserves hero position" % item[1])
+		_expect(collision.shape == shape_before, "%s preserves collision geometry" % item[1])
+		if item[1] == "test":
+			var speed_before := sprite.sprite_frames.get_animation_speed(&"stand_S")
+			sprite.sprite_frames.set_animation_speed(&"stand_S", 99.0)
+			button.pressed.emit()
+			_expect(
+				is_equal_approx(sprite.sprite_frames.get_animation_speed(&"stand_S"), speed_before),
+				"selecting Testversion again reloads its resource from disk",
+			)
+			hero.set("animation_direction", 1)
+			controller.call(&"_apply_animation", &"jump", false)
+			_expect(sprite.animation == &"jump_NO", "Testversion exposes its jump pose")
+			(options.get_node("UltraButton") as Button).pressed.emit()
+			_expect(
+				sprite.animation == &"stand_NO",
+				"switching away from a test-only pose preserves the facing direction",
+			)
+	var pixel_art_button := options.get_node("PixelArtButton") as Button
+	pixel_art_button.pressed.emit()
+	controller.set_physics_process(true)
 
 
 func _expect_pixel_art_resource(sprite_frames: SpriteFrames) -> void:
@@ -174,8 +268,8 @@ func _expect_graphics_switch(
 		visual_lab,
 		ULTRA_FRAMES_PATH,
 		ULTRA_TEXTURE_SCALE,
-		Vector2(0.0, -305.0),
-		"Hero-Grafik: Ultra · 16 Frames je Richtung · 640 × 640 px Referenz",
+		Vector2(0.0, -597.0),
+		"Hero-Grafik: Ultra · 16 Frames je Richtung · 1254 × 1254 px Standreferenz",
 		"VisualLab starts with Ultra",
 	)
 	visual_lab._set_controls_visible(true)
@@ -187,7 +281,7 @@ func _expect_graphics_switch(
 		PIXEL_ART_FRAMES_PATH,
 		PIXEL_ART_TEXTURE_SCALE,
 		Vector2(0.0, -122.5),
-		"Hero-Grafik: Pixelart · 1 Standbild je Richtung · 265 × 265 px",
+		"Hero-Grafik: Pixel Art · 1 Standbild je Richtung · 265 × 265 px",
 		"Pixelart button switches immediately",
 	)
 	_expect(
@@ -210,13 +304,37 @@ func _expect_graphics_switch(
 		visual_lab,
 		ULTRA_FRAMES_PATH,
 		ULTRA_TEXTURE_SCALE,
-		Vector2(0.0, -305.0),
-		"Hero-Grafik: Ultra · 16 Frames je Richtung · 640 × 640 px Referenz",
-		"Ultra button restores the animated resource",
+		Vector2(0.0, -597.0),
+		"Hero-Grafik: Ultra · 16 Frames je Richtung · 1254 × 1254 px Standreferenz",
+		"Ultra button restores the test pose resource",
 	)
 	pixel_art_button.pressed.emit()
 	await tree.process_frame
 	_expect_saved_variant("pixel_art")
+
+	controller.set_physics_process(false)
+	controller.call(&"_apply_animation", &"walk", false)
+	var position_before_switch := hero.position
+	ultra_button.pressed.emit()
+	_expect_active_variant(
+		visual_lab,
+		ULTRA_FRAMES_PATH,
+		ULTRA_TEXTURE_SCALE,
+		Vector2(0.0, -597.0),
+		"Hero-Grafik: Ultra · 16 Frames je Richtung · 1254 × 1254 px Standreferenz",
+		"switching graphics during walking uses the shared Ultra pose scale",
+	)
+	pixel_art_button.pressed.emit()
+	_expect_active_variant(
+		visual_lab,
+		PIXEL_ART_FRAMES_PATH,
+		PIXEL_ART_TEXTURE_SCALE,
+		Vector2(0.0, -122.5),
+		"Hero-Grafik: Pixel Art · 1 Standbild je Richtung · 265 × 265 px",
+		"switching back during walking restores the Pixelart scale",
+	)
+	_expect(hero.position == position_before_switch, "graphics switches preserve hero position")
+	controller.set_physics_process(true)
 
 
 func _expect_directional_stills(

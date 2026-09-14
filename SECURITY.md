@@ -2,7 +2,7 @@
 
 ## Unterstützter Stand
 
-Sicherheitskorrekturen gelten für den aktiv gepflegten Stand von `main`.
+Sicherheitskorrekturen gelten für den aktiv gepflegten Stand von ```main```.
 Ältere Veröffentlichungen, einzelne historische Commits und fremde Forks
 benötigen jeweils eine eigene Bewertung und Richtlinie.
 
@@ -44,3 +44,6 @@ Private GitHub-Sicherheitsmeldungen werden nicht automatisch auf Forks
 übertragen. Betreiber eines Forks müssen diese Funktion selbst aktivieren,
 ihren eigenen Link eintragen und den Meldeweg prüfen. Zugangsdaten oder Token
 dürfen niemals als Kontaktweg im Repository abgelegt werden.
+
+
+

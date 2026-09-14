@@ -51,6 +51,7 @@ func run(tree: SceneTree) -> PackedStringArray:
 
 	var visual_lab := visual_lab_node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	await tree.process_frame
 
 	var test_world := visual_lab.get_node_or_null("TestWorld") as Node2D

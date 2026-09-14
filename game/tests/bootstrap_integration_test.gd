@@ -46,6 +46,10 @@ const TEST_SUITES := [
 	"res://tests/runtime/input_map_test.gd",
 	"res://tests/runtime/hero_character_test.gd",
 	"res://tests/runtime/green_hero_animation_test.gd",
+	"res://tests/runtime/green_hero_test_poses_test.gd",
+	"res://tests/runtime/portal_lab_test.gd",
+	"res://tests/runtime/portal_lab_graphics_test.gd",
+	"res://tests/runtime/portal_lab_soul_test.gd",
 	"res://tests/runtime/hero_movement_v0_test.gd",
 	"res://tests/runtime/hero_room_test.gd",
 	"res://tests/runtime/hero_room_interaction_test.gd",
@@ -56,6 +60,7 @@ const TEST_SUITES := [
 	"res://tests/runtime/visual_lab_world_state_test.gd",
 	"res://tests/runtime/visual_lab_atmosphere_test.gd",
 	"res://tests/runtime/visual_lab_diagnostics_test.gd",
+	"res://tests/runtime/visual_lab_performance_test.gd",
 	"res://tests/runtime/visual_lab_controls_test.gd",
 	"res://tests/runtime/visual_lab_pixel_snap_test.gd",
 	"res://tests/runtime/visual_lab_texture_filter_test.gd",
@@ -453,21 +458,11 @@ func _test_bootstrap_contract() -> void:
 				Vector2(1920, 2160),
 				Vector2(3840, 32),
 			)
-		var orientation_markers := bootstrap.get_node_or_null(
-			"ApplicationRoot/RouteHost/VisualLab/TestWorld/OrientationMarkers"
-		) as Node2D
-		_expect(orientation_markers != null, "VisualLab has orientation markers")
-		if orientation_markers != null:
-			_expect(
-				orientation_markers.get_child_count() == 3,
-				"VisualLab has three orientation markers",
-			)
-			for marker_node in orientation_markers.get_children():
-				var marker := marker_node as Polygon2D
-				_expect(
-					marker != null and marker.visible,
-					"VisualLab orientation markers are visible Polygon2D nodes",
-				)
+		var navigation := visual_lab.get_node("LabNavigation")
+		_expect(navigation.get("current_room_id") == &"hub", "VisualLab starts in the portal tower")
+		var portal_room := navigation.get("current_room") as Node2D
+		_expect(portal_room.get_node("Portals").get_child_count() == 9,
+			"VisualLab has portals for all nine specialized rooms")
 		var test_obstacle := bootstrap.get_node_or_null(
 			"ApplicationRoot/RouteHost/VisualLab/TestWorld/TestObstacle"
 		) as StaticBody2D
@@ -665,6 +660,7 @@ func _test_bootstrap_contract() -> void:
 					"VisualLab background stays fixed while the hero moves",
 				)
 
+			navigation.call(&"enter_room", &"objects")
 			hero_character.position = Vector2(2268, 1080)
 			await _hold_action_for_physics_frames(&"gameplay_move_right", 4)
 			_expect(

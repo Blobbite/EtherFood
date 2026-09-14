@@ -3,7 +3,7 @@ title: Green Hero – Animationen
 type: reference
 entity_id: green-hero
 entity_type: hero
-updated: 2026-09-08
+updated: 2026-09-10
 ---
 
 <!-- PYGINDEX:NAVIGATION START -->
@@ -27,9 +27,17 @@ updated: 2026-09-08
 | Frames je GIF | 6 bis 16 |
 | Dokumentationsformat | GIF |
 | Doku-Assets | `docs/game/reference/animations/heroes/green-hero/previews/` |
-| Im Spiel eingebunden | Ultra: Stehen und Gehen, je 8 Richtungen × 16 Frames; Pixelart mit je 1 Standbild nur als Testlabor-Variante |
+| Im Spiel eingebunden | Ultra: Stehen und Gehen, je 8 Richtungen × 16 Frames; Testversion: 48 Einzelposen; HD und Pixel Art zusätzlich im Testlabor |
 
 ## Kurzbeschreibung
+
+Die Ultra-Standgrafik im Prototyp wurde am 10. September 2026 durch neue PNGs
+ersetzt. Für den Bewegungstest werden dieselben neuen Posen auch beim Gehen
+angezeigt. Die Stand- und Geh-GIFs dieser Seite zeigen weiterhin die frühere
+Fassung; für die neue Version wurden keine GIF-Vorschauen geliefert. Aktuelle
+Bilddaten und Richtungszuordnung stehen unter
+[Green Hero – Stehen und Gehen](../../../../../system/development/features/green-hero-stand-und-gehen.md).
+Alle Laufzeitgrafiken bleiben bis zur finalen Freigabe unter `game/tests/assets/`.
 
 Der Green Hero ist eine spielbare Heldenfigur von EtherFood. Diese Seite
 dokumentiert die tatsächlich vorhandenen visuellen GIF-Vorschauen und weist
@@ -54,7 +62,7 @@ Arbeiten existieren.
 | Herkunft | Fertige GIF-Exporte aus der lokal bereitgestellten Green-Hero-Arbeitsstruktur |
 | Dokumentationsstand | 8. September 2026 |
 | Grafikbestand | Stehen, langes Warten, Gehen, Laufen, Rennen und Sprinten vollständig; genervtes Warten nur nach Süden |
-| Laufzeitstand | Stehen und Gehen in acht Richtungen als Ultra-Sheets; 16 Pixelart-Einzelbilder zusätzlich nur für den Laborvergleich |
+| Laufzeitstand | Stehen und Gehen als Ultra-Sheets; Testversion mit sechs Einzelposen je Richtung; HD und Pixel Art zusätzlich für den Laborvergleich |
 | Technische Merkmale | Alle GIFs mit 640 × 640 Pixeln; 35 GIFs mit 16 Frames; Gehen und Laufen mit je 16 Frames; Rennen und Sprinten mit je 6 Frames pro Richtung |
 | Quellzuordnung | Gehen: `walk`; Laufen: `run`; Rennen: `sprint`; Sprinten: `race` |
 | Renn-Wiedergabe | `sprint`: sieben Richtungen mit 12 Hundertstelsekunden je Frame (etwa 8,3 FPS), Südosten mit 6 (etwa 16,7 FPS) |
@@ -77,13 +85,17 @@ Für richtungsabhängige Animationen gilt diese einheitliche Reihenfolge:
 | Kürzel | Richtung |
 |---|---|
 | N | Norden |
-| NE | Nordosten |
-| E | Osten |
-| SE | Südosten |
+| NO | Nordosten |
+| O | Osten |
+| SO | Südosten |
 | S | Süden |
 | SW | Südwesten |
 | W | Westen |
 | NW | Nordwesten |
+
+Die Laufzeitdateien und Godot-Animationen verwenden diese Kürzel in
+Großschreibung, etwa `greenhero_NO_walk_spritesheet_4x4_o.png` und `walk_NO`.
+Die historischen GIF-Vorschauen behalten ihre vorhandenen Dateipfade.
 
 ## Laufzeit-Einbindung
 
@@ -91,33 +103,43 @@ Im Spiel verwendet der `HeroCharacter` derzeit genau 16 optimierte
 Spritesheets: acht für Stehen und acht für Gehen. Jedes Sheet besitzt ein
 4×4-Raster und 16 Frames; die gemeinsame `SpriteFrames`-Ressource umfasst
 damit 256 Frames. Alle Folgen laufen in Endlosschleife mit 120 Millisekunden je
-Frame. Beim Start blickt der Held nach Süden, beim Anhalten behält er die letzte
-der acht Richtungen.
+Frame. In dieser Testfassung sind die Frames je Richtung identisch und die
+Stand- und Walk-Sheets bytegleich. Beim Start blickt der Held nach Süden;
+beim Anhalten behält er die letzte der acht Richtungen.
 
 Die Laufzeitassets liegen unter
-`game/assets/characters/heroes/green_hero/ultra/`. Manifest,
+`game/tests/assets/characters/heroes/green_hero/ultra/`. Manifest,
 Ausschnittkoordinaten, Fußanker, Referenzmaß und Wiederherstellung des
-640 × 640-px-Bezugsfelds sind in der
+1254 × 1254-px-Bezugsfelds sind in der
 [Entwicklungsdokumentation zur Einbindung](../../../../../system/development/features/green-hero-stand-und-gehen.md)
 festgehalten.
 
-Laufen, Rennen, Sprinten, Schleichen, Sprünge und Wartevarianten sind als
-Grafiken teilweise vorhanden, aber noch nicht als eigene Laufzeitfolgen
-eingebunden. Bodenbewegungen verwenden bis dahin übergangsweise die passende
-Gehfolge; der bestehende Sprung friert das erste Standbild der Richtung ein.
+Ultra besitzt noch keine eigenen Laufzeitfolgen für Laufen, Rennen,
+Sprinten, Schleichen, Sprünge und Wartevarianten. Seine Bodenbewegungen
+verwenden die passende Gehfolge; der bestehende Sprung friert das erste
+Standbild der Richtung ein. Die Testversion ergänzt eigene feste Posen
+für die Bewegungszustände.
 
 Das visuelle Testlabor besitzt daneben eine eigenständige Pixelart-Ressource
-unter `game/assets/characters/heroes/green_hero/pixel_art/`. Sie ordnet je ein
+unter `game/tests/assets/characters/heroes/green_hero/pixel_art/`. Sie ordnet je ein
 transparentes `265 × 265`-PNG denselben acht Stand- und acht Gehnamen zu. Die
 Figurenhöhe und der Fußpunkt sind für einen deckungsgleichen Vergleich mit
-Ultra normalisiert. Diese Standbilder sind weder GIF-Vorschauen noch eine
+Ultra normalisiert. HD verwendet die bestätigte frühere animierte Fassung mit
+640-Pixel-Bezugsfeld. Die unabhängige Testversion enthält 48 nicht animierte
+Einzelposen mit 1436 × 1254 Pixeln: `stand`, `walk`, `run`, `sneak`, `sprint`
+und `jump` in jeweils acht Richtungen. Laufen und Rennen verwenden `run`.
+Ihre ursprünglichen Einzelbilder und Raster bleiben als Quellen erhalten.
+Ihr SH-Skript ermöglicht den schnellen Austausch neuer Testposen. Alle vier
+Varianten werden im Testlabor unter Darstellung → Hero-Grafik gewählt.
+
+Diese Standbilder sind weder GIF-Vorschauen noch eine
 angenommene neue Spielgrafik; außerhalb des Labors bleibt Ultra aktiv.
 
 ## Animationsübersicht
 
 ### Idle
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Stehen | <img src="previews/stand/n.gif" alt="Green Hero steht mit Blick nach Norden" width="96"> | <img src="previews/stand/ne.gif" alt="Green Hero steht mit Blick nach Nordosten" width="96"> | <img src="previews/stand/e.gif" alt="Green Hero steht mit Blick nach Osten" width="96"> | <img src="previews/stand/se.gif" alt="Green Hero steht mit Blick nach Südosten" width="96"> | <img src="previews/stand/s.gif" alt="Green Hero steht mit Blick nach Süden" width="96"> | <img src="previews/stand/sw.gif" alt="Green Hero steht mit Blick nach Südwesten" width="96"> | <img src="previews/stand/w.gif" alt="Green Hero steht mit Blick nach Westen" width="96"> | <img src="previews/stand/nw.gif" alt="Green Hero steht mit Blick nach Nordwesten" width="96"> |
 | Lange warten | <img src="previews/stand-long/n.gif" alt="Green Hero wartet lange mit Blick nach Norden" width="96"> | <img src="previews/stand-long/ne.gif" alt="Green Hero wartet lange mit Blick nach Nordosten" width="96"> | <img src="previews/stand-long/e.gif" alt="Green Hero wartet lange mit Blick nach Osten" width="96"> | <img src="previews/stand-long/se.gif" alt="Green Hero wartet lange mit Blick nach Südosten" width="96"> | <img src="previews/stand-long/s.gif" alt="Green Hero wartet lange mit Blick nach Süden" width="96"> | <img src="previews/stand-long/sw.gif" alt="Green Hero wartet lange mit Blick nach Südwesten" width="96"> | <img src="previews/stand-long/w.gif" alt="Green Hero wartet lange mit Blick nach Westen" width="96"> | <img src="previews/stand-long/nw.gif" alt="Green Hero wartet lange mit Blick nach Nordwesten" width="96"> |
@@ -129,7 +151,7 @@ gesamte Folge umfasst damit 48 Frames und 5,76 Sekunden.
 
 ### Bewegung
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Gehen | <img src="previews/walk/n.gif" alt="Green Hero geht nach Norden" width="96"> | <img src="previews/walk/ne.gif" alt="Green Hero geht nach Nordosten" width="96"> | <img src="previews/walk/e.gif" alt="Green Hero geht nach Osten" width="96"> | <img src="previews/walk/se.gif" alt="Green Hero geht nach Südosten" width="96"> | <img src="previews/walk/s.gif" alt="Green Hero geht nach Süden" width="96"> | <img src="previews/walk/sw.gif" alt="Green Hero geht nach Südwesten" width="96"> | <img src="previews/walk/w.gif" alt="Green Hero geht nach Westen" width="96"> | <img src="previews/walk/nw.gif" alt="Green Hero geht nach Nordwesten" width="96"> |
 | Laufen | <img src="previews/run/n.gif" alt="Green Hero läuft nach Norden" width="96"> | <img src="previews/run/ne.gif" alt="Green Hero läuft nach Nordosten" width="96"> | <img src="previews/run/e.gif" alt="Green Hero läuft nach Osten" width="96"> | <img src="previews/run/se.gif" alt="Green Hero läuft nach Südosten" width="96"> | <img src="previews/run/s.gif" alt="Green Hero läuft nach Süden" width="96"> | <img src="previews/run/sw.gif" alt="Green Hero läuft nach Südwesten" width="96"> | <img src="previews/run/w.gif" alt="Green Hero läuft nach Westen" width="96"> | <img src="previews/run/nw.gif" alt="Green Hero läuft nach Nordwesten" width="96"> |
@@ -144,7 +166,7 @@ pixelgleich.
 
 ### Bewegungssprünge
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Gehsprung | — | — | — | — | — | — | — | — |
 | Laufsprung | — | — | — | — | — | — | — | — |
@@ -153,13 +175,13 @@ pixelgleich.
 
 ### Schleichen
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Schleichen | — | — | — | — | — | — | — | — |
 
 ### Angriffe
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Stehangriff | — | — | — | — | — | — | — | — |
 | Schleichangriff | — | — | — | — | — | — | — | — |
@@ -170,7 +192,7 @@ pixelgleich.
 
 ### Sprungangriffe
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Stehsprungangriff | — | — | — | — | — | — | — | — |
 | Gehsprungangriff | — | — | — | — | — | — | — | — |
@@ -180,7 +202,7 @@ pixelgleich.
 
 ### Ausweichen
 
-| Animation | N | NE | E | SE | S | SW | W | NW |
+| Animation | N | NO | O | SO | S | SW | W | NW |
 |---|---|---|---|---|---|---|---|---|
 | Schleichrolle | — | — | — | — | — | — | — | — |
 | Ausweich-Backflip | — | — | — | — | — | — | — | — |

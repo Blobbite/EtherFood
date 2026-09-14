@@ -34,7 +34,7 @@ func run(tree: SceneTree) -> PackedStringArray:
 	if reopened_visual_lab != null:
 		var panel := reopened_visual_lab.get_node_or_null(
 			"InterfaceLayer/DiagnosticsPanel"
-		) as Panel
+		) as Control
 		var overlay: COLLISION_OVERLAY_SCRIPT = reopened_visual_lab.get_node_or_null(
 			"TestWorld/CollisionDebugOverlay"
 		) as COLLISION_OVERLAY_SCRIPT
@@ -54,7 +54,7 @@ func run(tree: SceneTree) -> PackedStringArray:
 
 
 func _expect_diagnostics_contract(tree: SceneTree, visual_lab: Control) -> void:
-	var panel := visual_lab.get_node_or_null("InterfaceLayer/DiagnosticsPanel") as Panel
+	var panel := visual_lab.get_node_or_null("InterfaceLayer/DiagnosticsPanel") as Control
 	var title := visual_lab.get_node_or_null(
 		"InterfaceLayer/DiagnosticsPanel/Title"
 	) as Label
@@ -77,7 +77,7 @@ func _expect_diagnostics_contract(tree: SceneTree, visual_lab: Control) -> void:
 	_expect(panel != null, "InterfaceLayer has DiagnosticsPanel")
 	_expect(title != null and title.get_parent() == panel, "DiagnosticsPanel has direct Title")
 	_expect(values != null and values.get_parent() == panel, "DiagnosticsPanel has direct Values")
-	_expect(title != null and title.text == "DIAGNOSE", "diagnostics title is exact")
+	_expect(title != null and title.text == "F11 · SPIELDIAGNOSE", "diagnostics title is exact")
 	_expect(overlay != null, "TestWorld has CollisionDebugOverlay")
 	_expect(hero != null, "VisualLab retains CharacterBody2D hero")
 	_expect(hero_collision != null, "hero retains CollisionShape2D")
@@ -91,15 +91,11 @@ func _expect_diagnostics_contract(tree: SceneTree, visual_lab: Control) -> void:
 		overlay.find_children("*", "CollisionShape2D", true, false).is_empty(),
 		"debug overlay creates no physics shapes",
 	)
-	var panel_style := panel.get_theme_stylebox("panel") as StyleBoxFlat
-	_expect(panel_style != null, "diagnostics use a pixel panel")
-	if panel_style != null:
-		_expect(panel_style.border_width_left > 0, "diagnostics panel has a clear border")
-		_expect(panel_style.corner_radius_top_left == 0, "diagnostics panel has square corners")
-		_expect(
-			panel_style.bg_color.a < 0.7,
-			"diagnostics panel has a transparent background",
-		)
+	_expect(panel.get_class() == "Control", "diagnostics have no panel background or border")
+	_expect(
+		values.get_theme_color("font_color") == Color.WHITE,
+		"diagnostic values are white text",
+	)
 	_expect(
 		panel.size.x <= 450.0 and panel.size.y <= 620.0,
 		"diagnostics panel stays compact",
@@ -110,21 +106,21 @@ func _expect_diagnostics_contract(tree: SceneTree, visual_lab: Control) -> void:
 	)
 
 	visual_lab._unhandled_input(_pressed_action(DIAGNOSTICS_ACTION))
-	_expect(panel.visible, "F3 action shows diagnostics")
+	_expect(panel.visible, "F11 action shows diagnostics")
 	_expect_diagnostic_values(visual_lab, values, hero)
 	var values_before_update := values.text
 	await tree.create_timer(0.21).timeout
 	_expect(not values.text.is_empty(), "diagnostics continue updating after 0.2 seconds")
 	_expect(
-		_values_have_numeric_fps(values.text),
-		"FPS remains numeric after periodic update",
+		not values.text.contains("FPS:"),
+		"periodic game diagnostics contain no duplicate FPS",
 	)
 	_expect(not values_before_update.is_empty(), "initial values are populated immediately")
 
-	visual_lab._unhandled_input(_pressed_key(KEY_F3, true))
-	_expect(panel.visible, "held F3 does not toggle diagnostics repeatedly")
-	visual_lab._unhandled_input(_pressed_key(KEY_F3))
-	_expect(not panel.visible, "second F3 press hides diagnostics")
+	visual_lab._unhandled_input(_pressed_key(KEY_F11, true))
+	_expect(panel.visible, "held F11 does not toggle diagnostics repeatedly")
+	visual_lab._unhandled_input(_pressed_key(KEY_F11))
+	_expect(not panel.visible, "second F11 press hides diagnostics")
 	visual_lab._unhandled_input(_pressed_button(JOY_BUTTON_BACK))
 	_expect(panel.visible, "Controller-Select shows diagnostics")
 
@@ -210,7 +206,7 @@ func _expect_diagnostics_contract(tree: SceneTree, visual_lab: Control) -> void:
 
 	visual_lab._unhandled_input(_pressed_key(KEY_F4))
 	_expect(not overlay.visible, "second F4 press hides collision debug")
-	_expect(panel.visible, "F4 remains independent from F3 diagnostics")
+	_expect(panel.visible, "F4 remains independent from F11 diagnostics")
 	_expect_diagnostics_not_saved()
 
 
@@ -224,7 +220,7 @@ func _expect_diagnostic_values(
 		"TestWorld/HeroCharacter/PlayerCamera"
 	) as Camera2D
 	var test_world := visual_lab.get_node_or_null("TestWorld") as Node2D
-	_expect(_values_have_numeric_fps(values.text), "FPS is displayed as a number")
+	_expect(not values.text.contains("FPS:"), "FPS belongs exclusively to F12")
 	_expect(
 		values.text.contains(
 			"Spielerposition roh: %s" % _format_position(hero.global_position)
@@ -403,19 +399,12 @@ func _expect_diagnostics_not_saved() -> void:
 func _expect_input_mapping() -> void:
 	_expect(InputMap.has_action(DIAGNOSTICS_ACTION), "InputMap defines diagnostics toggle")
 	_expect(InputMap.has_action(COLLISION_ACTION), "InputMap defines collision toggle")
-	_expect(_has_key_mapping(DIAGNOSTICS_ACTION, KEY_F3), "diagnostics toggle uses F3")
+	_expect(_has_key_mapping(DIAGNOSTICS_ACTION, KEY_F11), "diagnostics toggle uses F11")
 	_expect(
 		_has_button_mapping(DIAGNOSTICS_ACTION, JOY_BUTTON_BACK),
 		"diagnostics toggle uses Controller-Select/Back",
 	)
 	_expect(_has_key_mapping(COLLISION_ACTION, KEY_F4), "collision toggle uses F4")
-
-
-func _values_have_numeric_fps(text: String) -> bool:
-	var fps_line := _line_with_prefix(text, "FPS: ")
-	if fps_line.is_empty():
-		return false
-	return fps_line.trim_prefix("FPS: ").is_valid_int()
 
 
 func _line_with_prefix(text: String, prefix: String) -> String:
@@ -441,6 +430,7 @@ func _open_visual_lab(tree: SceneTree, packed_scene: PackedScene) -> Control:
 		return null
 	var visual_lab := node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	await tree.process_frame
 	return visual_lab
 

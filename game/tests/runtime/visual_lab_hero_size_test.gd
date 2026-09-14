@@ -3,7 +3,7 @@ extends RefCounted
 const VISUAL_LAB_SCENE_PATH := "res://scenes/dev/visual_lab.tscn"
 const HERO_SCRIPT := preload("res://scenes/gameplay/hero/hero_character.gd")
 const REFERENCE_HEIGHT := 80.0
-const TEXTURE_REFERENCE_HEIGHT := 618.0
+const TEXTURE_REFERENCE_HEIGHT := 1205.0
 const SMALL_HEIGHT := 64.0
 const MEDIUM_HEIGHT := 80.0
 const LARGE_HEIGHT := 96.0

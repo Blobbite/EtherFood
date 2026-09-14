@@ -303,21 +303,37 @@ text = "Darstellung"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.76, 0.77, 1)
 theme_override_font_sizes/font_size = 17
-text = "Hero-Grafik"
+text = "Grafik: Figur und Portal-Labor"
 
-[node name="HeroGraphicsOptions" type="HBoxContainer" parent="Menu/Pages/RenderingPage/Content"]
+[node name="HeroGraphicsOptions" type="GridContainer" parent="Menu/Pages/RenderingPage/Content"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
 
-[node name="UltraButton" type="Button" parent="Menu/Pages/RenderingPage/Content/HeroGraphicsOptions"]
+[node name="HdButton" type="Button" parent="Menu/Pages/RenderingPage/Content/HeroGraphicsOptions"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
+text = "HD"
 
 [node name="PixelArtButton" type="Button" parent="Menu/Pages/RenderingPage/Content/HeroGraphicsOptions"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
+text = "Pixel Art"
+
+[node name="UltraButton" type="Button" parent="Menu/Pages/RenderingPage/Content/HeroGraphicsOptions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "Ultra"
+
+[node name="TestButton" type="Button" parent="Menu/Pages/RenderingPage/Content/HeroGraphicsOptions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+text = "Testversion"
 
 [node name="HeroGraphicsStatus" type="Label" parent="Menu/Pages/RenderingPage/Content"]
 layout_mode = 2
@@ -326,12 +342,19 @@ theme_override_font_sizes/font_size = 15
 autowrap_mode = 2
 text = "Hero-Grafik: Ultra · 16 Frames je Richtung"
 
+[node name="PortalGraphicsStatus" type="Label" parent="Menu/Pages/RenderingPage/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.66, 0.82, 0.55, 1)
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 2
+text = "Portal-Labor: Testvorlagen (für Ultra)"
+
 [node name="HeroGraphicsHint" type="Label" parent="Menu/Pages/RenderingPage/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.68, 0.7, 1)
 theme_override_font_sizes/font_size = 14
 autowrap_mode = 2
-text = "Nur lokaler Laborvergleich; die Spielgrafik bleibt unverändert."
+text = "Wechselt Figur, Boden, Türen und Testobjekte gemeinsam."
 
 [node name="HeroGraphicsSeparator" type="HSeparator" parent="Menu/Pages/RenderingPage/Content"]
 layout_mode = 2
@@ -534,7 +557,7 @@ text = "Diagnose und Hilfe"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.76, 0.77, 1)
 theme_override_font_sizes/font_size = 17
-text = "Diagnoseanzeige · F3 bleibt erhalten"
+text = "Spieldiagnose · F11"
 
 [node name="DiagnosticsOptions" type="HBoxContainer" parent="Menu/Pages/DiagnosticsPage/Content"]
 layout_mode = 2
@@ -546,6 +569,26 @@ size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
 
 [node name="OnButton" type="Button" parent="Menu/Pages/DiagnosticsPage/Content/DiagnosticsOptions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+
+[node name="PerformanceLabel" type="Label" parent="Menu/Pages/DiagnosticsPage/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.76, 0.77, 1)
+theme_override_font_sizes/font_size = 17
+text = "Leistung und Technik · F12"
+
+[node name="PerformanceOptions" type="HBoxContainer" parent="Menu/Pages/DiagnosticsPage/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="OffButton" type="Button" parent="Menu/Pages/DiagnosticsPage/Content/PerformanceOptions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+
+[node name="OnButton" type="Button" parent="Menu/Pages/DiagnosticsPage/Content/PerformanceOptions"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_default_cursor_shape = 2
@@ -881,4 +924,4 @@ vertical_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.62, 0.7, 0.72, 1)
 theme_override_font_sizes/font_size = 14
-text = "F3 Diagnose · F4 Kollisionsflächen · F5 Menü schließen"
+text = "F11 Spiel · F12 Technik · F4 Kollision · F5 Menü schließen"

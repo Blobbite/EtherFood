@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/gameplay/hero/hero_character.gd" id="1_hero"]
-[ext_resource type="SpriteFrames" path="res://assets/characters/heroes/green_hero/ultra/green_hero_stand_walk_ultra.tres" id="2_hero_frames"]
+[ext_resource type="SpriteFrames" path="res://tests/assets/characters/heroes/green_hero/ultra/green_hero_stand_walk_ultra.tres" id="2_hero_frames"]
 [ext_resource type="Resource" path="res://shared/resources/hero_movement_v0.tres" id="3_movement"]
 [ext_resource type="Script" path="res://shared/camera/player_camera_controller.gd" id="4_camera"]
 [ext_resource type="Resource" path="res://shared/resources/camera_world_v0.tres" id="5_camera_profile"]
@@ -30,15 +30,15 @@ color = Color(0.039, 0.047, 0.055, 0.65)
 position = Vector2(0, 10)
 
 [node name="TextureScale" type="Node2D" parent="Visual/JumpVisual/Appearance"]
-scale = Vector2(0.12944984, 0.12944984)
+scale = Vector2(0.066390041494, 0.066390041494)
 
 [node name="HeroSprite" type="AnimatedSprite2D" parent="Visual/JumpVisual/Appearance/TextureScale"]
 texture_filter = 1
 texture_repeat = 1
 sprite_frames = ExtResource("2_hero_frames")
-animation = &"stand_s"
-autoplay = "stand_s"
-offset = Vector2(0, -305)
+animation = &"stand_S"
+autoplay = "stand_S"
+offset = Vector2(0, -597)
 
 [node name="FacingMarker" type="Polygon2D" parent="Visual/JumpVisual"]
 polygon = PackedVector2Array(-3, 14, 3, 14, 0, 18)

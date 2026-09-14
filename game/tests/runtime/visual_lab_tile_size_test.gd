@@ -30,6 +30,7 @@ func run(tree: SceneTree) -> PackedStringArray:
 
 	var visual_lab := visual_lab_node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	await tree.process_frame
 
 	var tile_comparison := visual_lab.get_node_or_null(
@@ -282,6 +283,7 @@ func _expect_reopened_small_size(tree: SceneTree, visual_lab_scene: PackedScene)
 		return
 	var reopened_visual_lab := reopened_node as Control
 	tree.root.add_child(reopened_visual_lab)
+	reopened_visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	await tree.process_frame
 	var reopened_preview: TILE_GRID_PREVIEW_SCRIPT = reopened_visual_lab.get_node_or_null(
 		"TestWorld/TileComparison/TileGridPreview"

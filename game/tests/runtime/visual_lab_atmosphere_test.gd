@@ -415,6 +415,7 @@ func _expect_collision_contract(
 	hero: HERO_SCRIPT,
 	obstacle: StaticBody2D,
 ) -> void:
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	visual_lab._selected_camera_zoom = 1
 	visual_lab._apply_camera_zoom()
 	for world_state in range(2):
@@ -576,6 +577,7 @@ func _open_visual_lab(tree: SceneTree, packed_scene: PackedScene) -> Control:
 		return null
 	var visual_lab := node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"fog")
 	await tree.process_frame
 	await tree.physics_frame
 	return visual_lab

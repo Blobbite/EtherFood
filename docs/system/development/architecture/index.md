@@ -9,6 +9,7 @@
 
 ### Seiten
 - [Architektur: <Spielbereich>](_architecture-template.md)
+- [Asset-Ablage und Freigabe](asset-ablage-und-freigabe.md)
 - [Szenen- und Zustandsfluss](szenen-und-zustandsfluss.md)
 - [Visuelle Darstellungsgrundlage V0](visuelle-darstellungsgrundlage-v0.md)
 <!-- PYGINDEX:INDEX END -->

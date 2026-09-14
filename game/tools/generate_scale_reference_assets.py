@@ -60,12 +60,14 @@ WORLD_STATE_SOURCE_WIDTH = 720
 WORLD_STATE_SOURCE_HEIGHT = 405
 OUTPUT_DIR = (
     Path(__file__).resolve().parents[1]
+    / "tests"
     / "assets"
     / "prototypes"
     / "scale_references"
 )
 WORLD_STATE_OUTPUT_DIR = (
     Path(__file__).resolve().parents[1]
+    / "tests"
     / "assets"
     / "prototypes"
     / "world_states"

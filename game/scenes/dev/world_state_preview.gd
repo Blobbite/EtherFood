@@ -90,6 +90,7 @@ const RESTORED_LIGHT_VARIANTS: Array[Dictionary] = [
 var current_state: int = WorldState.DAMAGED
 var current_fog_variant := DAMAGED_DEFAULT_FOG_VARIANT
 var current_light_variant := DAMAGED_DEFAULT_LIGHT_VARIANT
+var preview_mode: StringName = &"all"
 
 @onready var damaged_state: Node2D = $DamagedState
 @onready var restored_state: Node2D = $RestoredState
@@ -126,6 +127,18 @@ func set_atmosphere_variants(fog_variant: int, light_variant: int) -> void:
 		0,
 		get_light_variant_count(current_state) - 1,
 	)
+	_apply_atmosphere()
+
+
+func set_preview_mode(mode: StringName) -> void:
+	preview_mode = mode
+	match mode:
+		&"fog":
+			$Title.text = "Nebel · Vergleich auf derselben Testfläche"
+		&"day_night":
+			$Title.text = "Tageszeit · Hell-Dunkel-Vergleich"
+		&"world_state":
+			$Title.text = "Weltzustand · Aufgebaut ↔ Zerstört"
 	_apply_atmosphere()
 
 
@@ -221,6 +234,14 @@ func _apply_atmosphere() -> void:
 	var fog_strength := float(fog_variant["strength"])
 	var state_modulate := light_variant["state_modulate"] as Color
 	var primary_color := light_variant["primary_color"] as Color
+	var combined_preview := preview_mode == &"all"
+	damaged_fog.visible = combined_preview or preview_mode == &"fog"
+	restored_fog.visible = combined_preview or preview_mode == &"fog"
+	damaged_light.visible = combined_preview
+	restored_light.visible = combined_preview
+	restored_clear_air.visible = combined_preview
+	if not combined_preview:
+		state_modulate = Color.WHITE
 	if current_state == WorldState.RESTORED:
 		restored_fog.self_modulate = Color(1.0, 1.0, 1.0, fog_strength)
 		restored_state.modulate = state_modulate

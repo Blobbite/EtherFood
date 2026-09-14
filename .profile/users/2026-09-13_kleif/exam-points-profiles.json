@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 2,
+  "defaultProfileId": "points-88e79022-1f0b-4614-9b08-0c32bfe9e455",
+  "profiles": [
+    {
+      "id": "points-88e79022-1f0b-4614-9b08-0c32bfe9e455",
+      "name": "Exam",
+      "distribution": "task-order",
+      "durationMinutes": 30,
+      "maxTotalPoints": 45,
+      "taskCount": 10,
+      "taskPoints": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        6,
+        8,
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "typeRules": {
+        "qa": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        },
+        "tf": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        },
+        "m1": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        },
+        "m2": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        },
+        "cl": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        },
+        "cd": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        },
+        "cld": {
+          "points": 5,
+          "mode": "all-or-nothing",
+          "penalty": 0
+        }
+      },
+      "createdAt": "2026-09-13T06:13:29.101Z",
+      "updatedAt": "2026-09-13T06:13:29.101Z",
+      "version": 1
+    }
+  ]
+}

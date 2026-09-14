@@ -21,6 +21,7 @@ const SETTING_WORLD_STATE := &"world_state"
 const SETTING_FOG := &"fog"
 const SETTING_LIGHT := &"light"
 const SETTING_DIAGNOSTICS := &"diagnostics"
+const SETTING_PERFORMANCE := &"performance"
 const SETTING_COLLISION := &"collision"
 const SETTING_SNEAK_SPEED := &"sneak_speed"
 const SETTING_WALK_SPEED := &"walk_speed"
@@ -76,6 +77,9 @@ const TAB_PRIMARY_SETTINGS: Array[StringName] = [
 @onready var hero_graphics_status: Label = (
 	$Menu/Pages/RenderingPage/Content/HeroGraphicsStatus
 )
+@onready var portal_graphics_status: Label = (
+	$Menu/Pages/RenderingPage/Content/PortalGraphicsStatus
+)
 @onready var world_state_status: Label = (
 	$Menu/Pages/WorldPage/Content/WorldStateStatus
 )
@@ -129,6 +133,8 @@ const TAB_PRIMARY_SETTINGS: Array[StringName] = [
 @onready var _hero_graphics_buttons: Array[Button] = [
 	$Menu/Pages/RenderingPage/Content/HeroGraphicsOptions/UltraButton,
 	$Menu/Pages/RenderingPage/Content/HeroGraphicsOptions/PixelArtButton,
+	$Menu/Pages/RenderingPage/Content/HeroGraphicsOptions/HdButton,
+	$Menu/Pages/RenderingPage/Content/HeroGraphicsOptions/TestButton,
 ]
 @onready var _texture_filter_buttons: Array[Button] = [
 	$Menu/Pages/RenderingPage/Content/TextureFilterOptions/NearestButton,
@@ -154,6 +160,10 @@ const TAB_PRIMARY_SETTINGS: Array[StringName] = [
 @onready var _collision_buttons: Array[Button] = [
 	$Menu/Pages/DiagnosticsPage/Content/CollisionOptions/OffButton,
 	$Menu/Pages/DiagnosticsPage/Content/CollisionOptions/OnButton,
+]
+@onready var _performance_buttons: Array[Button] = [
+	$Menu/Pages/DiagnosticsPage/Content/PerformanceOptions/OffButton,
+	$Menu/Pages/DiagnosticsPage/Content/PerformanceOptions/OnButton,
 ]
 @onready var _numeric_settings: Array[NumericSettingScript] = [
 	$Menu/Pages/GameplayPage/Content/SneakSpeed,
@@ -342,7 +352,7 @@ func _register_settings() -> void:
 	_register_setting(
 		SETTING_HERO_GRAPHICS,
 		_hero_graphics_buttons,
-		["Ultra · animiert", "Pixelart · Standbilder"],
+		["Ultra", "Pixel Art", "HD", "Testversion"],
 	)
 	_register_setting(
 		SETTING_PIXEL_SNAP,
@@ -376,6 +386,11 @@ func _register_settings() -> void:
 	_register_setting(
 		SETTING_DIAGNOSTICS,
 		_diagnostics_buttons,
+		["AUS", "AN"],
+	)
+	_register_setting(
+		SETTING_PERFORMANCE,
+		_performance_buttons,
 		["AUS", "AN"],
 	)
 	_register_setting(
@@ -644,7 +659,7 @@ func _setting_display_name(setting_id: StringName) -> String:
 		SETTING_TILE_SIZE:
 			return "Tilegröße"
 		SETTING_HERO_GRAPHICS:
-			return "Hero-Grafik"
+			return "Grafik: Figur und Portal-Labor"
 		SETTING_PIXEL_SNAP:
 			return "Pixel-Snap"
 		SETTING_TEXTURE_FILTER:
@@ -656,7 +671,9 @@ func _setting_display_name(setting_id: StringName) -> String:
 		SETTING_LIGHT:
 			return "Licht"
 		SETTING_DIAGNOSTICS:
-			return "Diagnoseanzeige"
+			return "Spieldiagnose"
+		SETTING_PERFORMANCE:
+			return "Leistung und Technik"
 		SETTING_COLLISION:
 			return "Kollisionsflächen"
 		SETTING_SNEAK_SPEED:

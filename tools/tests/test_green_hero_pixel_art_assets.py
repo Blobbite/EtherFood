@@ -13,6 +13,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_ROOT = (
     REPOSITORY_ROOT
     / "game"
+    / "tests"
     / "assets"
     / "characters"
     / "heroes"
@@ -23,22 +24,22 @@ MANIFEST_PATH = PACKAGE_ROOT / "stand_walk_manifest.json"
 RESOURCE_PATH = PACKAGE_ROOT / "green_hero_stand_walk_pixel_art.tres"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 EXPECTED_ANIMATIONS = (
-    "stand_n",
-    "stand_ne",
-    "stand_e",
-    "stand_se",
-    "stand_s",
-    "stand_sw",
-    "stand_w",
-    "stand_nw",
-    "walk_n",
-    "walk_ne",
-    "walk_e",
-    "walk_se",
-    "walk_s",
-    "walk_sw",
-    "walk_w",
-    "walk_nw",
+    "stand_N",
+    "stand_NO",
+    "stand_O",
+    "stand_SO",
+    "stand_S",
+    "stand_SW",
+    "stand_W",
+    "stand_NW",
+    "walk_N",
+    "walk_NO",
+    "walk_O",
+    "walk_SO",
+    "walk_S",
+    "walk_SW",
+    "walk_W",
+    "walk_NW",
 )
 
 
@@ -71,6 +72,11 @@ class GreenHeroPixelArtAssetTests(unittest.TestCase):
     def test_runtime_pngs_match_the_audited_manifest(self) -> None:
         for animation in self.manifest["animations"]:
             with self.subTest(animation=animation["name"]):
+                action = animation["action"]
+                direction = animation["direction"]
+                self.assertEqual(
+                    animation["runtime_file"], f"{action}/greenhero_{direction}_{action}.png"
+                )
                 runtime_path = PACKAGE_ROOT / animation["runtime_file"]
                 payload = runtime_path.read_bytes()
 

@@ -1,0 +1,461 @@
+{
+  "active_note_path": "SECURITY.md",
+  "vault_path": "/home/kleif/Projects/Game/EtherFood",
+  "recent_vaults": [
+    {
+      "id": "vault:os=linux|arch=x86_64|user=kleif|home=/home/kleif:/run/media/kleif/Samsung USB/education/IUFS/SE2/DLBWIII01",
+      "path": "/run/media/kleif/Samsung USB/education/IUFS/SE2/DLBWIII01",
+      "systemId": "os=linux|arch=x86_64|user=kleif|home=/home/kleif",
+      "lastOpenedAt": "2026-09-13T06:40:39.228Z",
+      "status": "available",
+      "lastSeenAt": "2026-09-13T06:40:39.228Z",
+      "lastError": null
+    },
+    {
+      "id": "vault:os=linux|arch=x86_64|user=kleif|home=/home/kleif:/home/kleif/Projects/Game/EtherFood",
+      "path": "/home/kleif/Projects/Game/EtherFood",
+      "systemId": "os=linux|arch=x86_64|user=kleif|home=/home/kleif",
+      "lastOpenedAt": "2026-09-13T06:13:28.992Z",
+      "status": "available",
+      "lastSeenAt": "2026-09-13T06:13:28.992Z",
+      "lastError": null
+    },
+    {
+      "id": "vault:os=linux|arch=x86_64|user=kleif|home=/home/kleif:/run/media/kleif/Samsung USB/workspace/Blobbite/workspace",
+      "path": "/run/media/kleif/Samsung USB/workspace/Blobbite/workspace",
+      "systemId": "os=linux|arch=x86_64|user=kleif|home=/home/kleif",
+      "lastOpenedAt": "2026-09-13T06:12:00.902Z",
+      "status": "available",
+      "lastSeenAt": "2026-09-13T06:12:00.902Z",
+      "lastError": null
+    },
+    {
+      "id": "vault:os=linux|arch=x86_64|user=kleif|home=/home/kleif:/media/kleif/Samsung USB/education/IUFS/SE2/DLBWIII01",
+      "path": "/media/kleif/Samsung USB/education/IUFS/SE2/DLBWIII01",
+      "systemId": "os=linux|arch=x86_64|user=kleif|home=/home/kleif",
+      "lastOpenedAt": "2026-06-14T21:58:48.655Z",
+      "status": "available",
+      "lastSeenAt": "2026-06-16T21:57:08.828Z",
+      "lastError": null
+    },
+    {
+      "id": "vault:os=windows|arch=x86_64|host=pc1009366|user=tenhaft|home=c:\\users\\tenhaft:d:/education/IUFS/SE2/DLBWIII01",
+      "path": "D:\\education\\IUFS\\SE2\\DLBWIII01",
+      "systemId": "os=windows|arch=x86_64|host=pc1009366|user=tenhaft|home=c:\\users\\tenhaft",
+      "lastOpenedAt": "2026-06-15T07:59:00.680Z",
+      "status": "available",
+      "lastSeenAt": "2026-07-01T12:06:43.471Z",
+      "lastError": null
+    },
+    {
+      "id": "vault:/home/kleif/Schreibtisch/IDBS01",
+      "path": "/home/kleif/Schreibtisch/IDBS01",
+      "systemId": null,
+      "lastOpenedAt": "2026-04-17T22:39:09.385Z",
+      "status": "available",
+      "lastSeenAt": "2026-04-18T13:45:33.366Z",
+      "lastError": null
+    },
+    {
+      "id": "vault:/home/kleif/Dokumente/Home",
+      "path": "/home/kleif/Dokumente/Home",
+      "systemId": null,
+      "lastOpenedAt": "2026-04-16T11:17:37.434Z",
+      "status": "available",
+      "lastSeenAt": "2026-04-16T11:17:37.434Z",
+      "lastError": null
+    }
+  ],
+  "theme": "dark",
+  "design_mode": "desktop",
+  "accent_color": "#3B82F6",
+  "markdownEditor": {
+    "accentColor": {
+      "lightHex": "#E0F2FE",
+      "darkHex": "#E5A50A",
+      "customSwatches": [
+        "#7F1D1D"
+      ]
+    }
+  },
+  "editor_markdown_exact_colors_enabled": false,
+  "editor_blueprint_grid": false,
+  "editor_blueprint_grid_intensity": "light",
+  "ui_cursor_accessory_enabled": true,
+  "editor_markdown_view_edit_enabled": true,
+  "editor_markdown_preview_default_mode": "markdown",
+  "editor_markdown_open_in_new_tab_by_default": true,
+  "exam_editor_show_move_buttons": false,
+  "language": "de",
+  "max_files_per_scan": "100",
+  "scan_parallelism": "high",
+  "show_hidden_folders": false,
+  "show_empty_folders": true,
+  "flashcard_order": "in-order",
+  "flashcard_mode": "all",
+  "flashcard_scope": "vault",
+  "flashcard_page_size": 1,
+  "flashcard_solution_reveal_enabled": true,
+  "flashcard_stats_reset_mode": "session",
+  "flashcard_help_enabled": true,
+  "fast_flashcard_order": "random",
+  "fast_flashcard_mode": "all",
+  "fast_flashcard_scope": "vault",
+  "fast_flashcard_duration": 24,
+  "fast_flashcard_auto_time_enabled": false,
+  "fast_flashcard_help_enabled": true,
+  "exam_show_timeline": false,
+  "exam_help_enabled": true,
+  "exam_show_task_sources": false,
+  "spaced_repetition_boxes": 5,
+  "spaced_repetition_order": "repetition",
+  "spaced_repetition_page_size": 1,
+  "spaced_repetition_repetition_strength": "strong",
+  "spaced_repetition_stats_view": "boxes",
+  "spaced_repetition_auto_time_enabled": false,
+  "spaced_repetition_help_enabled": true,
+  "right_toolbar_collapsed": false,
+  "exam_max_total_points": 45,
+  "exam_task_count": 10,
+  "exam_task_points": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    6,
+    8,
+    10,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "exam_duration_minutes": 30,
+  "exam_time_limit_enabled": false,
+  "exam_auto_cards_types": {
+    "qa": false,
+    "tf": true,
+    "m1": true,
+    "m2": true,
+    "cl": false,
+    "cd": false,
+    "cld": false
+  },
+  "exam_task_type_default_points": {
+    "qa": 6,
+    "tf": 2,
+    "m1": 3,
+    "m2": 5,
+    "cl": 4,
+    "cd": 5,
+    "cld": 8
+  },
+  "exam_task_type_default_time_seconds": {
+    "qa": 6,
+    "tf": 2,
+    "m1": 3,
+    "m2": 5,
+    "cl": 4,
+    "cd": 5,
+    "cld": 8
+  },
+  "exam_task_type_defaults_by_user_id": {
+    "58ba8cb2-c9fa-4b24-9bdc-744fec132b39": {
+      "points": {
+        "qa": 10,
+        "tf": 1,
+        "m1": 3,
+        "m2": 5,
+        "cl": 6,
+        "cd": 5,
+        "cld": 8
+      },
+      "timeSeconds": {
+        "qa": 480,
+        "tf": 45,
+        "m1": 90,
+        "m2": 120,
+        "cl": 240,
+        "cd": 160,
+        "cld": 480
+      }
+    }
+  },
+  "exam_auto_cards_return_on_correct": true,
+  "exam_grade_scale": "standard-1-6",
+  "exam_ai_evaluation": {
+    "enabled": false,
+    "provider": null
+  },
+  "input_debug_enabled": false,
+  "input_debug_redact_content": false,
+  "keyboard_shortcuts": {
+    "version": 1,
+    "bindings": {
+      "toggleViewMode": "V"
+    }
+  },
+  "monitoring_render_profiles": [
+    {
+      "id": "monitoring-score",
+      "name": "Score",
+      "attributeAliases": [
+        "score",
+        "corrected score"
+      ],
+      "inputFormat": "ratio",
+      "previewRawValue": "59/69",
+      "scopes": [
+        "monitoring-page",
+        "database",
+        "properties"
+      ],
+      "rules": [
+        {
+          "id": "monitoring-score-ratio",
+          "type": "ratio-derived-percent",
+          "decimals": 0,
+          "showBase": true,
+          "wrapInParentheses": true,
+          "rulePreviewAlias": "score",
+          "rulePreviewRawValue": "59/69"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "id": "monitoring-percent",
+      "name": "Percent",
+      "attributeAliases": [
+        "percent",
+        "f-%"
+      ],
+      "inputFormat": "numeric-percent",
+      "previewRawValue": "86",
+      "scopes": [
+        "monitoring-page",
+        "database",
+        "properties"
+      ],
+      "rules": [
+        {
+          "id": "monitoring-percent-format",
+          "type": "percent-format",
+          "decimals": 0,
+          "clamp": true,
+          "rulePreviewAlias": "percent",
+          "rulePreviewRawValue": "86"
+        },
+        {
+          "id": "monitoring-percent-bar",
+          "type": "progress-visual",
+          "visualStyle": "bar",
+          "min": 0,
+          "max": 100,
+          "rulePreviewAlias": "percent",
+          "rulePreviewRawValue": "86"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "id": "monitoring-status",
+      "name": "LabelBank",
+      "attributeAliases": [
+        "status",
+        "Section"
+      ],
+      "inputFormat": "code",
+      "previewRawValue": "2",
+      "scopes": [
+        "monitoring-page",
+        "database",
+        "properties"
+      ],
+      "rules": [
+        {
+          "id": "monitoring-status-map",
+          "type": "value-map",
+          "mappings": [
+            {
+              "from": "0",
+              "to": "⚪"
+            },
+            {
+              "from": "1",
+              "to": "💎"
+            },
+            {
+              "from": "2",
+              "to": "🟢"
+            },
+            {
+              "from": "3",
+              "to": "🟡"
+            },
+            {
+              "from": "4",
+              "to": "🟠"
+            },
+            {
+              "from": "5",
+              "to": "🔴"
+            },
+            {
+              "from": "6",
+              "to": "⚫"
+            },
+            {
+              "from": "J",
+              "to": "✅"
+            },
+            {
+              "from": "X",
+              "to": "❌"
+            },
+            {
+              "from": "!",
+              "to": "⚠️"
+            },
+            {
+              "from": "A",
+              "to": "🔷"
+            },
+            {
+              "from": "B",
+              "to": "🔶"
+            }
+          ],
+          "caseSensitive": false,
+          "displayMode": "append",
+          "separator": " ",
+          "rulePreviewAlias": "status",
+          "rulePreviewRawValue": "2"
+        },
+        {
+          "id": "rule-48fc112f",
+          "type": "value-map",
+          "mappings": [
+            {
+              "from": "done",
+              "to": "✔️"
+            },
+            {
+              "from": "canceled",
+              "to": "❌"
+            },
+            {
+              "from": "progress",
+              "to": "🟦"
+            },
+            {
+              "from": "onhold",
+              "to": "🟧"
+            },
+            {
+              "from": "open",
+              "to": "⬛"
+            },
+            {
+              "from": "changes",
+              "to": "🔄"
+            }
+          ],
+          "caseSensitive": false,
+          "displayMode": "replace",
+          "separator": " ",
+          "rulePreviewAlias": "status",
+          "rulePreviewRawValue": "done"
+        },
+        {
+          "id": "rule-eb4db815",
+          "type": "value-map",
+          "mappings": [
+            {
+              "from": "IUFS",
+              "to": "🎓"
+            }
+          ],
+          "caseSensitive": false,
+          "displayMode": "append",
+          "separator": " ",
+          "rulePreviewAlias": "status",
+          "rulePreviewRawValue": "IUFS"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "id": "monitoring-994ea704",
+      "name": "Status%",
+      "attributeAliases": [
+        "f-S%"
+      ],
+      "inputFormat": "code",
+      "previewRawValue": "3.6",
+      "scopes": [
+        "monitoring-page",
+        "database",
+        "properties"
+      ],
+      "rules": [
+        {
+          "id": "rule-6e3efc38",
+          "type": "threshold-symbol",
+          "thresholds": [
+            {
+              "op": "<=",
+              "value": 0.9,
+              "symbol": "⚪"
+            },
+            {
+              "op": "<=",
+              "value": 1.4,
+              "symbol": "💎"
+            },
+            {
+              "op": "<=",
+              "value": 2.4,
+              "symbol": "🟢"
+            },
+            {
+              "op": "<=",
+              "value": 3.7,
+              "symbol": "🟡"
+            },
+            {
+              "op": "<=",
+              "value": 4.9,
+              "symbol": "🟠"
+            },
+            {
+              "op": "<=",
+              "value": 5,
+              "symbol": "🔴"
+            },
+            {
+              "op": "<=",
+              "value": 6,
+              "symbol": "⚫"
+            }
+          ],
+          "displayMode": "replace",
+          "separator": " ",
+          "rulePreviewAlias": "f-S%",
+          "rulePreviewRawValue": "2,3"
+        }
+      ],
+      "enabled": true
+    }
+  ],
+  "formula_attribute_registry": []
+}

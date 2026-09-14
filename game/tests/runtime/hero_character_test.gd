@@ -3,7 +3,7 @@ extends RefCounted
 const HERO_SCENE_PATH := "res://scenes/gameplay/hero/hero_character.tscn"
 const HERO_SCRIPT := preload("res://scenes/gameplay/hero/hero_character.gd")
 const EXPECTED_APPEARANCE_REFERENCE_HEIGHT := 80.0
-const EXPECTED_TEXTURE_REFERENCE_HEIGHT := 618.0
+const EXPECTED_TEXTURE_REFERENCE_HEIGHT := 1205.0
 const EXPECTED_TEXTURE_SCALE := 80.0 / EXPECTED_TEXTURE_REFERENCE_HEIGHT
 const MOVEMENT_ACTIONS: Array[StringName] = [
 	&"gameplay_move_left",
@@ -120,9 +120,9 @@ func run(tree: SceneTree) -> PackedStringArray:
 		_expect(hero_sprite.rotation == 0.0, "HeroSprite is not rotated")
 		_expect(
 			texture_scale.scale.is_equal_approx(Vector2.ONE * EXPECTED_TEXTURE_SCALE),
-			"TextureScale normalizes the audited 618-pixel reference pose",
+			"TextureScale normalizes the audited 1205-pixel reference pose",
 		)
-		_expect(hero_sprite.offset == Vector2(0, -305), "HeroSprite uses the audited foot anchor")
+		_expect(hero_sprite.offset == Vector2(0, -597), "HeroSprite uses the audited foot anchor")
 		_expect(
 			is_equal_approx(
 				EXPECTED_TEXTURE_REFERENCE_HEIGHT * texture_scale.global_scale.y,
@@ -169,7 +169,7 @@ func run(tree: SceneTree) -> PackedStringArray:
 	)
 	_expect(hero.facing_direction == Vector2.DOWN, "HeroCharacter initially faces down")
 	_expect(
-		hero.get_animation_direction_name() == &"s",
+		hero.get_animation_direction_name() == &"S",
 		"HeroCharacter initially exposes the south animation direction",
 	)
 	_expect(hero.velocity.is_zero_approx(), "HeroCharacter remains still without input")

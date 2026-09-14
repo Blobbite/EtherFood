@@ -17,16 +17,25 @@ bestätigten Entscheidungen hier fest, ohne offene Folgefragen vorwegzunehmen.
 
 ## Umsetzungsstand
 
-Stand: 8. September 2026.
+Stand: 12. September 2026.
 
-Die vorhandenen Testflächen und Testergebnisse bleiben bestehen. Die auf
-dieser Seite festgelegte Neufassung der `F5`-Steuerung ist umgesetzt. Das
+Das Labor beginnt jetzt im erweiterbaren
+[Portalturm mit neun getrennten Testräumen](portal-testlabor.md).
+Die frühere gemeinsame Fläche entfällt; ihre Vorschauen liegen im Objekt-,
+Nebel-, Tag-Nacht- und Weltzustandsraum. Blueprint-Boden, Türen und neue
+Platzhalter verwenden HD-Texturen mit acht Blau-Grau-Grundfarben.
+
+Die auf dieser Seite festgelegte `F5`-Steuerung bleibt erhalten. Das
 Testlabor verwendet ein Themenmenü, trennt lokale Testwerte von versionierten
 Spielstandards und kennzeichnet letztere mit goldenem Rahmen und Stern. Die
 früheren Direktkürzel der einzelnen Testparameter sind entfernt.
 
-Unter `Darstellung` kann der Laborheld zusätzlich zwischen der animierten
-Ultra-Grafik und 16 Pixelart-Standbildern umgeschaltet werden. Diese Auswahl
+Unter `Darstellung` kann der Laborheld zwischen HD, Pixel Art, Ultra und
+Testversion umgeschaltet werden. Dieselbe Auswahl schaltet auch die
+Blueprint-Texturen des Portal-Labors: Pixel Art verwendet `portal_lab/pixelart`,
+Testversion verwendet `portal_lab/test`. Für HD und Ultra dienen vorerst
+die vorhandenen HD-Testvorlagen als Ersatz; der F5-Status nennt diese Zuordnung.
+Diese Auswahl
 ist ein lokaler Sichtvergleich und ausdrücklich kein übernehmbarer
 Spielstandard.
 
@@ -53,15 +62,23 @@ Werkzeugfenster links oben und bedeckt nur einen kleinen Teil der Testwelt.
 Der offene oder geschlossene Zustand wird nicht gespeichert. Die Testfigur
 bleibt auch bei geöffnetem Menü beweglich.
 
-`F3` schaltet die Diagnoseanzeige weiterhin direkt ein oder aus. `F4` schaltet
-weiterhin unabhängig davon die Kollisionsflächen ein oder aus. Beide Funktionen
-sind zusätzlich im Menü erreichbar, beginnen bei jedem Start ausgeschaltet und
-werden nicht als Test- oder Spielwert gespeichert.
+Der Held startet in der Mitte des Portalturms. Eine beschriftete Tür zu
+betreten öffnet deren Testraum; dort führt eine Tür zur gleichen Stelle im
+Turm zurück. Nach dem Wechsel die Bewegung kurz loslassen, damit das Portal
+wieder bereit ist. Raumwechsel erhalten Kamera, Grafik und Testwerte.
 
-Alle veränderlichen Testparameter werden ausschließlich im Menü bedient.
+`F11` schaltet die Spieldiagnose, `F12` die Leistungs- und Technikanzeige.
+Beide bestehen aus weißer Schrift ohne Rahmen oder Hintergrund. `F4` schaltet
+unabhängig davon die Kollisionsflächen. Alle drei Funktionen sind zusätzlich
+im Menü erreichbar, beginnen bei jedem Start ausgeschaltet und werden nicht
+als Test- oder Spielwert gespeichert.
+
+Die gemeinsamen veränderlichen Testparameter werden im F5-Menü bedient.
+Die Fachräume besitzen ergänzend Schaltflächen für Lampen, Partikel und
+den Tageszyklus links unten. Diese Versuche verändern keine Spielstandards.
 Eigene Direktkürzel für Zoom, Figurengröße, Tilegröße,
 Weltzustand, Nebel, Licht, Pixel-Snap und Texturfilter entfallen. Die normale
-Spielsteuerung, `Esc` zum Verlassen, `F3`, `F4` und `F5` sind davon nicht
+Spielsteuerung, `Esc` zum Verlassen, `F4`, `F5`, `F11` und `F12` sind davon nicht
 betroffen. `Strg + Alt + E` bleibt als einziges Kürzel zum ausdrücklichen
 Übernehmen einer fokussierten Einstellung bestehen; dieselbe Aktion muss auch
 über einen sichtbaren Menüknopf erreichbar sein.
@@ -70,7 +87,8 @@ betroffen. `Strg + Alt + E` bleibt als einziges Kürzel zum ausdrücklichen
 
 Eine dauerhaft sichtbare Themenleiste am oberen Rand des geöffneten Menüs
 ordnet die vorhandenen und späteren Laborwerkzeuge. Neue Testwerkzeuge werden
-einem Thema zugewiesen und erhalten kein neues globales Direktkürzel.
+einem Thema zugewiesen. Die Diagnosekürzel F11/F12 ergänzen die bestehenden
+Schalter für Menü und Kollisionsflächen; Testparameter bleiben im Menü.
 
 | Thema | Inhalt |
 |---|---|
@@ -78,7 +96,7 @@ einem Thema zugewiesen und erhalten kein neues globales Direktkürzel.
 | Maßstab | Heldenhöhe und Tilegröße als unabhängige Einzelwerte |
 | Darstellung | Hero-Grafik, Pixel-Snap, Texturfilter und spätere Grafikoptionen |
 | Welt und Atmosphäre | Vorschau des Weltzustands sowie zustandsbezogener Nebel und zustandsbezogenes Licht |
-| Diagnose und Hilfe | Diagnoseanzeige, Kollisionsflächen, Bewegung, Zurück und Bedienhinweise |
+| Diagnose und Hilfe | Spieldiagnose (F11), Leistung und Technik (F12), Kollisionsflächen, Bewegung, Zurück und Bedienhinweise |
 | Gameplay | Geschwindigkeiten sowie Sprunghöhen und -weiten |
 
 Das grundsätzliche Layout lautet:
@@ -154,7 +172,7 @@ Nicht jede Laborfunktion stellt einen Spielstandard dar:
 | Pixel-Snap und Texturfilter | ja | Darstellungsstandard beziehungsweise spätere Voreinstellung |
 | Nebel und Licht | ja, je Weltzustand | atmosphärischer Standard des jeweiligen Zustands |
 | Bewegungsgeschwindigkeiten und Sprungwerte | ja, je fokussiertem Regler | versionierte Bewegungsressource |
-| Hero-Grafik | nein | lokaler Vergleich von Ultra-Animation und Pixelart-Standbildern |
+| Hero-Grafik | nein | lokaler Vergleich von HD, Pixel Art, Ultra und Testversion |
 | angezeigter Weltzustand | nein | gleichberechtigte Vorschau bestehender Spielzustände |
 | Diagnose, Kollision und Fensterwerte | nein | reine Entwicklungswerkzeuge und Messwerte |
 
@@ -204,20 +222,33 @@ aktualisiert werden.
 
 ## Hero-Grafikvergleich
 
-Das Thema `Darstellung` bietet zwei Varianten für dieselbe bewegliche
+Das Thema `Darstellung` bietet vier Varianten für dieselbe bewegliche
 Laborfigur:
 
 | Auswahl | Inhalt | Verhalten |
 |---|---|---|
-| `Ultra · animiert` | acht Stand- und acht Gehfolgen mit je 16 Frames | Startwert und weiterhin Spielgrafik außerhalb des Labors |
-| `Pixelart · Standbilder` | acht Stand- und acht Gehposen mit je einem Frame | nur lokaler Laborvergleich |
+| `Ultra` | acht neue Posen mit je 16 identischen Frames, für Stand und Gehen verwendet | Startwert, auch im Heldenraum; noch ohne finale Asset-Freigabe |
+| `Pixel Art` | acht Stand- und acht Gehposen mit je einem Frame | nur lokaler Laborvergleich |
+| `HD` | frühere animierte Stand- und Gehfolgen mit 640-Pixel-Bezugsfeld | bestätigte Zuordnung für den Laborvergleich |
+| `Testversion` | 48 Einzelposen mit 1436 × 1254 Pixeln; per SH-Skript austauschbar | sechs Zustände in acht Richtungen unter `green_hero/test/` |
 
-Beide Varianten verwenden dieselben Animationsnamen `stand_n` bis `stand_nw`
-und `walk_n` bis `walk_nw`. Dadurch bleiben Bewegung, achtteilige Richtung,
+Alle Varianten verwenden `stand_` und `walk_` mit den deutschen
+Richtungskürzeln `N`, `NO`, `NW`, `O`, `S`, `SO`, `SW`, `W`, zum Beispiel
+`stand_NO` und `walk_W`. Dadurch bleiben Bewegung, achtteilige Richtung,
 Sprungvorschau und Kollisionsverhalten beim Umschalten unverändert. Die
 Pixelart-Gehbilder sind noch keine vollständige Bewegungsschleife: Beim Laufen
 wechselt die Figur zur passenden Gehpose, innerhalb derselben Richtung bleibt
-das Bild stehen.
+das Bild stehen. Die Ultra-Testfassung verwendet beim Gehen dieselbe Pose wie
+im Stand, damit sich die neuen Grafiken während der Bewegung beurteilen lassen.
+
+Die Testversion verwendet `stand`, `walk`, `run`, `sneak`, `sprint` und `jump`
+als nicht animierte Einzelposen. Laufen und Rennen teilen `run`; nach einem
+Sprung folgt wieder die passende Bodenpose. Alle Posen behalten den Maßstab
+und Fußanker der Standreferenz, einschließlich transparenter Ränder.
+Neue Posen lassen sich über `test/rename_test_assets.sh` umbenennen und einbinden; die
+[Anleitung im Testordner](../../../../game/tests/assets/characters/heroes/green_hero/test/README.md)
+beschreibt den Ablauf. Nach dem Godot-Import lädt ein erneuter Klick auf
+Testversion die Ressource und ihre Texturen neu.
 
 Alle Pixelart-Dateien besitzen einen transparenten `265 × 265`-Canvas und
 eine sichtbare Figurenhöhe von 245 Pixeln. Das Labor normalisiert sie wie die
@@ -388,21 +419,23 @@ Laufzeitlogik.
 
 ### 1. Helden-Testfläche
 
-Die Helden-Testfläche ermöglicht:
+Die Figur bleibt in allen Räumen steuerbar. Der Sprite-Testraum enthält
+zusätzlich vier statische Vergleichsfiguren für die Grafikvarianten.
+Damit lassen sich folgende Eigenschaften prüfen:
 
 ```text
 - Spielfigur anzeigen
 - Schleichen, Gehen, Laufen, Rennen und Sprinten in acht Animationsrichtungen
 - Steh-, Geh-, Lauf-, Renn- und Sprintsprung
 - Idle- und Laufanimation testen
-- Ultra-Animation und Pixelart-Standbilder direkt vergleichen
+- HD, Pixel Art, Ultra und Testversion direkt vergleichen
 - Figurengröße vergleichen
 - Schatten und Kollisionskörper anzeigen
 ```
 
 ### 2. Größenvergleich
 
-Gemeinsam darzustellen sind:
+Im Objekt-Testraum stehen gemeinsam:
 
 ```text
 - Held
@@ -442,7 +475,7 @@ Umschaltbar sein sollen:
 - weiter Kamerazoom
 - Pixel-Snap ein und aus
 - Texturfilterung zum Vergleich
-- Ultra- und Pixelart-Heldengrafik vergleichen
+- HD-, Pixel-Art-, Ultra- und Testgrafik vergleichen
 - Nebelstärken je Weltzustand
 - Lichtprofile je Weltzustand
 ```
@@ -454,11 +487,15 @@ Varianten bleiben für spätere Regressionen verfügbar.
 #### Hero-Grafikvergleich
 
 Im Thema `Darstellung` steht oberhalb von Pixel-Snap und Texturfilter die
-Auswahl `Ultra · animiert` / `Pixelart · Standbilder`. Der aktuelle Wert wird
+gemeinsame Auswahl `Grafik: Figur und Portal-Labor` mit `HD`, `Pixel Art`,
+`Ultra` und `Testversion` in zwei Spalten. Der aktuelle Wert wird
 markiert und lokal gespeichert. Weil noch keine Grafikentscheidung getroffen
 wurde, fehlt bewusst die goldene Spielstandard-Markierung und die
 Übernahmeaktion bleibt für diesen Eintrag gesperrt. Größenwahl, Kamera,
 Texturfilter und Pixel-Snap können unabhängig davon weitergeschaltet werden.
+Ein zusätzlicher Status nennt den verwendeten Portal-Bildsatz. Die Zuordnung
+und die Ordnerverwendung sind unter
+[Portal-Testlabor](portal-testlabor.md#f5-grafikvarianten-für-figur-und-portal-labor) beschrieben.
 
 #### Pixel-Snap-Vergleich
 
@@ -543,7 +580,11 @@ Atmosphäreneffekte bleiben davon ausgenommen.
 
 #### Nebel und Licht
 
-Stand: 3. September 2026.
+Seit dem 11. September 2026 liegen Nebel, Tageszeit und Weltzustand in drei
+eigenen Räumen. Der Nebelraum zeigt die Nebeltexturen unter neutralem Licht.
+Im Tag-Nacht-Raum moduliert eine eigene Tagesphase die gesamte Kulisse;
+Nebel ist dort ausgeschaltet. Der Weltzustandsraum zeigt nur den Wechsel
+zwischen aufgebaut und zerstört, ohne Nebel oder Lichtmodulation.
 
 Das Thema `Welt und Atmosphäre` wechselt zwischen beschädigter und
 wiederhergestellter Welt. Die Nebelauswahl durchläuft die drei Nebelstärken
@@ -570,6 +611,13 @@ beschädigte Nebel bleibt höchstens 68 Prozent, der wiederhergestellte
 höchstens 38 Prozent deckend. Die Variantensteuerung verändert weiterhin nur
 Sprite-Deckkraft und flächige Farbmodulation; Shader, Physik und Spielmechanik
 bleiben unberührt.
+
+Die folgenden abgenommenen Vergleichsergebnisse dokumentieren den
+gemeinsamen Nebel-/Lichtversuch vom 3. September 2026. Die gespeicherten
+Profile bleiben verfügbar; die aktuelle Raumaufteilung ist unter
+[Portal-Testlabor](portal-testlabor.md) beschrieben. Im Tag-Nacht-Raum setzt
+die F5-Lichtwahl jetzt eine feste Tagesphase. Der Zyklus wird über die
+Raumschaltflächen gestartet und gestoppt.
 
 ##### Beschädigter Weltzustand
 
@@ -627,7 +675,7 @@ bleiben unberührt.
 
 ### 4. Weltzustände
 
-Mindestens ein Testbereich besitzt zwei umschaltbare Zustände:
+Der Weltzustandsraum besitzt zwei umschaltbare Zustände:
 
 ```text
 Beschädigte Welt
@@ -639,12 +687,12 @@ Verglichen werden:
 
 ```text
 - Farben
-- Nebel
 - Pflanzen
-- Licht
 - Boden
 - Gebäudeschäden
 ```
+
+Nebel und Licht werden in ihren eigenen Räumen verglichen.
 
 Der Zustandswechsel dient ausschließlich dem direkten visuellen Vergleich.
 Er benötigt weder Handlung noch Speichersystem.
@@ -656,52 +704,63 @@ ohne daraus bereits eine finale Art-Bible abzuleiten.
 
 ### 5. Diagnoseanzeigen
 
-Entwickler sollen folgende Anzeigen unabhängig voneinander umschalten können:
+`F11` zeigt die Spieldiagnose rechts oben. Sie enthält die bisherige
+Testkonfiguration und den aktuellen Raum: rohe Spielerkoordinaten und gerasterte Heldenanzeige,
+Kamerapositionen und Weltanker, Maßstab, Referenzauflösung und
+Seitenverhältnis, Kamerabereich und Zoom, Bewegungs- und Sprungzustand,
+Geschwindigkeit, Feststelltasten-Gehmodus, Hero-Grafik, Figuren- und
+Tilegröße, Weltzustand, Nebel und Licht sowie Pixel-Snap, Darstellungsraster,
+Rasterphase, Texturfilter, Fenstergröße und Skalierungsfaktor. Die Werte
+aktualisieren sich bei sichtbarer Anzeige ungefähr alle 0,2 Sekunden.
 
-```text
-- Kollisionsformen
-- aktuelle FPS
-- rohe Spielerkoordinaten und gerasterte Heldenanzeige
-- rohe und gerasterte Kameraposition, tatsächliches Kamerazentrum und Weltanker
-- Kamerabereich, Darstellungsraster, Rasterphase und Fensterskalierung
-- Basis- und aktiver Kamerazoom
-- aktueller Bewegungs- und Sprungzustand
-- gewählte Tilegröße
-- gewählte Figurengröße
-- gewählte Hero-Grafik
-- manuelle Maßstabseinstellung
-- aktuelle Geschwindigkeit und Feststelltasten-Gehmodus
-- Referenzauflösung und Seitenverhältnis
-- aktiver Weltzustand
-- aktive Nebelstärke
-- aktives Lichtprofil
-- aktiver Pixel-Snap-Zustand
-- aktiver Texturfilter
-```
+`F12` zeigt daneben die Leistungs- und Technikanzeige. FPS stehen ausschließlich
+hier; es gibt keine doppelten Messwerte zwischen F11 und F12.
 
-Die Anzeigen machen die jeweils aktive Testkonfiguration unmittelbar
-erkennbar und sind nicht für normale Spielbuilds bestimmt.
+| Bereich | Werte |
+|---|---|
+| Bildrate und Verarbeitung | FPS, daraus berechnete mittlere Bilddauer, Godot-Framezeit und Physikzeit, Physiktakt, FPS-Limit und VSync |
+| Arbeitsspeicher | Systembelegung einschließlich Cache in Bytes und Prozent, Prozess-RAM (RSS), Godot-Speicher und dessen Spitzenwert |
+| Grafikspeicher | Geschätzte Godot-VRAM-Belegung, Textur- und Renderpufferspeicher |
+| Datenträger | Lesen und Schreiben des Spielprozesses pro Sekunde, freier Platz auf dem Laufwerk der Spielerdaten |
+| Render- und Szenenlast | Draw Calls, Renderobjekte, Primitive, Objekte, Nodes, Ressourcen und 2D-Kollisionspaare |
+| Technik | CPU und logische Kernzahl, GPU, Renderer und Grafiktreiber, Betriebssystem und Godot-Version |
 
-`F3` schaltet ein kompaktes, halbtransparentes Diagnosepanel um. Es zeigt FPS,
-rohe Heldenposition, gerasterte Heldenanzeige, rohes und gerastertes
-Kameraziel, tatsächliches Kamerazentrum,
-Weltanker, manuelle Maßstabseinstellung, Referenzauflösung, Seitenverhältnis,
-Kamerabereich, Basis- und Aktivzoom, Bewegungszustand, Geschwindigkeit,
-Feststelltasten-Gehmodus, Sprungzustand, Hero-Grafik, Figuren-, Tile-,
-Weltzustands-, Nebel-, Lichtprofil-, Pixel-Snap-, Viewport-Transform-Snap-,
-Vertex-Snap-, Darstellungsraster-, Rasterphasen- und Texturfilterwerte sowie
-Fenstergröße und Skalierungsfaktor. In der Referenzansicht ist das Panel auf
-`450 × 620` Pixel begrenzt; sein Hintergrund besitzt `58 %` Deckkraft.
-Derselbe Schalter ist unter `Diagnose und Hilfe` erreichbar.
+Die Leistungsanzeige liest nur bei sichtbarer Anzeige ungefähr alle 0,5
+Sekunden. Godots interne Monitore können ihre Werte langsamer aktualisieren.
+Die Speicherzahlen für Godot und VRAM betreffen die vom Spiel erfassten
+Zuweisungen; sie sind keine Gesamtauslastung aller Programme und keine
+VRAM-Prozentanzeige. Godot-Speicherwerte sind nur in Debug-Builds verfügbar.
+Siehe [Godots Leistungsmonitore](https://docs.godotengine.org/en/stable/classes/class_performance.html).
 
-`F4` schaltet davon unabhängig eine eigene Zeichnung der vorhandenen Helden-,
-Hindernis- und Weltgrenzen-Kollisionen; auch dafür gibt es einen Menüeintrag.
-Beide direkten Funktionstasten bleiben bewusst erhalten. Beide Anzeigen
-beginnen bei jedem Öffnen ausgeschaltet und werden nicht in den
-Testlabor-Einstellungen gespeichert. Das Diagnosepanel aktualisiert seine
-Werte ungefähr alle 0,2 Sekunden. Die Kollisionszeichnung liest die
-bestehenden Physikformen nur aus und verändert weder sie noch Godots globale
-Debug-Hinweise.
+System-RAM stammt aus
+[`OS.get_memory_info()`](https://docs.godotengine.org/en/stable/classes/class_os.html#class-os-method-get-memory-info),
+freier Datenträgerplatz aus
+[`DirAccess.get_space_left()`](https://docs.godotengine.org/en/stable/classes/class_diraccess.html#class-diraccess-method-get-space-left).
+Prozess-RAM und Datenträger-I/O werden unter Linux über `/proc/self/status`
+und `/proc/self/io` gelesen. Die Lese-/Schreibraten verwenden die Differenz
+der Speichergeräte-Zähler und die tatsächlich verstrichene Zeit; Zugriffe
+aus dem Dateicache können deshalb bei null bleiben. Schreibzähler erfassen
+bereits zum Schreiben vorgemerkte Seiten. Siehe die
+[Linux-procfs-Dokumentation](https://www.kernel.org/doc/html/latest/filesystems/proc.html).
+
+Die erste I/O-Probe zeigt „Messung läuft“. Erneutes Einblenden beginnt eine
+neue Messung. Fehlende Prozesswerte auf anderen Plattformen und GPU-Werte
+im Headless-Betrieb heißen „nicht verfügbar“. Es werden keine zusätzlichen
+Messprogramme gestartet und keine Messprotokolle gespeichert.
+
+F11 und F12 bestehen ausschließlich aus weißem Text, ohne gezeichnete
+Fläche, Rahmen oder Schriftkontur. Ihre nebeneinanderliegenden Spalten
+überdecken sich auch bei gleichzeitigem Einblenden nicht. Beide ignorieren
+Mausereignisse und lassen die Bewegung der Figur weiterlaufen. Die Schalter
+stehen zusätzlich unter `Diagnose und Hilfe` im F5-Menü. Controller-Back
+schaltet weiterhin die Spieldiagnose. F3 ist dafür nicht mehr belegt.
+
+`F4` schaltet unabhängig eine Zeichnung der vorhandenen Helden-, Hindernis-
+und Weltgrenzen-Kollisionen; auch dafür gibt es einen Menüeintrag. Alle
+Diagnoseanzeigen beginnen bei jedem Öffnen ausgeschaltet und werden nicht
+in den Testlabor-Einstellungen gespeichert. Die Kollisionszeichnung liest
+die bestehenden Physikformen nur aus und verändert weder sie noch Godots
+globale Debug-Hinweise.
 
 ## Nicht enthalten
 
@@ -728,7 +787,8 @@ Das visuelle Testlabor ist ausreichend festgelegt, wenn:
 - die Testfigur bei geöffnetem `F5`-Menü beweglich bleibt,
 - veränderliche Testparameter ohne eigene Direktkürzel vollständig über das
   Menü bedienbar sind,
-- `F3` für Diagnose und `F4` für Kollisionsflächen erhalten bleiben,
+- `F11` die Spieldiagnose, `F12` die technische Leistungsanzeige und `F4`
+  die Kollisionsflächen unabhängig schalten,
 - aktueller Testwert und übernommener Spielwert technisch und visuell getrennt
   bleiben,
 - die Goldmarkierung auch beim weiteren Vergleichen eindeutig beim
@@ -742,9 +802,10 @@ Das visuelle Testlabor ist ausreichend festgelegt, wenn:
 - Spielszenen ausschließlich versionierte Spielwerte und niemals lokale
   Testwerte als Ausgangspunkt verwenden,
 - beschädigte und wiederhergestellte Welt direkt verglichen werden können,
-- Ultra-Animation und Pixelart-Standbilder ohne Änderung des Spielstandards
+- HD, Pixel Art, Ultra und Testversion ohne Änderung des Spielstandards
   direkt verglichen werden können,
-- die umschaltbaren Diagnoseanzeigen kompakt und halbtransparent bleiben,
+- F11 und F12 ausschließlich weißen Text ohne Rahmen oder Hintergrund
+  zeigen und keine Messwerte doppelt führen,
 - `visual_lab` ausdrücklich nur in Entwicklungsbuilds erreichbar ist und
 - noch offene Grafikentscheidungen nicht ohne ihren vorgesehenen Vergleich
   vorweggenommen werden.

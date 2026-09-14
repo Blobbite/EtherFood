@@ -11,6 +11,7 @@ const OUTLINE_WIDTH := 3.0
 @export var hero_collision_path: NodePath
 @export var obstacle_collision_path: NodePath
 @export var arena_bounds_path: NodePath
+var extra_collision_root: Node2D
 
 @onready var _hero_collision := get_node_or_null(hero_collision_path) as CollisionShape2D
 @onready var _obstacle_collision := (
@@ -47,6 +48,8 @@ func get_hero_collision_rect() -> Rect2:
 
 
 func get_obstacle_collision_rect() -> Rect2:
+	if _obstacle_collision != null and _obstacle_collision.disabled:
+		return Rect2()
 	return _rect_for_collision(_obstacle_collision)
 
 
@@ -61,6 +64,10 @@ func get_world_boundary_rects() -> Array[Rect2]:
 		var collision := body.get_node_or_null("CollisionShape2D") as CollisionShape2D
 		if collision != null:
 			rectangles.append(_rect_for_collision(collision))
+	if is_instance_valid(extra_collision_root):
+		for collision in extra_collision_root.find_children("*", "CollisionShape2D", true, false):
+			if collision.get_parent() is StaticBody2D:
+				rectangles.append(_rect_for_collision(collision as CollisionShape2D))
 	return rectangles
 
 

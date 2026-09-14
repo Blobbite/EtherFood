@@ -450,8 +450,8 @@ func _expect_visual_lab_contract(tree: SceneTree) -> void:
 		return
 
 	_expect(
-		preview.position == Vector2(2400, 620),
-		"WorldStatePreview starts closer to the hero on the right side of TestWorld",
+		preview.position == Vector2(1200, 480),
+		"WorldStatePreview occupies the dedicated world-state room",
 	)
 	var preview_bounds := Rect2(preview.position, preview.get_preview_size())
 	_expect(
@@ -459,8 +459,8 @@ func _expect_visual_lab_contract(tree: SceneTree) -> void:
 		"WorldStatePreview stays inside the enlarged TestWorld",
 	)
 	_expect(
-		not preview_bounds.intersects(Rect2(1536, 220, 768, 384)),
-		"WorldStatePreview does not cover TileComparison",
+		not visual_lab.get_node("TestWorld/TileComparison").is_visible_in_tree(),
+		"world-state and tile comparisons occupy separate rooms",
 	)
 	_expect(
 		not preview_bounds.has_point(hero.position),
@@ -674,6 +674,7 @@ func _open_visual_lab(tree: SceneTree, visual_lab_scene: PackedScene) -> Control
 		return null
 	var visual_lab := visual_lab_node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"world_state")
 	await tree.process_frame
 	return visual_lab
 

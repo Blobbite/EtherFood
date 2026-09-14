@@ -157,7 +157,7 @@ func _expect_menu_contract(tree: SceneTree, visual_lab: Control) -> void:
 	) as Button
 	var diagnostics_panel := visual_lab.get_node_or_null(
 		"InterfaceLayer/DiagnosticsPanel"
-	) as Panel
+	) as Control
 	var collision_overlay := visual_lab.get_node_or_null(
 		"TestWorld/CollisionDebugOverlay"
 	) as Node2D
@@ -206,7 +206,7 @@ func _expect_menu_contract(tree: SceneTree, visual_lab: Control) -> void:
 		and standing_jump_attack.disabled,
 		"scrollable Gameplay tab exposes sliders and disabled future mechanics",
 	)
-	_expect(diagnostics_panel != null, "F3 diagnostics remain available")
+	_expect(diagnostics_panel != null, "F11 diagnostics remain available")
 	_expect(collision_overlay != null, "F4 collision overlay remains available")
 	if (
 		panel == null
@@ -364,7 +364,7 @@ func _expect_menu_contract(tree: SceneTree, visual_lab: Control) -> void:
 
 	visual_lab._unhandled_input(_pressed_action(DIAGNOSTICS_ACTION))
 	visual_lab._unhandled_input(_pressed_action(COLLISION_ACTION))
-	_expect(diagnostics_panel.visible, "F3 still toggles diagnostics directly")
+	_expect(diagnostics_panel.visible, "F11 still toggles diagnostics directly")
 	_expect(collision_overlay.visible, "F4 still toggles collisions directly")
 	var settings := ConfigFile.new()
 	_expect(settings.load(SETTINGS_TEST_PATH) == OK, "local preview settings load")

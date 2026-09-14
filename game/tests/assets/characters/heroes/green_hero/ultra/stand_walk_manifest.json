@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "package_id": "green_hero_stand_walk_ultra",
+  "variant": "ultra",
+  "resource_file": "green_hero_stand_walk_ultra.tres",
+  "resource_root": "res://tests/assets/characters/heroes/green_hero/ultra",
+  "source_canvas": [
+    1254,
+    1254
+  ],
+  "reference_pose": {
+    "animation": "stand_S",
+    "frame": 0,
+    "alpha_bounds": [
+      171,
+      19,
+      911,
+      1205
+    ],
+    "foot_anchor": [
+      627,
+      1224
+    ],
+    "height_pixels": 1205,
+    "world_height": 80
+  },
+  "defaults": {
+    "columns": 4,
+    "rows": 4,
+    "frame_count": 16,
+    "frame_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "frame_durations_ms": [
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120,
+      120
+    ],
+    "loop": true,
+    "height_pixels": 1205,
+    "foot_anchor": [
+      627,
+      1224
+    ]
+  },
+  "animations": [
+    {
+      "name": "stand_N",
+      "action": "stand",
+      "direction": "N",
+      "source_key": "N",
+      "runtime_file": "stand/greenhero_N_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        266,
+        19,
+        721,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_N_stand_spritesheet_4x4_o.png",
+          "ae163f4abe8c23efca5f1e6e307c10b86fda8e461d51be7de17cb5416d493251"
+        ],
+        "input_sheet": [
+          "sources/stand/N_solo_4x4_o.png",
+          "ae163f4abe8c23efca5f1e6e307c10b86fda8e461d51be7de17cb5416d493251"
+        ]
+      }
+    },
+    {
+      "name": "stand_NO",
+      "action": "stand",
+      "direction": "NO",
+      "source_key": "NO",
+      "runtime_file": "stand/greenhero_NO_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        167,
+        19,
+        919,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_NO_stand_spritesheet_4x4_o.png",
+          "596b813b2df06d9b345efce5048dc875bbc247d99ef45ddfc603f032c672e6df"
+        ],
+        "input_sheet": [
+          "sources/stand/NO_solo_4x4_o.png",
+          "596b813b2df06d9b345efce5048dc875bbc247d99ef45ddfc603f032c672e6df"
+        ]
+      }
+    },
+    {
+      "name": "stand_O",
+      "action": "stand",
+      "direction": "O",
+      "source_key": "O",
+      "runtime_file": "stand/greenhero_O_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        152,
+        19,
+        949,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_O_stand_spritesheet_4x4_o.png",
+          "630c16300cda8aa57bec7e1242ea9c141a775eb7318e710e24a32e8d4c55acc8"
+        ],
+        "input_sheet": [
+          "sources/stand/O_solo_4x4_o.png",
+          "630c16300cda8aa57bec7e1242ea9c141a775eb7318e710e24a32e8d4c55acc8"
+        ]
+      }
+    },
+    {
+      "name": "stand_SO",
+      "action": "stand",
+      "direction": "SO",
+      "source_key": "SO",
+      "runtime_file": "stand/greenhero_SO_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        150,
+        19,
+        954,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_SO_stand_spritesheet_4x4_o.png",
+          "97b8fcbe72468094d24be2ce9aba7f66d73bc407e641229c9d24d2a7db83deee"
+        ],
+        "input_sheet": [
+          "sources/stand/SO_solo_4x4_o.png",
+          "97b8fcbe72468094d24be2ce9aba7f66d73bc407e641229c9d24d2a7db83deee"
+        ]
+      }
+    },
+    {
+      "name": "stand_S",
+      "action": "stand",
+      "direction": "S",
+      "source_key": "S",
+      "runtime_file": "stand/greenhero_S_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        171,
+        19,
+        911,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_S_stand_spritesheet_4x4_o.png",
+          "f7efe89df8eab65de5c108e239a1a1e24215937ea2cd1b247e60a597a2c3ecc9"
+        ],
+        "input_sheet": [
+          "sources/stand/S_solo_4x4_o.png",
+          "f7efe89df8eab65de5c108e239a1a1e24215937ea2cd1b247e60a597a2c3ecc9"
+        ]
+      }
+    },
+    {
+      "name": "stand_SW",
+      "action": "stand",
+      "direction": "SW",
+      "source_key": "SW",
+      "runtime_file": "stand/greenhero_SW_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        150,
+        19,
+        954,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_SW_stand_spritesheet_4x4_o.png",
+          "92720e1807c2fafa60000fd591358d7830d40d10646994772313511b2dfb04b8"
+        ],
+        "input_sheet": [
+          "sources/stand/SW_solo_4x4_o.png",
+          "92720e1807c2fafa60000fd591358d7830d40d10646994772313511b2dfb04b8"
+        ]
+      }
+    },
+    {
+      "name": "stand_W",
+      "action": "stand",
+      "direction": "W",
+      "source_key": "W",
+      "runtime_file": "stand/greenhero_W_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        153,
+        19,
+        949,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_W_stand_spritesheet_4x4_o.png",
+          "15e8c1cb3d020e18fa3d5ce4ecfb6b2293b605a83baef0e3bd88d4bb1f7a4178"
+        ],
+        "input_sheet": [
+          "sources/stand/W_solo_4x4_o.png",
+          "15e8c1cb3d020e18fa3d5ce4ecfb6b2293b605a83baef0e3bd88d4bb1f7a4178"
+        ]
+      }
+    },
+    {
+      "name": "stand_NW",
+      "action": "stand",
+      "direction": "NW",
+      "source_key": "NW",
+      "runtime_file": "stand/greenhero_NW_stand_spritesheet_4x4_o.png",
+      "crop_rect": [
+        168,
+        19,
+        919,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "stand/greenhero_NW_stand_spritesheet_4x4_o.png",
+          "a477b04167d698e51f68bbb913eaac5bf8a01e691f4bbf80087cce6c4b34066b"
+        ],
+        "input_sheet": [
+          "sources/stand/NW_solo_4x4_o.png",
+          "a477b04167d698e51f68bbb913eaac5bf8a01e691f4bbf80087cce6c4b34066b"
+        ]
+      }
+    },
+    {
+      "name": "walk_N",
+      "action": "walk",
+      "direction": "N",
+      "source_key": "N",
+      "runtime_file": "walk/greenhero_N_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        266,
+        19,
+        721,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_N_walk_spritesheet_4x4_o.png",
+          "ae163f4abe8c23efca5f1e6e307c10b86fda8e461d51be7de17cb5416d493251"
+        ],
+        "input_sheet": [
+          "sources/walk/N_solo_4x4_o.png",
+          "ae163f4abe8c23efca5f1e6e307c10b86fda8e461d51be7de17cb5416d493251"
+        ]
+      }
+    },
+    {
+      "name": "walk_NO",
+      "action": "walk",
+      "direction": "NO",
+      "source_key": "NO",
+      "runtime_file": "walk/greenhero_NO_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        167,
+        19,
+        919,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_NO_walk_spritesheet_4x4_o.png",
+          "596b813b2df06d9b345efce5048dc875bbc247d99ef45ddfc603f032c672e6df"
+        ],
+        "input_sheet": [
+          "sources/walk/NO_solo_4x4_o.png",
+          "596b813b2df06d9b345efce5048dc875bbc247d99ef45ddfc603f032c672e6df"
+        ]
+      }
+    },
+    {
+      "name": "walk_O",
+      "action": "walk",
+      "direction": "O",
+      "source_key": "O",
+      "runtime_file": "walk/greenhero_O_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        152,
+        19,
+        949,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_O_walk_spritesheet_4x4_o.png",
+          "630c16300cda8aa57bec7e1242ea9c141a775eb7318e710e24a32e8d4c55acc8"
+        ],
+        "input_sheet": [
+          "sources/walk/O_solo_4x4_o.png",
+          "630c16300cda8aa57bec7e1242ea9c141a775eb7318e710e24a32e8d4c55acc8"
+        ]
+      }
+    },
+    {
+      "name": "walk_SO",
+      "action": "walk",
+      "direction": "SO",
+      "source_key": "SO",
+      "runtime_file": "walk/greenhero_SO_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        150,
+        19,
+        954,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_SO_walk_spritesheet_4x4_o.png",
+          "97b8fcbe72468094d24be2ce9aba7f66d73bc407e641229c9d24d2a7db83deee"
+        ],
+        "input_sheet": [
+          "sources/walk/SO_solo_4x4_o.png",
+          "97b8fcbe72468094d24be2ce9aba7f66d73bc407e641229c9d24d2a7db83deee"
+        ]
+      }
+    },
+    {
+      "name": "walk_S",
+      "action": "walk",
+      "direction": "S",
+      "source_key": "S",
+      "runtime_file": "walk/greenhero_S_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        171,
+        19,
+        911,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_S_walk_spritesheet_4x4_o.png",
+          "f7efe89df8eab65de5c108e239a1a1e24215937ea2cd1b247e60a597a2c3ecc9"
+        ],
+        "input_sheet": [
+          "sources/walk/S_solo_4x4_o.png",
+          "f7efe89df8eab65de5c108e239a1a1e24215937ea2cd1b247e60a597a2c3ecc9"
+        ]
+      }
+    },
+    {
+      "name": "walk_SW",
+      "action": "walk",
+      "direction": "SW",
+      "source_key": "SW",
+      "runtime_file": "walk/greenhero_SW_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        150,
+        19,
+        954,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_SW_walk_spritesheet_4x4_o.png",
+          "92720e1807c2fafa60000fd591358d7830d40d10646994772313511b2dfb04b8"
+        ],
+        "input_sheet": [
+          "sources/walk/SW_solo_4x4_o.png",
+          "92720e1807c2fafa60000fd591358d7830d40d10646994772313511b2dfb04b8"
+        ]
+      }
+    },
+    {
+      "name": "walk_W",
+      "action": "walk",
+      "direction": "W",
+      "source_key": "W",
+      "runtime_file": "walk/greenhero_W_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        153,
+        19,
+        949,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_W_walk_spritesheet_4x4_o.png",
+          "15e8c1cb3d020e18fa3d5ce4ecfb6b2293b605a83baef0e3bd88d4bb1f7a4178"
+        ],
+        "input_sheet": [
+          "sources/walk/W_solo_4x4_o.png",
+          "15e8c1cb3d020e18fa3d5ce4ecfb6b2293b605a83baef0e3bd88d4bb1f7a4178"
+        ]
+      }
+    },
+    {
+      "name": "walk_NW",
+      "action": "walk",
+      "direction": "NW",
+      "source_key": "NW",
+      "runtime_file": "walk/greenhero_NW_walk_spritesheet_4x4_o.png",
+      "crop_rect": [
+        168,
+        19,
+        919,
+        1205
+      ],
+      "source": {
+        "optimized": [
+          "walk/greenhero_NW_walk_spritesheet_4x4_o.png",
+          "a477b04167d698e51f68bbb913eaac5bf8a01e691f4bbf80087cce6c4b34066b"
+        ],
+        "input_sheet": [
+          "sources/walk/NW_solo_4x4_o.png",
+          "a477b04167d698e51f68bbb913eaac5bf8a01e691f4bbf80087cce6c4b34066b"
+        ]
+      }
+    }
+  ]
+}

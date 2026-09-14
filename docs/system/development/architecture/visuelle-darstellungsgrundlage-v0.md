@@ -258,9 +258,9 @@ Geschwindigkeiten, fünf Sprunghöhen und vier Bewegungssprungweiten. Nur eine
 ausdrückliche Einzelwertübernahme schreibt in die Bewegungsressource.
 
 Das `F5`-Menü bleibt als kompaktes Werkzeugfenster über der Testwelt. Es hält
-die Bewegung der Figur nicht an. Das getrennte `F3`-Diagnosepanel ist kleiner
-und halbtransparent, damit Kamera- und Bewegungstests hinter beiden
-Werkzeugen sichtbar bleiben.
+die Bewegung der Figur nicht an. Die getrennten Anzeigen auf `F11` und `F12`
+bestehen nur aus weißem Text ohne Hintergrund oder Rahmen. Sie stehen
+nebeneinander und lassen sich unabhängig schalten.
 
 Alternative Einzelwerte bleiben reine Testvarianten. Eine frische oder
 unvollständige Konfiguration verwendet die Werte aus `Maßstab V0` und der
@@ -268,10 +268,8 @@ versionierten Bewegungsressource.
 
 ## 10. Diagnoseanzeige
 
-Die Diagnoseanzeige wird mit `F3` umgeschaltet und kann aktuell folgende
-Werte zeigen:
+Die Spieldiagnose wird mit `F11` umgeschaltet und zeigt folgende Werte:
 
-- FPS,
 - rohe Spielerposition und gerastertes Heldenbild,
 - rohes und gerastertes Kameraziel sowie Kamerazentrum,
 - Weltanker,
@@ -285,6 +283,14 @@ Werte zeigen:
 - Darstellungsraster und Rasterphase,
 - Texturfilter,
 - Fenstergröße und Fensterskalierung.
+
+Die technische Leistungsanzeige auf `F12` enthält ausschließlich FPS,
+Frame- und Physikzeiten, RAM, die geschätzte Godot-VRAM-Belegung,
+Datenträger-Lese-/Schreibraten, freien Speicherplatz, Renderlast und
+Hardware-/Systeminformationen. Fehlende Messwerte werden ausdrücklich als
+nicht verfügbar angezeigt. Quellen und Plattformgrenzen beschreibt das
+[visuelle Testlabor](../features/visuelles-testlabor.md#5-diagnoseanzeigen).
+Zwischen F11 und F12 werden keine Messwerte doppelt angezeigt.
 
 Kollisionsflächen werden separat mit `F4` eingeblendet. FPS, Koordinaten,
 Fenstergröße, Rasterphase und ähnliche Laufzeitwerte sind ausschließlich

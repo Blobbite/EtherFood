@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Validate and generate the Green Hero stand/walk animation package.
 
-The committed manifest is the only generation input. An optional working-source
-root verifies the audited optimized PNGs, reference sheets, and timing GIFs
-before copying only the optimized PNGs into the runtime asset tree. ``--check``
-never writes and verifies both runtime inputs and the generated Godot resource.
+The committed manifest is the only generation input for Ultra, HD, and Test.
+Packages may contain local sheets or reference stills. An optional working-source
+root verifies and synchronizes animated PNGs when reference sheets and timing
+GIFs are declared. ``--check`` never writes and verifies both runtime inputs
+and the generated Godot resource.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ from typing import cast
 GAME_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = (
     GAME_ROOT
+    / "tests"
     / "assets"
     / "characters"
     / "heroes"
@@ -35,17 +37,9 @@ DEFAULT_MANIFEST = (
     / "stand_walk_manifest.json"
 )
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-EXPECTED_DIRECTION_KEYS = {
-    "n": "w",
-    "ne": "wd",
-    "e": "d",
-    "se": "sd",
-    "s": "s",
-    "sw": "sa",
-    "w": "a",
-    "nw": "wa",
-}
+EXPECTED_DIRECTIONS = ("N", "NO", "O", "SO", "S", "SW", "W", "NW")
 EXPECTED_ACTIONS = ("stand", "walk")
+TEST_ACTIONS = ("stand", "walk", "run", "sneak", "sprint", "jump")
 EXPECTED_SOURCE_DIRECTORIES = {
     "stand": "0stand",
     "walk": "1walk",
@@ -74,6 +68,9 @@ class AnimationSpec:
     direction: str
     source_key: str
     runtime_file: PurePosixPath
+    source_canvas: tuple[int, int]
+    height_pixels: int
+    foot_anchor: tuple[int, int]
     crop_rect: tuple[int, int, int, int]
     columns: int
     rows: int
@@ -82,8 +79,10 @@ class AnimationSpec:
     frame_durations_ms: tuple[int, ...]
     loop: bool
     optimized_source: FileRecord
-    reference_sheet: FileRecord
-    timing_gif: FileRecord
+    reference_sheet: FileRecord | None
+    timing_gif: FileRecord | None
+    reference_image: FileRecord | None
+    input_sheet: FileRecord | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,6 +103,7 @@ class AnimationPackage:
 
     package_id: str
     variant: str
+    actions: tuple[str, ...]
     resource_file: PurePosixPath
     resource_root: str
     source_canvas: tuple[int, int]
@@ -147,8 +147,19 @@ def load_package(manifest_path: Path = DEFAULT_MANIFEST) -> AnimationPackage:
         raise AnimationPackageError("schema_version must be 1")
     package_id = _identifier(manifest.get("package_id"), "package_id")
     variant = _identifier(manifest.get("variant"), "variant")
-    if variant != "ultra":
-        raise AnimationPackageError("variant must be 'ultra' in this package")
+    if variant not in ("ultra", "hd", "test"):
+        raise AnimationPackageError("variant must be 'ultra', 'hd', or 'test'")
+    actions = tuple(
+        _identifier(value, "actions[]")
+        for value in _list(manifest.get("actions", list(EXPECTED_ACTIONS)), "actions")
+    )
+    allowed_actions = TEST_ACTIONS if variant == "test" else EXPECTED_ACTIONS
+    if (
+        len(set(actions)) != len(actions)
+        or not set(EXPECTED_ACTIONS).issubset(actions)
+        or not set(actions).issubset(allowed_actions)
+    ):
+        raise AnimationPackageError("actions require stand/walk and supported variant actions")
     resource_file = _relative_path(manifest.get("resource_file"), "resource_file")
     if resource_file.name != f"{package_id}.tres" or len(resource_file.parts) != 1:
         raise AnimationPackageError("resource_file must match package_id at the package root")
@@ -169,10 +180,11 @@ def load_package(manifest_path: Path = DEFAULT_MANIFEST) -> AnimationPackage:
         _parse_animation(value, defaults, source_canvas, index)
         for index, value in enumerate(animation_values)
     )
-    _validate_package_contract(animations, reference_pose)
+    _validate_package_contract(animations, reference_pose, actions, variant)
     return AnimationPackage(
         package_id=package_id,
         variant=variant,
+        actions=actions,
         resource_file=resource_file,
         resource_root=resource_root.rstrip("/"),
         source_canvas=source_canvas,
@@ -205,8 +217,8 @@ def generate_resource(package: AnimationPackage) -> str:
     lines.append("")
 
     subresource_ids: dict[tuple[str, int], str] = {}
-    canvas_width, canvas_height = package.source_canvas
     for animation in package.animations:
+        canvas_width, canvas_height = animation.source_canvas
         crop_x, crop_y, frame_width, frame_height = animation.crop_rect
         margin_width = canvas_width - frame_width
         margin_height = canvas_height - frame_height
@@ -263,7 +275,17 @@ def generate_resource(package: AnimationPackage) -> str:
                 "}" + ("," if animation_index + 1 < len(package.animations) else ""),
             ]
         )
-    lines.extend(["]", ""])
+    lines.extend(["]", "metadata/animation_layouts = {"])
+    for index, animation in enumerate(package.animations):
+        scale = _godot_float(package.reference_pose.world_height / animation.height_pixels)
+        offset_x = _godot_float(animation.source_canvas[0] / 2 - animation.foot_anchor[0])
+        offset_y = _godot_float(animation.source_canvas[1] / 2 - animation.foot_anchor[1])
+        lines.append(
+            f'&"{animation.name}": {{"scale": Vector2({scale}, {scale}), '
+            f'"offset": Vector2({offset_x}, {offset_y})}}'
+            + ("," if index + 1 < len(package.animations) else "")
+        )
+    lines.extend(["}", ""])
     return "\n".join(lines)
 
 
@@ -277,10 +299,15 @@ def synchronize_sources(
     """Verify working sources and copy only audited optimized PNGs when allowed."""
 
     source_root = source_root.resolve()
-    _validate_working_sources(package, source_root)
+    _validate_working_sources(package, package_root, source_root)
     changed: list[PurePosixPath] = []
     for animation in package.animations:
-        source = _joined_path(source_root, animation.optimized_source.relative_path)
+        root = (
+            package_root
+            if animation.reference_image is not None or animation.input_sheet is not None
+            else source_root
+        )
+        source = _joined_path(root, animation.optimized_source.relative_path)
         destination = _joined_path(package_root, animation.runtime_file)
         if destination.is_file() and _sha256(destination) == animation.optimized_source.sha256:
             continue
@@ -311,6 +338,24 @@ def validate_runtime_assets(
             animation.rows * animation.crop_rect[3],
         )
         _expect_png_contract(png, expected_size, runtime_path)
+        if animation.input_sheet is not None:
+            _verified_payload(
+                _joined_path(package_root, animation.input_sheet.relative_path),
+                animation.input_sheet.sha256,
+                f"input sheet for {animation.name}",
+            )
+        if animation.reference_image is not None:
+            reference_path = _joined_path(package_root, animation.reference_image.relative_path)
+            reference_payload = _verified_payload(
+                reference_path,
+                animation.reference_image.sha256,
+                f"reference image for {animation.name}",
+            )
+            _expect_png_contract(
+                _png_info(reference_payload, reference_path),
+                animation.source_canvas,
+                reference_path,
+            )
 
 
 def _parse_reference_pose(
@@ -319,7 +364,7 @@ def _parse_reference_pose(
 ) -> ReferencePose:
     raw = _mapping(value, "reference_pose")
     pose = ReferencePose(
-        animation=_identifier(raw.get("animation"), "reference_pose.animation"),
+        animation=_animation_name(raw.get("animation"), "reference_pose.animation"),
         frame=_nonnegative_integer(raw.get("frame"), "reference_pose.frame"),
         alpha_bounds=_integer_tuple(
             raw.get("alpha_bounds"),
@@ -361,6 +406,26 @@ def _parse_animation(
 ) -> AnimationSpec:
     label = f"animations[{index}]"
     raw = _mapping(value, label)
+    source_canvas = _integer_tuple(
+        raw.get("source_canvas", list(source_canvas)),
+        f"{label}.source_canvas",
+        2,
+        positive=True,
+    )
+    height_pixels = _positive_integer(
+        _resolved(raw, defaults, "height_pixels"),
+        f"{label}.height_pixels",
+    )
+    foot_anchor = _integer_tuple(
+        _resolved(raw, defaults, "foot_anchor"),
+        f"{label}.foot_anchor",
+        2,
+        nonnegative=True,
+    )
+    if height_pixels > source_canvas[1] or any(
+        anchor > size for anchor, size in zip(foot_anchor, source_canvas)
+    ):
+        raise AnimationPackageError(f"{label}: visual reference exceeds source canvas")
     columns = _positive_integer(_resolved(raw, defaults, "columns"), f"{label}.columns")
     rows = _positive_integer(_resolved(raw, defaults, "rows"), f"{label}.rows")
     frame_count = _positive_integer(
@@ -398,11 +463,14 @@ def _parse_animation(
 
     source = _mapping(raw.get("source"), f"{label}.source")
     return AnimationSpec(
-        name=_identifier(raw.get("name"), f"{label}.name"),
+        name=_animation_name(raw.get("name"), f"{label}.name"),
         action=_identifier(raw.get("action"), f"{label}.action"),
-        direction=_identifier(raw.get("direction"), f"{label}.direction"),
-        source_key=_identifier(raw.get("source_key"), f"{label}.source_key"),
+        direction=_compass_direction(raw.get("direction"), f"{label}.direction"),
+        source_key=_compass_direction(raw.get("source_key"), f"{label}.source_key"),
         runtime_file=_relative_path(raw.get("runtime_file"), f"{label}.runtime_file"),
+        source_canvas=source_canvas,
+        height_pixels=height_pixels,
+        foot_anchor=foot_anchor,
         crop_rect=crop_rect,
         columns=columns,
         rows=rows,
@@ -411,40 +479,53 @@ def _parse_animation(
         frame_durations_ms=durations,
         loop=_boolean(_resolved(raw, defaults, "loop"), f"{label}.loop"),
         optimized_source=_file_record(source.get("optimized"), f"{label}.source.optimized"),
-        reference_sheet=_file_record(
-            source.get("reference_sheet"),
-            f"{label}.source.reference_sheet",
+        reference_sheet=(
+            _file_record(source["reference_sheet"], f"{label}.source.reference_sheet")
+            if "reference_sheet" in source else None
         ),
-        timing_gif=_file_record(source.get("timing_gif"), f"{label}.source.timing_gif"),
+        timing_gif=(
+            _file_record(source["timing_gif"], f"{label}.source.timing_gif")
+            if "timing_gif" in source else None
+        ),
+        reference_image=(
+            _file_record(source["reference_image"], f"{label}.source.reference_image")
+            if "reference_image" in source else None
+        ),
+        input_sheet=(
+            _file_record(source["input_sheet"], f"{label}.source.input_sheet")
+            if "input_sheet" in source else None
+        ),
     )
 
 
 def _validate_package_contract(
     animations: tuple[AnimationSpec, ...],
     reference_pose: ReferencePose,
+    actions: tuple[str, ...],
+    variant: str,
 ) -> None:
     expected_names = {
         f"{action}_{direction}"
-        for action in EXPECTED_ACTIONS
-        for direction in EXPECTED_DIRECTION_KEYS
+        for action in actions
+        for direction in EXPECTED_DIRECTIONS
     }
     actual_names = {animation.name for animation in animations}
     if len(animations) != len(expected_names) or actual_names != expected_names:
         missing = sorted(expected_names - actual_names)
         unexpected = sorted(actual_names - expected_names)
         raise AnimationPackageError(
-            f"animations must contain the 16 stand/walk directions; "
+            f"animations must contain all {len(expected_names)} declared action/direction pairs; "
             f"missing={missing}, unexpected={unexpected}"
         )
     if len(actual_names) != len(animations):
         raise AnimationPackageError("animation names must be unique")
 
     for animation in animations:
-        if animation.action not in EXPECTED_ACTIONS:
+        if animation.action not in actions:
             raise AnimationPackageError(f"unsupported action for {animation.name}")
-        if animation.direction not in EXPECTED_DIRECTION_KEYS:
+        if animation.direction not in EXPECTED_DIRECTIONS:
             raise AnimationPackageError(f"unsupported direction for {animation.name}")
-        expected_key = EXPECTED_DIRECTION_KEYS[animation.direction]
+        expected_key = animation.direction
         if animation.name != f"{animation.action}_{animation.direction}":
             raise AnimationPackageError(f"animation name does not match {animation.name}")
         if animation.source_key != expected_key:
@@ -454,8 +535,34 @@ def _validate_package_contract(
         expected_filename = (
             f"{source_stem}_spritesheet_{grid_suffix}_o.png"
         )
+        if variant == "test" and (animation.columns, animation.rows) == (1, 1):
+            expected_filename = f"{source_stem}.png"
         if animation.runtime_file != PurePosixPath(animation.action, expected_filename):
             raise AnimationPackageError(f"wrong runtime_file for {animation.name}")
+        if animation.input_sheet is not None:
+            if any((animation.reference_image, animation.reference_sheet, animation.timing_gif)):
+                raise AnimationPackageError(f"ambiguous sheet sources for {animation.name}")
+            if animation.optimized_source.relative_path != animation.runtime_file:
+                raise AnimationPackageError(f"wrong optimized path for {animation.name}")
+            if animation.input_sheet.relative_path.parts[0] != "sources":
+                raise AnimationPackageError(f"input_sheet must be in sources for {animation.name}")
+            if animation.input_sheet.sha256 != animation.optimized_source.sha256:
+                raise AnimationPackageError(f"input_sheet hash differs for {animation.name}")
+            continue
+        if animation.reference_image is not None:
+            if animation.reference_sheet is not None or animation.timing_gif is not None:
+                raise AnimationPackageError(f"invalid still-image sources for {animation.name}")
+            if animation.optimized_source.relative_path != animation.runtime_file:
+                raise AnimationPackageError(f"wrong optimized path for {animation.name}")
+            if animation.reference_image.relative_path != PurePosixPath(
+                "sources", "stand", f"greenhero_{expected_key}_stand.png",
+            ):
+                raise AnimationPackageError(f"wrong reference_image path for {animation.name}")
+            continue
+        if animation.reference_sheet is None or animation.timing_gif is None:
+            raise AnimationPackageError(f"missing animation sources for {animation.name}")
+        if animation.action not in EXPECTED_SOURCE_DIRECTORIES:
+            raise AnimationPackageError(f"{animation.name} requires local input_sheet sources")
         expected_source_root = PurePosixPath(
             EXPECTED_SOURCE_DIRECTORIES[animation.action],
             source_stem,
@@ -489,9 +596,37 @@ def _validate_package_contract(
         raise AnimationPackageError("reference pose frame exceeds its animation")
 
 
-def _validate_working_sources(package: AnimationPackage, source_root: Path) -> None:
-    canvas_width, canvas_height = package.source_canvas
+def _validate_working_sources(
+    package: AnimationPackage,
+    package_root: Path,
+    source_root: Path,
+) -> None:
     for animation in package.animations:
+        if animation.input_sheet is not None:
+            _verified_payload(
+                _joined_path(package_root, animation.input_sheet.relative_path),
+                animation.input_sheet.sha256,
+                f"input sheet for {animation.name}",
+            )
+            continue
+        if animation.reference_image is not None:
+            # These reviewed still sheets already live in the committed package.
+            # Animated sources, when declared, are synchronized from an external root.
+            reference_path = _joined_path(package_root, animation.reference_image.relative_path)
+            _verified_payload(
+                reference_path,
+                animation.reference_image.sha256,
+                f"reference image for {animation.name}",
+            )
+            _verified_payload(
+                _joined_path(package_root, animation.optimized_source.relative_path),
+                animation.optimized_source.sha256,
+                f"optimized source for {animation.name}",
+            )
+            continue
+        if animation.reference_sheet is None or animation.timing_gif is None:
+            raise AnimationPackageError(f"missing animation sources for {animation.name}")
+        canvas_width, canvas_height = animation.source_canvas
         optimized_path = _joined_path(
             source_root,
             animation.optimized_source.relative_path,
@@ -533,7 +668,7 @@ def _validate_working_sources(package: AnimationPackage, source_root: Path) -> N
         expected_delays = tuple(duration // 10 for duration in animation.frame_durations_ms)
         if any(duration % 10 != 0 for duration in animation.frame_durations_ms):
             raise AnimationPackageError(f"{animation.name}: GIF timing needs 10 ms units")
-        if (gif.width, gif.height) != package.source_canvas:
+        if (gif.width, gif.height) != animation.source_canvas:
             raise AnimationPackageError(f"{gif_path}: GIF canvas does not match manifest")
         if gif.delays_cs != expected_delays:
             raise AnimationPackageError(f"{gif_path}: GIF frame timing does not match manifest")
@@ -769,6 +904,22 @@ def _string(value: object, label: str) -> str:
     if not isinstance(value, str) or not value:
         raise AnimationPackageError(f"{label} must be a non-empty string")
     return value
+
+
+def _compass_direction(value: object, label: str) -> str:
+    direction = _string(value, label)
+    if direction not in EXPECTED_DIRECTIONS:
+        raise AnimationPackageError(f"{label} must be one of N, NO, NW, O, S, SO, SW, W")
+    return direction
+
+
+def _animation_name(value: object, label: str) -> str:
+    name = _string(value, label)
+    if re.fullmatch(r"(stand|walk|run|sneak|sprint|jump)_(N|NO|NW|O|S|SO|SW|W)", name) is None:
+        raise AnimationPackageError(
+            f"{label} must combine a supported action and a German compass direction"
+        )
+    return name
 
 
 def _identifier(value: object, label: str) -> str:

@@ -193,24 +193,24 @@ func is_ground_motion_active() -> bool:
 	return _ground_motion_active
 
 
-## Returns the stable suffix shared by stand and walk animation names.
+## Returns the German compass suffix shared by all directional pose names.
 func get_animation_direction_name() -> StringName:
 	match animation_direction:
 		AnimationDirection.NORTH:
-			return &"n"
+			return &"N"
 		AnimationDirection.NORTH_EAST:
-			return &"ne"
+			return &"NO"
 		AnimationDirection.EAST:
-			return &"e"
+			return &"O"
 		AnimationDirection.SOUTH_EAST:
-			return &"se"
+			return &"SO"
 		AnimationDirection.SOUTH_WEST:
-			return &"sw"
+			return &"SW"
 		AnimationDirection.WEST:
-			return &"w"
+			return &"W"
 		AnimationDirection.NORTH_WEST:
-			return &"nw"
-	return &"s"
+			return &"NW"
+	return &"S"
 
 
 ## Returns the speed selected by movement priority, or zero while disabled.

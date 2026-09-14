@@ -1,0 +1,149 @@
+[gd_resource type="SpriteFrames" load_steps=17 format=3]
+
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_N_stand.png" id="1_stand_N"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_NO_stand.png" id="2_stand_NO"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_O_stand.png" id="3_stand_O"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_SO_stand.png" id="4_stand_SO"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_S_stand.png" id="5_stand_S"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_SW_stand.png" id="6_stand_SW"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_W_stand.png" id="7_stand_W"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/stand/greenhero_NW_stand.png" id="8_stand_NW"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_N_walk.png" id="9_walk_N"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_NO_walk.png" id="10_walk_NO"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_O_walk.png" id="11_walk_O"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_SO_walk.png" id="12_walk_SO"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_S_walk.png" id="13_walk_S"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_SW_walk.png" id="14_walk_SW"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_W_walk.png" id="15_walk_W"]
+[ext_resource type="Texture2D" path="res://tests/assets/characters/heroes/green_hero/pixel_art/walk/greenhero_NW_walk.png" id="16_walk_NW"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_stand_N")
+}],
+"loop": true,
+"name": &"stand_N",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_stand_NO")
+}],
+"loop": true,
+"name": &"stand_NO",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_stand_O")
+}],
+"loop": true,
+"name": &"stand_O",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_stand_SO")
+}],
+"loop": true,
+"name": &"stand_SO",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_stand_S")
+}],
+"loop": true,
+"name": &"stand_S",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_stand_SW")
+}],
+"loop": true,
+"name": &"stand_SW",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_stand_W")
+}],
+"loop": true,
+"name": &"stand_W",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_stand_NW")
+}],
+"loop": true,
+"name": &"stand_NW",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_walk_N")
+}],
+"loop": true,
+"name": &"walk_N",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_walk_NO")
+}],
+"loop": true,
+"name": &"walk_NO",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_walk_O")
+}],
+"loop": true,
+"name": &"walk_O",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("12_walk_SO")
+}],
+"loop": true,
+"name": &"walk_SO",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("13_walk_S")
+}],
+"loop": true,
+"name": &"walk_S",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("14_walk_SW")
+}],
+"loop": true,
+"name": &"walk_SW",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("15_walk_W")
+}],
+"loop": true,
+"name": &"walk_W",
+"speed": 8.333333
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_walk_NW")
+}],
+"loop": true,
+"name": &"walk_NW",
+"speed": 8.333333
+}]

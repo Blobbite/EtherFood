@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="192" viewBox="0 0 1024 192">
+  <g fill="none" stroke="#bce9ff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(60 24)">
+      <path d="M20 5 Q2 16 12 33 Q28 49 28 23 M8 45 L17 51 L24 45"/>
+      <circle cx="7" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(108 24)">
+      <path d="M20 7 Q36 22 21 37 Q9 47 7 30 Q5 19 17 20 M23 42 L14 51"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(156 24)">
+      <path d="M8 7 L28 16 L18 29 Q8 44 29 48 M10 22 L5 29 L12 35"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(252 24)">
+      <path d="M9 5 L24 16 L10 29 L26 42 L19 52 M28 21 L32 27 L27 33"/>
+      <circle cx="30" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(300 24)">
+      <path d="M8 13 L26 5 L18 26 L30 37 L15 50 M8 31 Q18 39 23 27"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(348 24)">
+      <path d="M7 13 L22 5 L30 19 L16 31 L27 45 M10 38 L5 45 L12 51"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(396 24)">
+      <path d="M12 7 Q32 11 25 27 L8 39 L20 51 M16 17 Q4 22 14 30"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(492 24)">
+      <path d="M27 6 L12 14 L27 27 L12 41 L25 50 M8 20 Q1 28 9 34"/>
+      <circle cx="7" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(540 24)">
+      <path d="M25 9 Q7 4 9 23 Q11 37 28 30 L16 51 M17 15 L24 19 L19 24"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(588 24)">
+      <path d="M27 7 Q4 8 8 29 Q12 49 30 41 M16 17 L23 25 L15 33"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(636 24)">
+      <path d="M20 5 Q2 16 12 33 Q28 49 28 23 M8 45 L17 51 L24 45"/>
+      <circle cx="7" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(684 24)">
+      <path d="M26 6 Q10 9 9 22 L25 35 Q33 45 17 51 M17 16 L26 23 L19 29"/>
+      <circle cx="30" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(780 24)">
+      <path d="M9 13 Q20 3 30 14 L16 32 Q7 45 23 49 M12 22 L5 28 L11 35"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(828 24)">
+      <path d="M9 5 L24 16 L10 29 L26 42 L19 52 M28 21 L32 27 L27 33"/>
+      <circle cx="30" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(876 24)">
+      <path d="M8 7 L28 16 L18 29 Q8 44 29 48 M10 22 L5 29 L12 35"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(924 24)">
+      <path d="M20 7 Q36 22 21 37 Q9 47 7 30 Q5 19 17 20 M23 42 L14 51"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(60 112)">
+      <path d="M27 6 L12 14 L27 27 L12 41 L25 50 M8 20 Q1 28 9 34"/>
+      <circle cx="7" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(108 112)">
+      <path d="M27 7 Q4 8 8 29 Q12 49 30 41 M16 17 L23 25 L15 33"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(156 112)">
+      <path d="M26 6 Q10 9 9 22 L25 35 Q33 45 17 51 M17 16 L26 23 L19 29"/>
+      <circle cx="30" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(204 112)">
+      <path d="M9 13 Q20 3 30 14 L16 32 Q7 45 23 49 M12 22 L5 28 L11 35"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(300 112)">
+      <path d="M20 5 Q2 16 12 33 Q28 49 28 23 M8 45 L17 51 L24 45"/>
+      <circle cx="7" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(348 112)">
+      <path d="M20 7 Q36 22 21 37 Q9 47 7 30 Q5 19 17 20 M23 42 L14 51"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(396 112)">
+      <path d="M8 7 L28 16 L18 29 Q8 44 29 48 M10 22 L5 29 L12 35"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(492 112)">
+      <path d="M25 9 Q7 4 9 23 Q11 37 28 30 L16 51 M17 15 L24 19 L19 24"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(540 112)">
+      <path d="M12 7 Q32 11 25 27 L8 39 L20 51 M16 17 Q4 22 14 30"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(588 112)">
+      <path d="M9 5 L24 16 L10 29 L26 42 L19 52 M28 21 L32 27 L27 33"/>
+      <circle cx="30" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(636 112)">
+      <path d="M7 13 L22 5 L30 19 L16 31 L27 45 M10 38 L5 45 L12 51"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(732 112)">
+      <path d="M8 13 L26 5 L18 26 L30 37 L15 50 M8 31 Q18 39 23 27"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(780 112)">
+      <path d="M9 13 Q20 3 30 14 L16 32 Q7 45 23 49 M12 22 L5 28 L11 35"/>
+      <circle cx="30" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(828 112)">
+      <path d="M27 6 L12 14 L27 27 L12 41 L25 50 M8 20 Q1 28 9 34"/>
+      <circle cx="7" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(876 112)">
+      <path d="M27 7 Q4 8 8 29 Q12 49 30 41 M16 17 L23 25 L15 33"/>
+      <circle cx="7" cy="47" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+    <g transform="translate(924 112)">
+      <path d="M26 6 Q10 9 9 22 L25 35 Q33 45 17 51 M17 16 L26 23 L19 29"/>
+      <circle cx="30" cy="7" r="1.8" fill="#bce9ff" stroke="none"/>
+    </g>
+  </g>
+</svg>

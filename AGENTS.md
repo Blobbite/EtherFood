@@ -27,6 +27,10 @@ Beginne bei der [Dokumentationsübersicht](docs/index.md).
   [`.agent/PLANS.md`](.agent/PLANS.md).
 - Aktualisiere Tests und passende Dokumentation, wenn sich Verhalten ändert.
   Es gelten die geerbten Python- und GDScript-Stilregeln.
+- Assets ohne finale Freigabe liegen unter `game/tests/assets/`. Erst final
+  freigegebene und ins Spiel übernommene Dateien werden nach `game/assets/`
+  verschoben. Die Verwendung in Prototypszenen ist keine Freigabe; siehe
+  [Asset-Ablage und Freigabe](docs/system/development/architecture/asset-ablage-und-freigabe.md).
 - Verwende keine zerstörerischen Git-Befehle, übernimm keine Geheimnisse und
   füge keine ungeprüften Abhängigkeiten hinzu. Generierte Caches, Binärdateien
   und lokale Rechnerpfade gehören nicht ins Repository.

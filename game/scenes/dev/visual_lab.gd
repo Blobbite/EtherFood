@@ -31,6 +31,8 @@ enum TextureFilterPreset {
 enum HeroGraphicsPreset {
 	ULTRA,
 	PIXEL_ART,
+	HD,
+	TEST,
 }
 
 const HERO_SCRIPT := preload("res://scenes/gameplay/hero/hero_character.gd")
@@ -57,10 +59,16 @@ const DEFAULT_MOVEMENT_STANDARD: HeroMovementConfigResource = preload(
 	"res://shared/resources/hero_movement_v0.tres"
 )
 const ULTRA_HERO_FRAMES: SpriteFrames = preload(
-	"res://assets/characters/heroes/green_hero/ultra/green_hero_stand_walk_ultra.tres"
+	"res://tests/assets/characters/heroes/green_hero/ultra/green_hero_stand_walk_ultra.tres"
 )
 const PIXEL_ART_HERO_FRAMES: SpriteFrames = preload(
-	"res://assets/characters/heroes/green_hero/pixel_art/green_hero_stand_walk_pixel_art.tres"
+	"res://tests/assets/characters/heroes/green_hero/pixel_art/green_hero_stand_walk_pixel_art.tres"
+)
+const HD_HERO_FRAMES_PATH := (
+	"res://tests/assets/characters/heroes/green_hero/hd/green_hero_stand_walk_hd.tres"
+)
+const TEST_HERO_FRAMES_PATH := (
+	"res://tests/assets/characters/heroes/green_hero/test/green_hero_stand_walk_test.tres"
 )
 const MAIN_MENU_ROUTE := &"main_menu"
 const SETTINGS_VERSION := 4
@@ -81,10 +89,17 @@ const MOVEMENT_STANDARD_PATH_PROJECT_KEY := (
 const SETTINGS_META_SECTION := "meta"
 const SETTINGS_SECTION := "visual_lab"
 const DIAGNOSTICS_TOGGLE_ACTION := &"dev_diagnostics_toggle"
+const PERFORMANCE_TOGGLE_ACTION := &"dev_performance_toggle"
+const PerformanceDiagnosticsScript := preload("res://scenes/dev/performance_diagnostics.gd")
+const LabNavigationScript := preload("res://scenes/dev/portal_lab/lab_navigation.gd")
+const TestRoomScript := preload("res://scenes/dev/portal_lab/test_room.gd")
+const BlueprintPalette := preload("res://scenes/dev/portal_lab/blueprint_palette.gd")
+const PortalGraphics := preload("res://scenes/dev/portal_lab/portal_graphics.gd")
 const COLLISION_DEBUG_TOGGLE_ACTION := &"dev_collision_debug_toggle"
 const CONTROLS_TOGGLE_ACTION := &"dev_controls_toggle"
 const ACCEPT_STANDARD_ACTION := &"dev_accept_visual_standard"
 const DIAGNOSTICS_UPDATE_INTERVAL := 0.2
+const PERFORMANCE_UPDATE_INTERVAL := 0.5
 const OUTPUT_PIXEL_PHASE_BIAS := 0.25
 const WORLD_LEFT := 0
 const WORLD_TOP := 0
@@ -114,16 +129,20 @@ const CAMERA_SETTING_KEYS: Array[String] = [
 const HERO_SIZE_NAMES: Array[String] = ["Klein", "Mittel", "Groß"]
 const HERO_SIZE_VALUES: Array[float] = [64.0, 80.0, 96.0]
 const HERO_SIZE_IDS: Array[String] = ["small", "medium", "large"]
-const HERO_GRAPHICS_NAMES: Array[String] = ["Ultra", "Pixelart"]
-const HERO_GRAPHICS_IDS: Array[String] = ["ultra", "pixel_art"]
-const HERO_GRAPHICS_REFERENCE_HEIGHTS: Array[float] = [618.0, 245.0]
+const HERO_GRAPHICS_NAMES: Array[String] = ["Ultra", "Pixel Art", "HD", "Testversion"]
+const HERO_GRAPHICS_IDS: Array[String] = ["ultra", "pixel_art", "hd", "test"]
+const HERO_GRAPHICS_REFERENCE_HEIGHTS: Array[float] = [1205.0, 245.0, 618.0, 1205.0]
 const HERO_GRAPHICS_OFFSETS: Array[Vector2] = [
-	Vector2(0.0, -305.0),
+	Vector2(0.0, -597.0),
 	Vector2(0.0, -122.5),
+	Vector2(0.0, -305.0),
+	Vector2(0.0, -597.0),
 ]
 const HERO_GRAPHICS_DETAILS: Array[String] = [
-	"16 Frames je Richtung · 640 × 640 px Referenz",
+	"16 Frames je Richtung · 1254 × 1254 px Standreferenz",
 	"1 Standbild je Richtung · 265 × 265 px",
+	"16 Frames je Richtung · 640 × 640 px",
+	"6 Zustände · 48 Einzelposen · austauschbare Testbilder",
 ]
 const HERO_GRAPHICS_WORLD_HEIGHT := 80.0
 const TILE_SIZE_NAMES: Array[String] = ["Klein", "Mittel", "Groß"]
@@ -192,8 +211,10 @@ const GAMEPLAY_SETTING_SUBJECTS: Dictionary = {
 	$TestWorld/TileComparison/TileGridPreview
 )
 @onready var world_state_preview: WORLD_STATE_PREVIEW_SCRIPT = $TestWorld/WorldStatePreview
-@onready var diagnostics_panel: Panel = $InterfaceLayer/DiagnosticsPanel
+@onready var diagnostics_panel: Control = $InterfaceLayer/DiagnosticsPanel
 @onready var diagnostics_values: Label = $InterfaceLayer/DiagnosticsPanel/Values
+@onready var performance_panel: Control = $InterfaceLayer/PerformancePanel
+@onready var performance_values: Label = $InterfaceLayer/PerformancePanel/Values
 @onready var collision_debug_overlay: COLLISION_DEBUG_OVERLAY_SCRIPT = (
 	$TestWorld/CollisionDebugOverlay
 )
@@ -201,6 +222,9 @@ const GAMEPLAY_SETTING_SUBJECTS: Dictionary = {
 @onready var controls_interface: VisualLabMenuScript = $InterfaceLayer/Interface
 @onready var controls_prompt: Label = $InterfaceLayer/ControlsPrompt
 @onready var test_world: Node2D = $TestWorld
+@onready var lab_navigation: LabNavigationScript = $LabNavigation
+@onready var room_status: Label = $InterfaceLayer/RoomStatus
+@onready var room_actions: HBoxContainer = $InterfaceLayer/RoomActions
 @onready var camera_status: Label = controls_interface.camera_status
 @onready var hero_size_status: Label = controls_interface.hero_size_status
 @onready var hero_graphics_status: Label = controls_interface.hero_graphics_status
@@ -210,6 +234,8 @@ const GAMEPLAY_SETTING_SUBJECTS: Dictionary = {
 
 var _navigation_requested := false
 var _diagnostics_elapsed := 0.0
+var _performance_elapsed := 0.0
+var _performance_diagnostics := PerformanceDiagnosticsScript.new()
 var _selected_camera_context := 0
 var _selected_camera_zoom: int = CameraZoomPreset.MEDIUM
 var _selected_camera_zooms: Array[int] = [
@@ -245,6 +271,7 @@ var _initial_camera_top_level := false
 var _initial_hero_visual_top_level := false
 var _texture_filter_targets: Array[CanvasItem] = []
 var _initial_texture_filters: Array[int] = []
+var _lab_world_bounds := Rect2(WORLD_LEFT, WORLD_TOP, WORLD_RIGHT, WORLD_BOTTOM)
 
 
 func _ready() -> void:
@@ -269,6 +296,7 @@ func _ready() -> void:
 	player_camera.enabled = true
 	player_camera.make_current()
 	diagnostics_panel.visible = false
+	performance_panel.visible = false
 	collision_debug_overlay.set_debug_visible(false)
 	resized.connect(_on_visual_lab_resized)
 	get_window().size_changed.connect(_on_main_window_size_changed)
@@ -285,6 +313,9 @@ func _ready() -> void:
 	_update_window_size_status()
 	_refresh_menu()
 	_set_controls_visible(false)
+	lab_navigation.room_changed.connect(_on_lab_room_changed)
+	if lab_navigation.initialize(test_world, hero_character) != OK:
+		push_error("VisualLab could not open its portal tower.")
 
 
 func _exit_tree() -> void:
@@ -296,16 +327,25 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	_update_pixel_snap_render_alignment()
-	if not diagnostics_panel.visible:
-		return
-	_diagnostics_elapsed += delta
-	if _diagnostics_elapsed < DIAGNOSTICS_UPDATE_INTERVAL:
-		return
-	_diagnostics_elapsed = 0.0
-	_update_diagnostics_values()
+	_update_soul_prompt()
+	if diagnostics_panel.visible:
+		_diagnostics_elapsed += delta
+		if _diagnostics_elapsed >= DIAGNOSTICS_UPDATE_INTERVAL:
+			_diagnostics_elapsed = 0.0
+			_update_diagnostics_values()
+	if performance_panel.visible:
+		_performance_elapsed += delta
+		if _performance_elapsed >= PERFORMANCE_UPDATE_INTERVAL:
+			_performance_elapsed = 0.0
+			_update_performance_values()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(PERFORMANCE_TOGGLE_ACTION):
+		get_viewport().set_input_as_handled()
+		if not _is_repeated_key_event(event):
+			_toggle_performance()
+		return
 	if event.is_action_pressed(DIAGNOSTICS_TOGGLE_ACTION):
 		get_viewport().set_input_as_handled()
 		if not _is_repeated_key_event(event):
@@ -325,6 +365,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		if controls_panel.visible and not _is_repeated_key_event(event):
 			_on_accept_requested()
+		return
+	if event.is_action_pressed(&"gameplay_interact"):
+		get_viewport().set_input_as_handled()
+		if not controls_panel.visible and not _is_repeated_key_event(event):
+			hero_character.try_interact()
+		return
+	var room := lab_navigation.current_room
+	if (
+		room != null and room.soul != null and room.soul.is_conversation_active()
+		and event.is_action_pressed(&"ui_cancel")
+	):
+		get_viewport().set_input_as_handled()
+		room.soul.dismiss_dialogue()
 		return
 	if _navigation_requested or not event.is_action_pressed(&"ui_cancel"):
 		return
@@ -444,7 +497,7 @@ func _set_hero_graphics(graphics_index: int) -> void:
 	_selected_hero_graphics = clampi(
 		graphics_index,
 		HeroGraphicsPreset.ULTRA,
-		HeroGraphicsPreset.PIXEL_ART,
+		HeroGraphicsPreset.TEST,
 	)
 	_apply_hero_graphics()
 	_save_settings()
@@ -456,7 +509,7 @@ func _apply_hero_graphics() -> void:
 	var was_playing := hero_sprite.is_playing()
 	hero_sprite.sprite_frames = _selected_hero_frames()
 	if not hero_sprite.sprite_frames.has_animation(previous_animation):
-		previous_animation = &"stand_s"
+		previous_animation = StringName("stand_%s" % hero_character.get_animation_direction_name())
 	hero_sprite.animation = previous_animation
 	hero_sprite.set_frame_and_progress(0, 0.0)
 	if was_playing:
@@ -469,16 +522,33 @@ func _apply_hero_graphics() -> void:
 	)
 	hero_texture_scale.scale = Vector2(source_scale, source_scale)
 	hero_sprite.offset = HERO_GRAPHICS_OFFSETS[_selected_hero_graphics]
+	hero_character.get_node("AnimationController").call(&"apply_sprite_layout")
 	hero_graphics_status.text = "Hero-Grafik: %s · %s" % [
 		HERO_GRAPHICS_NAMES[_selected_hero_graphics],
 		HERO_GRAPHICS_DETAILS[_selected_hero_graphics],
 	]
+	_apply_portal_graphics()
 	_refresh_diagnostics_if_visible()
+
+
+func _apply_portal_graphics() -> void:
+	var graphics_id := StringName(HERO_GRAPHICS_IDS[_selected_hero_graphics])
+	if lab_navigation.current_room != null:
+		lab_navigation.current_room.set_graphics_variant(graphics_id)
+	controls_interface.portal_graphics_status.text = PortalGraphics.status_text(graphics_id)
 
 
 func _selected_hero_frames() -> SpriteFrames:
 	if _selected_hero_graphics == HeroGraphicsPreset.PIXEL_ART:
 		return PIXEL_ART_HERO_FRAMES
+	if _selected_hero_graphics == HeroGraphicsPreset.HD:
+		return load(HD_HERO_FRAMES_PATH) as SpriteFrames
+	if _selected_hero_graphics == HeroGraphicsPreset.TEST:
+		return ResourceLoader.load(
+			TEST_HERO_FRAMES_PATH,
+			"SpriteFrames",
+			ResourceLoader.CACHE_MODE_REPLACE_DEEP,
+		) as SpriteFrames
 	return ULTRA_HERO_FRAMES
 
 
@@ -507,6 +577,8 @@ func _set_tile_size(size_index: int) -> void:
 func _apply_tile_size() -> void:
 	var selected_size := TILE_SIZE_VALUES[_selected_tile_size]
 	tile_grid_preview.set_tile_size(selected_size)
+	if lab_navigation.current_room != null:
+		lab_navigation.current_room.floor_grid.tile_size = selected_size
 	tile_size_status.text = "Tiles: %s · %d × %d Weltpixel" % [
 		TILE_SIZE_NAMES[_selected_tile_size],
 		selected_size,
@@ -580,6 +652,15 @@ func _set_light_variant(variant_index: int) -> void:
 		world_state_preview.get_light_variant_count(_selected_world_state) - 1,
 	)
 	_apply_atmosphere()
+	if lab_navigation.current_room_id == &"day_night":
+		var phases: Array[float] = (
+			[0.3, 0.5] if _selected_world_state == WorldStatePreset.DAMAGED else [0.1, 0.0]
+		)
+		lab_navigation.current_room.cycle_enabled = false
+		lab_navigation.current_room.cycle_phase = phases[
+			_selected_light_variants[_selected_world_state]
+		]
+		_refresh_room_actions()
 	_save_settings()
 	_refresh_menu()
 
@@ -691,6 +772,11 @@ func _collect_texture_filter_targets(node: Node) -> void:
 
 
 func _canvas_item_has_texture(target: CanvasItem) -> bool:
+	if target is TestRoomScript.BlueprintFloor:
+		return true
+	var particles := target as CPUParticles2D
+	if particles != null:
+		return particles.texture != null
 	var sprite := target as Sprite2D
 	if sprite != null:
 		return sprite.texture != null
@@ -715,6 +801,19 @@ func _toggle_diagnostics() -> void:
 	_refresh_menu()
 
 
+func _toggle_performance() -> void:
+	performance_panel.visible = not performance_panel.visible
+	_performance_elapsed = 0.0
+	_performance_diagnostics.reset()
+	if performance_panel.visible:
+		_update_performance_values()
+	_refresh_menu()
+
+
+func _update_performance_values() -> void:
+	performance_values.text = _performance_diagnostics.sample()
+
+
 func _toggle_collision_debug() -> void:
 	collision_debug_overlay.set_debug_visible(not collision_debug_overlay.visible)
 	_refresh_menu()
@@ -724,6 +823,9 @@ func _set_controls_visible(controls_visible: bool) -> void:
 	controls_panel.visible = controls_visible
 	controls_interface.visible = controls_visible
 	controls_prompt.visible = not controls_visible
+	var room := lab_navigation.current_room
+	if room != null and room.soul != null:
+		room.soul.set_interface_visible(not controls_visible)
 	if controls_visible:
 		_refresh_menu()
 		controls_interface.focus_primary_setting()
@@ -743,7 +845,7 @@ func _update_diagnostics_values() -> void:
 	var stretch_scale := _pixel_snap_viewport.get_stretch_transform().get_scale()
 	diagnostics_values.text = "\n".join(
 		[
-			"FPS: %d" % maxi(0, roundi(Engine.get_frames_per_second())),
+			"Testraum: %s" % _current_room_title(),
 			"Spielerposition roh: %s" % _format_diagnostic_position(player_position),
 			"Spieleranzeige gerastert: %s"
 			% _format_diagnostic_position(rendered_player_position),
@@ -768,6 +870,7 @@ func _update_diagnostics_values() -> void:
 			% ("AN" if hero_character.is_walk_mode_active() else "AUS"),
 			"Sprung: %s" % hero_character.get_jump_diagnostic(),
 			"Hero-Grafik: %s" % _hero_graphics_name(),
+			PortalGraphics.status_text(StringName(HERO_GRAPHICS_IDS[_selected_hero_graphics])),
 			"Figur: %d px" % roundi(hero_character.get_appearance_height()),
 			"Tiles: %d × %d px" % [tile_size, tile_size],
 			"Weltzustand: %s" % WORLD_STATE_NAMES[_selected_world_state],
@@ -789,6 +892,104 @@ func _update_diagnostics_values() -> void:
 			"Fensterskalierung: %s" % _format_stretch_scale(stretch_scale),
 		]
 	)
+
+
+func _on_lab_room_changed(room_id: StringName, room: TestRoomScript) -> void:
+	if room.soul != null:
+		room.soul.conversation_changed.connect(_on_soul_conversation_changed)
+		room.soul.set_interface_visible(not controls_panel.visible)
+	_lab_world_bounds = Rect2(Vector2.ZERO, room.world_size)
+	_update_room_bounds(room.world_size)
+	var objects_visible := room_id == &"objects"
+	$TestWorld/ScaleComparison.visible = objects_visible
+	$TestWorld/TileComparison.visible = objects_visible
+	$TestWorld/TestObstacle.visible = objects_visible
+	$TestWorld/TestObstacle/CollisionShape2D.disabled = not objects_visible
+	world_state_preview.visible = room_id in [&"fog", &"day_night", &"world_state"]
+	world_state_preview.position = Vector2(1200, 480)
+	world_state_preview.set_preview_mode(room_id)
+	collision_debug_overlay.extra_collision_root = room
+	_apply_portal_graphics()
+	_restore_texture_filters()
+	_texture_filter_targets.clear()
+	_initial_texture_filters.clear()
+	_collect_texture_filter_targets(test_world)
+	_apply_texture_filter()
+	_apply_tile_size()
+	_apply_camera_zoom()
+	_update_pixel_snap_render_alignment()
+	player_camera.reset_smoothing()
+	player_camera.force_update_scroll()
+	room_status.text = "%s · Tür betreten: %s · F5: Testwerte" % [
+		_current_room_title(), "Testraum öffnen" if room_id == &"hub" else "zurück zum Portalturm",
+	]
+	room_status.add_theme_color_override("font_color", BlueprintPalette.BRIGHT)
+	_refresh_room_actions()
+	_refresh_diagnostics_if_visible()
+
+
+func _on_soul_conversation_changed(active: bool) -> void:
+	hero_character.set_movement_enabled(not active)
+	_update_soul_prompt()
+
+
+func _update_soul_prompt() -> void:
+	var room := lab_navigation.current_room
+	if room != null and room.soul != null:
+		var target: Area2D = null
+		if hero_character.is_movement_enabled() and not hero_character.is_jumping():
+			target = hero_character.get_nearest_interactable()
+		room.soul.update_prompt(target)
+
+
+func _current_room_title() -> String:
+	if lab_navigation.current_room_id == &"hub" or lab_navigation.current_room_id == &"":
+		return "Portalturm"
+	var definition := lab_navigation.catalog.find_room(lab_navigation.current_room_id)
+	return definition.title if definition != null else "Testraum"
+
+
+func _update_room_bounds(world_size: Vector2) -> void:
+	player_camera.limit_left = 0
+	player_camera.limit_top = 0
+	player_camera.limit_right = int(world_size.x)
+	player_camera.limit_bottom = int(world_size.y)
+	$TestWorld/Floor.polygon = PackedVector2Array([
+		Vector2.ZERO, Vector2(world_size.x, 0), world_size, Vector2(0, world_size.y),
+	])
+	var walls := {
+		"LeftWall": [Vector2(0, world_size.y / 2.0), Vector2(32, world_size.y)],
+		"RightWall": [Vector2(world_size.x, world_size.y / 2.0), Vector2(32, world_size.y)],
+		"TopWall": [Vector2(world_size.x / 2.0, 0), Vector2(world_size.x, 32)],
+		"BottomWall": [Vector2(world_size.x / 2.0, world_size.y), Vector2(world_size.x, 32)],
+	}
+	for wall_name in walls:
+		var wall := $TestWorld/ArenaBounds.get_node(NodePath(wall_name)) as StaticBody2D
+		wall.position = walls[wall_name][0]
+		var shape := RectangleShape2D.new()
+		shape.size = walls[wall_name][1]
+		(wall.get_node("CollisionShape2D") as CollisionShape2D).shape = shape
+
+
+func _refresh_room_actions() -> void:
+	for child in room_actions.get_children():
+		room_actions.remove_child(child)
+		child.queue_free()
+	if lab_navigation.current_room == null:
+		return
+	for item in lab_navigation.current_room.get_controls():
+		var button := Button.new()
+		button.text = item["text"]
+		button.custom_minimum_size = Vector2(120, 38)
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_room_control_pressed.bind(item["id"]))
+		room_actions.add_child(button)
+
+
+func _on_room_control_pressed(control_id: StringName) -> void:
+	if lab_navigation.current_room != null:
+		lab_navigation.current_room.activate_control(control_id)
+		_refresh_room_actions()
 
 
 func _refresh_diagnostics_if_visible() -> void:
@@ -1201,8 +1402,8 @@ func _minimum_camera_zoom() -> float:
 			float(ProjectSettings.get_setting("display/window/size/viewport_width", 0)),
 			float(ProjectSettings.get_setting("display/window/size/viewport_height", 0)),
 		)
-	var world_width := float(WORLD_RIGHT - WORLD_LEFT)
-	var world_height := float(WORLD_BOTTOM - WORLD_TOP)
+	var world_width := _lab_world_bounds.size.x
+	var world_height := _lab_world_bounds.size.y
 	return maxf(viewport_size.x / world_width, viewport_size.y / world_height)
 
 
@@ -1304,6 +1505,10 @@ func _refresh_menu() -> void:
 	controls_interface.update_setting(
 		VisualLabMenuScript.SETTING_DIAGNOSTICS,
 		int(diagnostics_panel.visible),
+	)
+	controls_interface.update_setting(
+		VisualLabMenuScript.SETTING_PERFORMANCE,
+		int(performance_panel.visible),
 	)
 	controls_interface.update_setting(
 		VisualLabMenuScript.SETTING_COLLISION,
@@ -1423,6 +1628,8 @@ func _on_menu_option_selected(setting_id: StringName, option_index: int) -> void
 			_set_light_variant(option_index)
 		VisualLabMenuScript.SETTING_DIAGNOSTICS:
 			_set_diagnostics_visible(option_index == 1)
+		VisualLabMenuScript.SETTING_PERFORMANCE:
+			_set_performance_visible(option_index == 1)
 		VisualLabMenuScript.SETTING_COLLISION:
 			_set_collision_debug_visible(option_index == 1)
 
@@ -1443,6 +1650,12 @@ func _set_diagnostics_visible(visible: bool) -> void:
 	if diagnostics_panel.visible == visible:
 		return
 	_toggle_diagnostics()
+
+
+func _set_performance_visible(visible: bool) -> void:
+	if performance_panel.visible == visible:
+		return
+	_toggle_performance()
 
 
 func _set_collision_debug_visible(visible: bool) -> void:

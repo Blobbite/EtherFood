@@ -9,3 +9,4 @@ profile_name = "Maßstab V0"
 comparison_focus = "Verbindlicher ausgewogener Maßstab für die normale Spielansicht."
 hero_height = 96.0
 camera_zoom = 0.75
+texture_filter_id = "soft"

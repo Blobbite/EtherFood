@@ -4,14 +4,16 @@
 [ext_resource type="PackedScene" path="res://scenes/gameplay/hero/hero_character.tscn" id="2_hero"]
 [ext_resource type="Script" path="res://scenes/dev/tile_grid_preview.gd" id="3_tile_grid"]
 [ext_resource type="PackedScene" path="res://scenes/dev/world_state_preview.tscn" id="4_world_state"]
-[ext_resource type="Texture2D" path="res://assets/prototypes/scale_references/scale_ground.png" id="5_scale_ground"]
-[ext_resource type="Texture2D" path="res://assets/prototypes/scale_references/small_enemy.png" id="6_small_enemy"]
-[ext_resource type="Texture2D" path="res://assets/prototypes/scale_references/door_entrance.png" id="7_door"]
-[ext_resource type="Texture2D" path="res://assets/prototypes/scale_references/house_wall.png" id="8_house_wall"]
-[ext_resource type="Texture2D" path="res://assets/prototypes/scale_references/large_enemy.png" id="9_large_enemy"]
-[ext_resource type="Texture2D" path="res://assets/prototypes/scale_references/tree.png" id="10_tree"]
+[ext_resource type="Texture2D" path="res://tests/assets/prototypes/scale_references/scale_ground.png" id="5_scale_ground"]
+[ext_resource type="Texture2D" path="res://tests/assets/prototypes/scale_references/small_enemy.png" id="6_small_enemy"]
+[ext_resource type="Texture2D" path="res://tests/assets/prototypes/scale_references/door_entrance.png" id="7_door"]
+[ext_resource type="Texture2D" path="res://tests/assets/prototypes/scale_references/house_wall.png" id="8_house_wall"]
+[ext_resource type="Texture2D" path="res://tests/assets/prototypes/scale_references/large_enemy.png" id="9_large_enemy"]
+[ext_resource type="Texture2D" path="res://tests/assets/prototypes/scale_references/tree.png" id="10_tree"]
 [ext_resource type="Script" path="res://scenes/dev/collision_debug_overlay.gd" id="11_collision_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/dev/visual_lab_menu.tscn" id="12_visual_lab_menu"]
+
+[ext_resource type="Script" path="res://scenes/dev/portal_lab/lab_navigation.gd" id="13_navigation"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_bound"]
 size = Vector2(32, 2160)
@@ -34,18 +36,6 @@ content_margin_top = 12.0
 content_margin_right = 12.0
 content_margin_bottom = 12.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_diagnostics_panel"]
-bg_color = Color(0.035, 0.055, 0.063, 0.58)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.68, 0.53, 0.25, 0.78)
-content_margin_left = 10.0
-content_margin_top = 10.0
-content_margin_right = 10.0
-content_margin_bottom = 10.0
-
 [node name="VisualLab" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -67,7 +57,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.043, 0.055, 0.071, 1)
+color = Color(0.062745, 0.109804, 0.156863, 1)
 
 [node name="TestWorld" type="Node2D" parent="."]
 y_sort_enabled = true
@@ -75,7 +65,7 @@ y_sort_enabled = true
 [node name="Floor" type="Polygon2D" parent="TestWorld"]
 z_index = -100
 polygon = PackedVector2Array(0, 0, 3840, 0, 3840, 2160, 0, 2160)
-color = Color(0.17, 0.24, 0.24, 1)
+color = Color(0.062745, 0.109804, 0.156863, 1)
 
 [node name="ArenaBounds" type="Node2D" parent="TestWorld"]
 
@@ -103,24 +93,8 @@ position = Vector2(1920, 2160)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/ArenaBounds/BottomWall"]
 shape = SubResource("RectangleShape2D_horizontal_bound")
 
-[node name="OrientationMarkers" type="Node2D" parent="TestWorld"]
-
-[node name="NorthWestMarker" type="Polygon2D" parent="TestWorld/OrientationMarkers"]
-position = Vector2(480, 440)
-polygon = PackedVector2Array(0, -42, 42, 0, 0, 42, -42, 0)
-color = Color(0.72, 0.34, 0.27, 1)
-
-[node name="NorthEastMarker" type="Polygon2D" parent="TestWorld/OrientationMarkers"]
-position = Vector2(3360, 440)
-polygon = PackedVector2Array(0, -48, 46, 36, -46, 36)
-color = Color(0.78, 0.63, 0.22, 1)
-
-[node name="SouthWestMarker" type="Polygon2D" parent="TestWorld/OrientationMarkers"]
-position = Vector2(520, 1700)
-polygon = PackedVector2Array(-42, -28, 0, -48, 42, -28, 42, 28, 0, 48, -42, 28)
-color = Color(0.29, 0.53, 0.63, 1)
-
 [node name="TileComparison" type="Node2D" parent="TestWorld"]
+visible = false
 position = Vector2(1536, 220)
 
 [node name="TileGridPreview" type="Node2D" parent="TestWorld/TileComparison"]
@@ -137,9 +111,11 @@ text = "Tilegrößenvergleich · feste Fläche 768 × 384"
 horizontal_alignment = 1
 
 [node name="WorldStatePreview" parent="TestWorld" instance=ExtResource("4_world_state")]
+visible = false
 position = Vector2(2400, 620)
 
 [node name="ScaleComparison" type="Node2D" parent="TestWorld"]
+visible = false
 position = Vector2(700, 1760)
 y_sort_enabled = true
 
@@ -279,13 +255,15 @@ text = "Baum · 192 px"
 horizontal_alignment = 1
 
 [node name="TestObstacle" type="StaticBody2D" parent="TestWorld"]
+visible = false
 position = Vector2(2360, 1080)
 
 [node name="Visual" type="Polygon2D" parent="TestWorld/TestObstacle"]
 polygon = PackedVector2Array(-75, -40, 75, -40, 75, 40, -75, 40)
-color = Color(0.47, 0.29, 0.22, 1)
+color = Color(0.270588, 0.4, 0.486275, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/TestObstacle"]
+disabled = true
 shape = SubResource("RectangleShape2D_obstacle")
 
 [node name="CollisionDebugOverlay" type="Node2D" parent="TestWorld"]
@@ -328,13 +306,13 @@ offset_top = 24.0
 offset_right = 240.0
 offset_bottom = 56.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.94, 0.82, 0.48, 1)
+theme_override_colors/font_color = Color(0.67451, 0.768627, 0.823529, 1)
 theme_override_colors/font_outline_color = Color(0.03, 0.05, 0.06, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 18
 text = "F5 · Steuerung"
 
-[node name="DiagnosticsPanel" type="Panel" parent="InterfaceLayer"]
+[node name="DiagnosticsPanel" type="Control" parent="InterfaceLayer"]
 visible = false
 anchors_preset = 1
 anchor_left = 1.0
@@ -345,7 +323,6 @@ offset_right = -16.0
 offset_bottom = 636.0
 grow_horizontal = 0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_diagnostics_panel")
 
 [node name="Title" type="Label" parent="InterfaceLayer/DiagnosticsPanel"]
 offset_left = 14.0
@@ -353,11 +330,10 @@ offset_top = 10.0
 offset_right = 436.0
 offset_bottom = 36.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.94, 0.82, 0.48, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.05, 0.06, 1)
-theme_override_constants/outline_size = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 18
-text = "DIAGNOSE"
+text = "F11 · SPIELDIAGNOSE"
 
 [node name="Values" type="Label" parent="InterfaceLayer/DiagnosticsPanel"]
 offset_left = 14.0
@@ -365,12 +341,47 @@ offset_top = 42.0
 offset_right = 436.0
 offset_bottom = 608.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.78, 0.84, 0.82, 1)
-theme_override_colors/font_outline_color = Color(0.03, 0.05, 0.06, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_constants/line_spacing = 1
-theme_override_constants/outline_size = 1
+theme_override_constants/outline_size = 0
 theme_override_font_sizes/font_size = 13
-text = "FPS: 0\nSpielerposition roh: x=1920,000 · y=1080,000\nSpieleranzeige gerastert: x=1920,000 · y=1080,000\nKameraposition roh: x=1920,000 · y=1080,000\nKameraposition gerastert: x=1920,000 · y=1080,000\nKamerazentrum: x=1920,000 · y=1080,000\nWeltanker: x=0,000 · y=0,000\nMaßstab: manuelle Einzelwerte\nReferenzauflösung: 1920 × 1080\nSeitenverhältnis: 16:9\nKamerabereich: Außenwelt\nKamera-Basis: 1,00×\nKamera-Aktiv: 1,00×\nBewegung: Laufen\nGeschwindigkeit: 220 px/s\nFeststelltasten-Gehen: AUS\nSprung: Boden\nFigur: 80 px\nTiles: 32 × 32 px\nWeltzustand: Beschädigt\nNebel: Mittel\nLichtprofil: Kühl und dunkel\nPixel-Snap: AN\nViewport-Transform-Snap: AUS\nVertex-Snap: AUS\nDarstellungsraster: 1,500 × 1,500 Weltpixel\nRasterphase: 0,25 Ausgabepixel\nTexturfilter: Nearest-Neighbor\nFenster: 1280 × 720\nFensterskalierung: 0,67×"
+text = ""
+
+[node name="PerformancePanel" type="Control" parent="InterfaceLayer"]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -940.0
+offset_top = 16.0
+offset_right = -482.0
+offset_bottom = 636.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="InterfaceLayer/PerformancePanel"]
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 436.0
+offset_bottom = 36.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 18
+text = "F12 · LEISTUNG UND TECHNIK"
+
+[node name="Values" type="Label" parent="InterfaceLayer/PerformancePanel"]
+offset_left = 14.0
+offset_top = 42.0
+offset_right = 436.0
+offset_bottom = 608.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/line_spacing = 1
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 2
+text = ""
 
 [node name="Interface" parent="InterfaceLayer" instance=ExtResource("12_visual_lab_menu")]
 visible = false
@@ -378,3 +389,33 @@ offset_left = 26.0
 offset_top = 24.0
 offset_right = 626.0
 offset_bottom = 708.0
+
+[node name="RoomHost" type="Node2D" parent="TestWorld"]
+y_sort_enabled = true
+
+[node name="LabNavigation" type="Node" parent="."]
+script = ExtResource("13_navigation")
+
+[node name="RoomStatus" type="Label" parent="InterfaceLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -54.0
+offset_right = 1600.0
+offset_bottom = -20.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = "Portalturm"
+
+[node name="RoomActions" type="HBoxContainer" parent="InterfaceLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -104.0
+offset_right = 824.0
+offset_bottom = -62.0
+grow_vertical = 0
+theme_override_constants/separation = 12

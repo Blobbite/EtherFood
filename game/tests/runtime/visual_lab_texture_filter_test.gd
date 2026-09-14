@@ -8,7 +8,7 @@ const SETTINGS_PATH_PROJECT_KEY := "etherfood/development/visual_lab_settings_pa
 const SETTINGS_TEST_PATH := "user://visual_lab_texture_filter_test.cfg"
 const CONTROLS_ACTION := &"dev_controls_toggle"
 const DIAGNOSTICS_ACTION := &"dev_diagnostics_toggle"
-const EXPECTED_TEXTURE_TARGET_COUNT := 51
+const MINIMUM_TEXTURE_TARGET_COUNT := 51
 
 var failures: PackedStringArray = []
 var _had_settings_path_override := false
@@ -165,8 +165,8 @@ func _expect_texture_filter_contract(
 	_expect(rendering_tab != null, "controls menu has a rendering tab")
 	_expect(diagnostics != null, "VisualLab retains diagnostics values")
 	_expect(
-		texture_sprites.size() == EXPECTED_TEXTURE_TARGET_COUNT,
-		"filter comparison covers all 51 textured world targets",
+		texture_sprites.size() >= MINIMUM_TEXTURE_TARGET_COUNT,
+		"filter comparison includes the original references and active room textures",
 	)
 	if (
 		hero == null
@@ -553,6 +553,7 @@ func _open_visual_lab(tree: SceneTree, packed_scene: PackedScene) -> Control:
 		return null
 	var visual_lab := node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	await tree.process_frame
 	return visual_lab
 

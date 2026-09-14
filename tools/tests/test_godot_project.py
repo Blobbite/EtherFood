@@ -131,7 +131,8 @@ class GodotProjectTests(unittest.TestCase):
     def test_visual_lab_uses_menu_and_keeps_reviewed_global_shortcuts(self) -> None:
         project = (GODOT_ROOT / "project.godot").read_text(encoding="utf-8")
         retained_mappings = {
-            "dev_diagnostics_toggle": 4194334,
+            "dev_diagnostics_toggle": 4194342,
+            "dev_performance_toggle": 4194343,
             "dev_collision_debug_toggle": 4194335,
             "dev_controls_toggle": 4194336,
         }
@@ -187,7 +188,17 @@ class GodotProjectTests(unittest.TestCase):
         diagnostics = self._scene_node(scene, "DiagnosticsPanel", "InterfaceLayer")
         self.assertIn("offset_left = -466.0", diagnostics)
         self.assertIn("offset_bottom = 636.0", diagnostics)
-        self.assertIn("bg_color = Color(0.035, 0.055, 0.063, 0.58)", scene)
+        self.assertNotIn("StyleBoxFlat_diagnostics_panel", scene)
+        for overlay in ("DiagnosticsPanel", "PerformancePanel"):
+            with self.subTest(overlay=overlay):
+                self.assertIn(
+                    f'[node name="{overlay}" type="Control" parent="InterfaceLayer"]',
+                    scene,
+                )
+                body = self._scene_node(scene, overlay, "InterfaceLayer")
+                self.assertIn("visible = false", body)
+                self.assertIn("mouse_filter = 2", body)
+                self.assertNotIn("theme_override_styles/panel", body)
         self.assertIn(
             '[node name="ThemeTabs" type="GridContainer" parent="Menu"]',
             menu_scene,

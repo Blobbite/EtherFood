@@ -452,6 +452,7 @@ func _open_visual_lab(tree: SceneTree, packed_scene: PackedScene) -> Control:
 		return null
 	var visual_lab := node as Control
 	tree.root.add_child(visual_lab)
+	visual_lab.get_node("LabNavigation").call(&"enter_room", &"objects")
 	await tree.process_frame
 	return visual_lab
 
