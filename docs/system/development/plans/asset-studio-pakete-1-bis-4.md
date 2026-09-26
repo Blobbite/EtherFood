@@ -19,7 +19,7 @@ Sitzungsspeicher.
 
 - [x] Paket 1: T001/T002 – Bestand, Schreibgrenzen, Architektur und Verträge.
 - [x] Paket 2: T003–T005 – Paket/CLI, Katalog, sichere Dateiablage.
-- [ ] Paket 3: T006–T008 – Struktur, Dokumente/Aufgaben, Statusregeln.
+- [x] Paket 3: T006–T008 – Struktur, Dokumente/Aufgaben, Statusregeln.
 - [ ] Paket 4: T009–T012 – Desktop, Canvas, Undo/Redo, Dokumenteditor.
 - [ ] Abschluss: vier Pushes, Testnachweise und Anleitung zur Sichtprüfung.
 
@@ -34,7 +34,10 @@ Sitzungsspeicher.
 
 ## Befunde und Prüfstrategie
 
-Paket 1 wurde als `779e60a` gepusht. Paket 2: 26 Studio-Tests, 170
+Paket 1 wurde als `779e60a`, Paket 2 als `98e5811` gepusht.
+Paket 3: 41 Studio-Tests bestanden; globale Verwendungen, Konflikte,
+Dokumenthistorie und erklärbare Statusregeln ohne Qt implementiert.
+Paket 2: 26 Studio-Tests, 170
 Bestandstests und nach Ergänzung 9 Installer-Tests bestanden. Der nummerierte
 Pipelinebestand erforderte korrigierte Installer-/Testverweise; bestehende
 Wrapper-Ziele bleiben über Weiterleitungen benutzbar. Keine Bildalgorithmen
