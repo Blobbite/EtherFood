@@ -40,6 +40,11 @@ MIGRATIONS = {
             updated_at TEXT NOT NULL
         )""",
     ),
+    3: (
+        """CREATE TABLE inventory_roots (
+            id TEXT PRIMARY KEY, local_path TEXT NOT NULL UNIQUE
+        )""",
+    ),
 }
 
 CURRENT_VERSION = max(MIGRATIONS)

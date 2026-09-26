@@ -23,6 +23,7 @@ from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
 from .canvas.view import Canvas
 from .asset_settings import AssetSettingsDialog
+from .inventory import InventoryDialog
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
 from .project_dialog import ProjectDialog
@@ -60,6 +61,7 @@ class MainWindow(QMainWindow):
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
         self._action(toolbar, "Demo anlegen", self.demo_dialog, "", "create_demo")
         self._action(toolbar, "Asset-Anforderungen …", self.asset_settings, "", "asset_settings")
+        self._action(toolbar, "Bestand erfassen …", self.asset_inventory, "", "asset_inventory")
         toolbar.addSeparator()
         self.undo_action = self._action(toolbar, "Rückgängig", lambda: self.undo(False),
                                         "Ctrl+Z", "undo")
@@ -248,6 +250,17 @@ class MainWindow(QMainWindow):
             action.setShortcut(QKeySequence(shortcut))
         action.triggered.connect(call)
         return action
+
+    def asset_inventory(self) -> None:
+        if not self.project or not self.selected_id:
+            return
+        def review() -> None:
+            dialog = InventoryDialog(AssetService(self.project), self.selected_id, self)
+            dialog.exec()
+            if dialog.changed:
+                self.refresh()
+            dialog.deleteLater()
+        self.perform(review)
 
     def asset_settings(self) -> None:
         if not self.project or not self.selected_id:

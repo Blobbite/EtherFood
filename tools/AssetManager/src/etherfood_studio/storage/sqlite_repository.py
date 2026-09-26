@@ -221,6 +221,27 @@ class Catalog:
             self.db.execute("INSERT INTO layouts VALUES (?,?) ON CONFLICT(object_id) "
                             "DO UPDATE SET data=excluded.data", (identifier, canonical(data)))
 
+    def inventory_root(self, root: Path) -> str:
+        """Local machine binding; intentionally absent from portable metadata snapshots."""
+        path = str(real_path(root))
+        with self.transaction():
+            row = self.db.execute(
+                "SELECT id FROM inventory_roots WHERE local_path=?", (path,),
+            ).fetchone()
+            if row:
+                return row[0]
+            identifier = new_id()
+            self.db.execute("INSERT INTO inventory_roots VALUES (?,?)", (identifier, path))
+            return identifier
+
+    def inventory_path(self, identifier: str) -> Path:
+        row = self.db.execute(
+            "SELECT local_path FROM inventory_roots WHERE id=?", (identifier,),
+        ).fetchone()
+        if not row:
+            raise StudioError("path", "Lokale Bestandswurzel fehlt; neu erfassen.")
+        return real_path(Path(row[0]))
+
     def export_snapshot(self) -> str:
         with self.transaction():
             objects = [asdict(item) for item in self.records(include_archived=True)]
