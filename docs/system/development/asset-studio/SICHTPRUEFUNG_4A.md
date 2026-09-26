@@ -5,7 +5,8 @@ Stand: 2026-09-26. Nachbesserungen aus der ersten Sichtprüfung, zu
 [#57](https://github.com/Blobbite/EtherFood/issues/57),
 [#58](https://github.com/Blobbite/EtherFood/issues/58) und
 [#59](https://github.com/Blobbite/EtherFood/issues/59).
-Technisch umgesetzt; die menschliche Sichtabnahme ist noch offen.
+Technisch umgesetzt und vom Benutzer vollständig abgenommen: Rückmeldung
+„1 bis 8 sind alle check keine Mängel“ am 26.09.2026. Issues #56–#59 abgeschlossen.
 
 ## Vorbereitung
 
@@ -56,7 +57,7 @@ Verwaltungsdaten und Ansichten, nicht die Freigabe von Spielassets.
 
 Bitte Rückmeldung mit Nummern: `✅ 1–4, 7–8`; bei Problemen etwa
 `❗ 5: Endpunkt lässt sich nicht greifen, Schritte …` und möglichst Screenshot.
-Erst danach werden die vier Issues abgenommen und das nächste Paket vorgeschlagen.
+Diese Prüfliste ist vollständig abgenommen; Paket 5 wurde anschließend freigegeben.
 
 ## Abgrenzung und technische Nachweise
 

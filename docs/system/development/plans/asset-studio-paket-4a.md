@@ -37,7 +37,7 @@ Die bereits offenen Control-Änderungen gehören nicht in die 4a-Commits.
 - [x] Verständlicher Status und gemeinsame Verwendungen (#59).
 - [x] Regressionstests, echte Qt-Ereignisse, Pipeline- und Standardcheck.
 - [x] [Prüfanleitung](../asset-studio/SICHTPRUEFUNG_4A.md) für das nächste Briefing
-  veröffentlicht; menschliche Abnahme bleibt offen.
+  veröffentlicht; Punkte 1–8 vom Benutzer mängelfrei abgenommen (26.09.2026).
 
 ## Entscheidungen und Erkenntnisse
 
@@ -113,6 +113,7 @@ Arbeitsverzeichnis-spezifische Pfade, Qt-Bibliotheken und Credentials bleiben lo
 Zwischenpaket 4a technisch umgesetzt und gezielt geprüft. Die vier Funktions-
 Commits `749d807`, `e81d2e7`, `e9ad6f3` und `edf65fb` wurden einzeln gepusht.
 Eine abschließende Absicherung der Canvas-Navigation und die Prüfanleitung bilden
-den Übergabe-Commit. Issues #56–#59 bleiben ausdrücklich bis zum Benutzerbriefing
-offen. Kein Folgepaket begonnen. Das vollständige Repository bleibt wegen der
+den Übergabe-Commit `ba1c01c`. Das Benutzerbriefing hat alle acht Prüfpunkte
+mängelfrei bestätigt; Issues #56–#59 sind damit abgeschlossen. Paket 5 wurde
+danach ausdrücklich freigegeben. Das vollständige Repository bleibt wegen der
 oben genannten unabhängigen Befunde noch ohne grünen Gesamtcheck.
