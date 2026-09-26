@@ -1,7 +1,7 @@
 """Read-only diagnostics and explicit desktop launch."""
 
 import argparse
-import importlib.util
+import importlib
 from pathlib import Path
 import shutil
 from typing import Sequence
@@ -22,7 +22,11 @@ def doctor(config: Configuration) -> list[tuple[str, bool, str]]:
     installed = bool(tool and (tool / "PyGameTools.py").is_file())
     results.append(("Pipeline", installed, "vorhanden" if installed else "Installation fehlt"))
     results.append(("Godot", bool(shutil.which("godot4") or shutil.which("godot")), "optional"))
-    results.append(("GUI", importlib.util.find_spec("PySide6") is not None, "optional"))
+    try:
+        importlib.import_module("PySide6.QtWidgets")
+        results.append(("GUI", True, "Qt-Bibliotheken ladbar; Display noch nicht geprüft"))
+    except ImportError:
+        results.append(("GUI", False, "Qt-Paket oder Laufzeitbibliotheken fehlen (optional)"))
     return results
 
 

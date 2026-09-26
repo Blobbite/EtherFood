@@ -20,8 +20,12 @@ Sitzungsspeicher.
 - [x] Paket 1: T001/T002 – Bestand, Schreibgrenzen, Architektur und Verträge.
 - [x] Paket 2: T003–T005 – Paket/CLI, Katalog, sichere Dateiablage.
 - [x] Paket 3: T006–T008 – Struktur, Dokumente/Aufgaben, Statusregeln.
-- [ ] Paket 4: T009–T012 – Desktop, Canvas, Undo/Redo, Dokumenteditor.
-- [ ] Abschluss: vier Pushes, Testnachweise und Anleitung zur Sichtprüfung.
+- [x] Paket 4: T009–T012 – Desktop, Canvas, Undo/Redo, Dokumenteditor.
+- [x] Abschlussunterlagen: Testnachweise und Anleitung zur Sichtprüfung.
+
+Die vier Pakete werden jeweils separat committed und gepusht. Die
+Übertragungsbestätigung des vierten Pakets erfolgt nach dem Commit in den
+zugehörigen GitHub-Issues und der Abschlussmeldung (kein Eigenhash im Commit).
 
 ## Entscheidungen
 
@@ -34,7 +38,7 @@ Sitzungsspeicher.
 
 ## Befunde und Prüfstrategie
 
-Paket 1 wurde als `779e60a`, Paket 2 als `98e5811` gepusht.
+Paket 1 wurde als `779e60a`, Paket 2 als `98e5811`, Paket 3 als `ca9a62f` gepusht.
 Paket 3: 41 Studio-Tests bestanden; globale Verwendungen, Konflikte,
 Dokumenthistorie und erklärbare Statusregeln ohne Qt implementiert.
 Paket 2: 26 Studio-Tests, 170
@@ -60,5 +64,10 @@ die vorhandenen PNG/GIF/Godot-Dateien. Keine automatische Bereinigung.
 
 ## Ergebnis
 
-In Arbeit. Konkrete Ergebnisse stehen zusätzlich in den einzelnen
-T001–T012-Berichten; fehlende Prüfungen bleiben ausdrücklich offen.
+Pakete 1–4 implementiert. Abschlussprüfung: 56 Studio-Tests einschließlich
+11 GUI-Tests und 171 Pipeline-Bestandstests bestanden. Neue Quellen/Tests
+ohne Stilbefunde; 6.588 geschützte Dateien per Hash unverändert. Der vollständige
+Repo-Check bleibt wegen der dokumentierten Ausgangsbefunde rot. Die Anleitung
+zur persönlichen Sichtprüfung liegt unter
+[SICHTPRUEFUNG.md](../asset-studio/SICHTPRUEFUNG.md). Keine manuelle Freigabe
+vorweggenommen. Paket 5 bleibt außerhalb dieses Auftrags.

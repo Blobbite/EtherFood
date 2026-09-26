@@ -221,3 +221,15 @@ def test_unicode_root_collision_and_write_time_symlink(catalog, tiny_sheet, tmp_
     second.mkdir()
     with pytest.raises(StudioError):
         validate_roots({"WORKSPACE_ROOT": first, "VERSIONS_ROOT": second})
+
+
+def test_invalid_layout_and_metadata_fail_explicitly(catalog):
+    record = catalog.create("project", "Katalogprüfung")
+    for value in ({"x": float("nan")}, {"w": -2}, {"manual": {"manual": {}}}):
+        with pytest.raises(StudioError):
+            catalog.save_layout(record.id, value)
+    assert catalog.layout(record.id) == {}
+    with catalog.transaction():
+        catalog.db.execute("UPDATE objects SET data='[]' WHERE id=?", (record.id,))
+    with pytest.raises(StudioError, match="Metadaten"):
+        catalog.get(record.id)

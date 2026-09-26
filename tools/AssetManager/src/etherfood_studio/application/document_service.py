@@ -72,6 +72,16 @@ class DocumentService:
             raise StudioError("integrity", "Anhang fehlt oder ist beschädigt.")
         return path
 
+    def attachment_text(self, identifier: str, index: int) -> str:
+        attachment = self.catalog.get(identifier).data["attachments"][index]
+        path = self.attachment_path(identifier, index)
+        extension = Path(attachment["original_name"]).suffix.lower()
+        if extension not in {".md", ".txt", ".json", ".csv", ".log"}:
+            return "Binär-/Skriptanhang sicher gespeichert. Automatisches Öffnen ist deaktiviert."
+        if path.stat().st_size > MAX_TEXT:
+            return "Anhang ist für die Textvorschau zu groß. Original bleibt erhalten."
+        return path.read_text(encoding="utf-8", errors="replace")
+
     def import_markdown(self, owner_id: str, source: Path, *, identifier: str | None = None,
                         expected_revision: int | None = None) -> Record:
         path = real_path(source)

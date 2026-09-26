@@ -8,6 +8,8 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Architektur und Verträge](ARCHITECTURE.md)
 - [Entwicklung, Tests und lokale Ablage](DEVELOPMENT.md)
 - [Karten, Dokumente und Workflowstatus](MODELS.md)
+- [Erste Sichtprüfung nach Paket 4](SICHTPRUEFUNG.md)
+- [Ergebnisberichte T001–T012](task-results/index.md)
 - [Pfadkarte](PATH_MAP.json)
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)
 - [Arbeitsplan](../plans/asset-studio-pakete-1-bis-4.md)

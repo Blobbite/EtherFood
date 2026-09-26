@@ -101,10 +101,12 @@ class ProjectService:
             record, target = self.catalog.get(identifier), self.catalog.get(parent_id)
             self._check_revision(record, expected_revision)
             validate_relation(record, target, "belongs_to", self.catalog.relations())
+            relation_id = None
             for edge in self.catalog.relations():
                 if edge["source_id"] == identifier and edge["kind"] == "belongs_to":
+                    relation_id = edge["id"]
                     self.catalog.remove_relation(edge["id"])
-            self.catalog.add_relation(identifier, parent_id, "belongs_to")
+            self.catalog.add_relation(identifier, parent_id, "belongs_to", identifier=relation_id)
             return self.catalog.save(record, owner_id=parent_id)
 
     def reorder(self, identifier: str, order: int, expected_revision: int) -> Record:
@@ -171,6 +173,7 @@ class ProjectService:
         from dataclasses import replace
 
         for card in cards:
+            self.catalog.layout(card.id)
             self.breadcrumb(card.id)
             parents = [e for e in edges
                        if e["kind"] == "belongs_to" and e["source_id"] == card.id]

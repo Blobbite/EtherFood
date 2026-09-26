@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, replace
 import json
 from pathlib import Path
+import math
 import sqlite3
 from threading import RLock
 from typing import Any, Iterator
@@ -96,7 +97,14 @@ class Catalog:
     @staticmethod
     def _decode(row: sqlite3.Row) -> Record:
         value = dict(row)
-        value["data"] = json.loads(value["data"])
+        try:
+            value["data"] = json.loads(value["data"])
+            UUID(value["id"])
+            if (not isinstance(value["data"], dict) or value["kind"] not in KINDS
+                    or not isinstance(value["title"], str) or not value["title"].strip()):
+                raise ValueError("Ungültige Metadaten")
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise StudioError("integrity", "Katalog: ungültige Metadaten.", str(exc)) from exc
         value["archived"] = bool(value["archived"])
         return Record(**value)
 
@@ -185,9 +193,30 @@ class Catalog:
         row = self.db.execute(
             "SELECT data FROM layouts WHERE object_id=?", (identifier,),
         ).fetchone()
-        return json.loads(row[0]) if row else {}
+        data = json.loads(row[0]) if row else {}
+        self.validate_layout(data)
+        return data
+
+    @staticmethod
+    def validate_layout(data: dict) -> None:
+        if not isinstance(data, dict):
+            raise StudioError("validation", "Ungültige Layoutdaten.")
+        for key in ("x", "y", "w", "h"):
+            value = data.get(key)
+            if value is not None and (not isinstance(value, (float, int))
+                                      or not math.isfinite(value)):
+                raise StudioError("validation", "Nur endliche Zahlen für Position und Größe.")
+            if key in {"w", "h"} and value is not None and not 1 <= value <= 10000:
+                raise StudioError("validation", "Kartengröße außerhalb zulässiger Grenzen.")
+        if "collapsed" in data and not isinstance(data["collapsed"], bool):
+            raise StudioError("validation", "Ungültiger Gruppenzustand.")
+        if "manual" in data:
+            if not isinstance(data["manual"], dict) or set(data["manual"]) - {"x", "y"}:
+                raise StudioError("validation", "Ungültige gespeicherte Anordnung.")
+            Catalog.validate_layout(data["manual"])
 
     def save_layout(self, identifier: str, data: dict) -> None:
+        self.validate_layout(data)
         with self.transaction():
             self.db.execute("INSERT INTO layouts VALUES (?,?) ON CONFLICT(object_id) "
                             "DO UPDATE SET data=excluded.data", (identifier, canonical(data)))

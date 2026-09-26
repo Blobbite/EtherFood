@@ -32,7 +32,7 @@ class StatusService:
 
     def summary(self, identifier: str) -> str:
         statuses = list(self.status(identifier).values())
-        for state in ("blocked", "failed", "waiting_external", "not_started", "stale", "ready"):
+        for state in ("failed", "waiting_external", "not_started", "stale", "blocked", "ready"):
             found = next((row for row in statuses if row.state == state), None)
             if found:
                 return f"{found.state}: {found.reason}"

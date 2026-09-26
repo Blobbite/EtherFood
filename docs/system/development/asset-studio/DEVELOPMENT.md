@@ -27,6 +27,7 @@ python3 -m venv .venv
 .venv/bin/python tools/AssetManager/studio.py --help
 .venv/bin/python tools/AssetManager/studio.py --version
 .venv/bin/python tools/AssetManager/studio.py doctor
+.venv/bin/python tools/AssetManager/studio.py gui
 ```
 
 `doctor` schreibt nichts. Ohne lokale Konfiguration ist Exit 1 mit den
@@ -42,7 +43,7 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest -q tools/AssetManager/tests
 .venv/bin/python tools/control.py check
 ```
 
-Der GUI-Bereich entsteht in Paket 4. Ohne GUI-Abhängigkeit bleiben dessen
+Der GUI-Bereich ist seit Paket 4 verfügbar. Ohne GUI-Abhängigkeit bleiben dessen
 Tests ausdrücklich übersprungen; Core-Tests benötigen kein Qt. Alle
 Bildfixtures sind synthetisch und temporär. Der vollständige Repo-Check
 prüft zusätzlich den bestehenden Spielbestand und benötigt Godot.
