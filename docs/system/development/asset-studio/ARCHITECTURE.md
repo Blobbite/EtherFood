@@ -67,7 +67,7 @@ Standardgrenzen: 64 MiB Importdatei, 32 Millionen Bildpixel, 1 MiB Markdown,
 64 MiB Metadaten-Snapshot; vor Kopieren zusätzlich freier Speicher prüfen.
 Größere echte Produktionsassets benötigen später eine bewusste Konfiguration.
 
-Wurzeln müssen existieren, symlinkfrei und ohne Überlappung sein. Jeder
+Schreibwurzeln müssen existieren, symlinkfrei und ohne Überlappung sein. Jeder
 Schreibzugriff prüft seine Grenze erneut. Importe kopieren über Laufwerke,
 prüfen Hash/Länge und registrieren danach; sie behaupten keine atomare
 Cross-Device-Verschiebung. Journale und verwaiste Dateien werden nur gemeldet.
@@ -79,3 +79,14 @@ Statuswerte: `not_started`, `waiting_external`, `ready`, `running`, `blocked`,
 einen Typgrund. `skipped` oder fehlende Tools zählen nie als Erfolg.
 Bearbeitung, Build, Sichtabnahme, Godot-Test und Runtime bleiben getrennt.
 Neue Entwürfe entwerten keine historische Freigabe eines alten Builds.
+
+## Ergänzung Paket 5
+
+Asset-Anforderungen verwenden [Schema Version 1](../../../../schemas/asset-studio/asset-definition-v1.json)
+und zusätzliche semantische Domain-Prüfungen. Pose-UUIDs und externe
+Bestandsbeobachtungen gehören zur Asset-Karte; sie sind keine Build-Ergebnisse.
+Der [lesende Scanner](INVENTORY.md) darf ausdrücklich ausgewählte Unterordner
+einer bestehenden Wurzel erfassen, legt dort aber nichts an. Diese Lesewurzeln
+sind in Migration 3 separat lokal gebunden und fehlen im portablen Snapshot.
+Qt-Lesearbeiter schreiben nicht in SQLite; die kurze, explizite Übernahme
+erfolgt nach erneuter Datei-/Revisionsprüfung über den Anwendungsdienst.
