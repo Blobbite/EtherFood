@@ -28,7 +28,7 @@ und werden nicht in Paket-5-Commits aufgenommen.
 ## Schritte und Fortschritt
 
 - [x] 4a-Abnahme dokumentieren, Issues #56–#59 abschließen und Basis prüfen.
-- [ ] T013: Modelle, Schema, Dienste und kleine Konfigurationsoberfläche testen.
+- [x] T013: Modelle, Schema, Dienste und kleine Konfigurationsoberfläche testen.
 - [ ] T014: lesenden Scanner und externe Nachweis-/Linkprüfung testen.
 - [ ] T014: Übernahmeprüfung, explizite Katalogübernahme und GUI-Ablauf testen.
 - [ ] Wiederholung, Abbruch, Revisionsschutz und tatsächlichen Bestand lesend prüfen.
@@ -65,3 +65,8 @@ Keine pauschalen Git-Rücksetzungen, keine automatischen Reparaturen oder Lösch
 ## Ergebnis und Rückblick
 
 In Arbeit. Paket endet mit einer neuen Prüfliste, nicht mit dem Start von T015.
+
+Zwischenprüfung T013: 35 gezielte Tests bestanden (Modelle, Dienste, echter
+Qt-Dialog). 200 Varianten, zweigerichtete Pose, statische Textur, getrennte
+Frames/FPS, Konflikt-/Versionsschutz, persistente Pose-ID und Erhalt eines
+eigenständigen 8-Frame-Originals geprüft. Noch kein Scan implementiert.

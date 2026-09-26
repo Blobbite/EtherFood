@@ -1,5 +1,6 @@
 """Read-only status projection for the dashboard; no editable success flag."""
 
+from ..domain.assets import AssetDefinition
 from ..domain.workflows import StepStatus, resolve
 from .project_service import ProjectService
 
@@ -40,7 +41,12 @@ class StatusService:
             inputs["document"] = ";".join(
                 f"{row.id}:{row.revision_no}" for row in documents
             )
-        result = resolve(kind, inputs)
+        materials = True
+        if record.data.get("asset_definition"):
+            definition = AssetDefinition.from_data(record.data["asset_definition"])
+            kind = definition.workflow
+            materials = "supports_materials" in definition.capabilities
+        result = resolve(kind, inputs, supports_materials=materials)
         # Real pipeline/import evidence is integrated in later packages, never invented.
         blockers = [edge["target_id"] for edge in self.project.catalog.relations()
                     if edge["kind"] == "depends_on" and edge["source_id"] == identifier]

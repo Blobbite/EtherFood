@@ -58,6 +58,9 @@ class Navigation:
         action("Dokumente / Notiz öffnen", "context_open", "document",
                lambda: self._on_card(identifier, self.open_notes))
         if not record.archived:
+            if record.kind == "asset":
+                action("Asset-Anforderungen …", "context_asset_settings", "asset",
+                       lambda: self._on_card(identifier, window.asset_settings))
             if record.kind in {"global", "act", "chapter", "package"}:
                 action("Vorhandenes Asset verwenden …", "context_use_existing", "asset",
                        lambda: self._on_card(identifier, window.use_existing_dialog))

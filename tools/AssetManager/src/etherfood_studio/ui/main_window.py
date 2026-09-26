@@ -15,12 +15,14 @@ from PySide6.QtWidgets import (
 )
 
 from ..application.commands import Commands
+from ..application.asset_service import AssetService
 from ..application.document_service import DocumentService
 from ..application.project_service import ProjectService
 from ..application.status_service import STATE_NAMES, STEP_NAMES, StatusService, status_reason
 from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
 from .canvas.view import Canvas
+from .asset_settings import AssetSettingsDialog
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
 from .project_dialog import ProjectDialog
@@ -57,6 +59,7 @@ class MainWindow(QMainWindow):
         self._action(toolbar, "Öffnen …", self.open_dialog, "Ctrl+O", "open_project")
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
         self._action(toolbar, "Demo anlegen", self.demo_dialog, "", "create_demo")
+        self._action(toolbar, "Asset-Anforderungen …", self.asset_settings, "", "asset_settings")
         toolbar.addSeparator()
         self.undo_action = self._action(toolbar, "Rückgängig", lambda: self.undo(False),
                                         "Ctrl+Z", "undo")
@@ -245,6 +248,16 @@ class MainWindow(QMainWindow):
             action.setShortcut(QKeySequence(shortcut))
         action.triggered.connect(call)
         return action
+
+    def asset_settings(self) -> None:
+        if not self.project or not self.selected_id:
+            return
+        def edit() -> None:
+            dialog = AssetSettingsDialog(AssetService(self.project), self.selected_id, self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                self.refresh()
+            dialog.deleteLater()
+        self.perform(edit)
 
     def perform(self, call: Callable) -> bool:
         try:

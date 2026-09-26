@@ -1,4 +1,4 @@
-# Struktur, Dokumente und Status (Pakete 1–3)
+# Struktur, Dokumente, Asset-Anforderungen und Status
 
 ## Karten und Verwendungen
 
@@ -31,6 +31,30 @@ Grafikprofil, Frames, Zeit/Frame und einen sicher importierten Screenshot
 nennen. Titel-/Textsuche und Filter liefern stabile Karten-IDs; Kapitel-
 Filter berücksichtigen auch gemeinsam verwendete Assets.
 Eine erledigte Aufgabe ist ausdrücklich **keine** Build- oder Godot-Freigabe.
+
+## Asset-Anforderungen (Paket 5 / T013)
+
+`asset_definition` im Asset-Datensatz enthält Version 1 mit datengetriebenem
+Typ und Fähigkeiten (`animated`, `directional`, `supports_materials`,
+`static_image`, `package_member`). Das Schema liegt unter
+`schemas/asset-studio/asset-definition-v1.json`; der Domain-Validator prüft
+zusätzlich Zusammenhänge und Grenzen. Vorlage und Anzeigename sind keine
+Asset-spezifische Pipeline-Sonderbehandlung.
+
+Die Asset-Karte öffnet über **Asset-Anforderungen** den Konfigurationsdialog.
+Posen besitzen stabile UUID, Anzeigename, Exportname, Quellart, Loop, optional
+eigene geordnete Richtungen, FPS und normalisierten Anker. Namen wie `walk`
+und `slowwalk` sind getrennt. Frames (Bilderanzahl) sind keine FPS (Tempo).
+8 Richtungen × 5 Grafikprofile × 5 Frameprofile ergeben 200 Varianten je
+Spritesheet-Pose. Einzelbildposen wie `jump` erwarten nur ein Bild; statische
+Texturen haben weder Pose noch Richtung noch Frames/FPS. Richtungs- und
+Materialfähigkeiten steuern die Anforderungen: unnötige Schritte/Varianten
+sind `not_required`, nicht fehlgeschlagen.
+
+`inventory_sources` sammelt externe Beobachtungen ohne Ersetzen bestehender
+Originale. Ein unabhängiges 8-Frame-Original bleibt neben einer späteren
+Ableitung erhalten; unterschiedliche Inhalte zur gleichen Variante werden
+als Konflikt sichtbar. Vorhandensein ersetzt keine Prüfung oder Freigabe.
 
 ## Workflow-Version 1
 

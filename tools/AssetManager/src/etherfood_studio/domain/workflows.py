@@ -37,16 +37,19 @@ class StepStatus:
     predecessors: tuple[str, ...] = ()
 
 
-def template(kind: str) -> tuple[Step, ...]:
+def template(kind: str, *, supports_materials: bool = True) -> tuple[Step, ...]:
     if kind not in {"animated", "effect", "static", "document"}:
         raise StudioError("validation", "Workflow-Vorlage nicht vorhanden.")
     if kind == "document":
         return (Step("document"), Step("review", ("document",)))
     animated = kind in {"animated", "effect"}
     return (
-        Step("source"), Step("mask", ("source",)), Step("color", ("mask",)),
-        Step("frames", ("color",), animated, "Statischer Inhalt hat keine Frame-Ableitung."),
-        Step("scale", ("frames",) if animated else ("color",)),
+        Step("source"),
+        Step("mask", ("source",), supports_materials, "Asset benötigt keine Materialmaske."),
+        Step("color", ("mask",), supports_materials, "Asset benötigt keine Materialfarben."),
+        Step("frames", ("color" if supports_materials else "source",), animated,
+             "Statischer Inhalt hat keine Frame-Ableitung."),
+        Step("scale", ("frames" if animated else "color" if supports_materials else "source",)),
         Step("checks", ("scale",)), Step("review", ("checks",)),
         Step("godot", ("review",)), Step("runtime", ("godot",)),
     )
@@ -62,10 +65,11 @@ def input_fingerprint(step: str, inputs: dict[str, str]) -> str:
 
 
 def resolve(kind: str, inputs: dict[str, str], evidence: dict[str, Evidence] | None = None,
-            *, current_build_id: str | None = None) -> dict[str, StepStatus]:
+            *, current_build_id: str | None = None,
+            supports_materials: bool = True) -> dict[str, StepStatus]:
     statuses = {}
     evidence = evidence or {}
-    for step in template(kind):
+    for step in template(kind, supports_materials=supports_materials):
         if not step.required:
             statuses[step.id] = StepStatus(step.id, "not_required", step.reason)
             continue
