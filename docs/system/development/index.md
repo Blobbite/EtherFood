@@ -12,6 +12,7 @@
 - [Projektidentität](project-identity.md)
 
 ### Bereiche
+- [Asset Studio](asset-studio/index.md)
 - [Spielarchitektur](architecture/index.md)
 - [Decisions](decisions/index.md)
 - [Features](features/index.md)

@@ -8,6 +8,8 @@
 ## Inhalt
 
 ### Seiten
+- [Asset Studio: zusammenhängende GitHub-Issues](asset-studio-github-issues.md)
+- [Asset Studio: Pakete 1 bis 4](asset-studio-pakete-1-bis-4.md)
 - [Arbeitsplan: <Meilenstein>](_execplan-template.md)
 - [Arbeitsplan: Begehbarer Heldenraum](begehbarer-heldenraum.md)
 - [Arbeitsplan: Bewegungssteuerung V0](bewegungssteuerung-v0.md)

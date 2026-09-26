@@ -37,6 +37,16 @@ htmlcov/
 /tools/PyGameTools/**/.compare/
 /tools/PyGameTools/**/__pycache__/
 /tools/PyGameTools/**/media-*
+/tools/AssetManager/PyGameTools/greenhero/
+/tools/AssetManager/PyGameTools/**/.pipeline-build/
+/tools/AssetManager/PyGameTools/**/.compare/
+/tools/AssetManager/PyGameTools/**/media-*
+
+# Asset Studio: lokale Kataloge und importierte Arbeitsdaten, keine Quellen.
+*.studio-local.json
+*.studio.sqlite*
+*.studio-backup-*
+.asset-studio/
 
 # Editors and operating systems
 .idea/

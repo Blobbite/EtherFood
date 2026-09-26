@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "repository_relative": true,
+  "roots": {
+    "TOOL_ROOT": "tools/AssetManager/PyGameTools",
+    "WORKSPACE_ROOT": null,
+    "VERSIONS_ROOT": null,
+    "GODOT_ROOT": "game"
+  },
+  "application": "tools/AssetManager/src/etherfood_studio",
+  "tests": "tools/AssetManager/tests",
+  "documentation": "docs/system/development/asset-studio",
+  "plan_source": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan",
+  "visual_lab": "game/test_scenes/visual_lab/visual_lab.tscn",
+  "pipeline_directories": [
+    "Pipline/SourceColor-Pipline",
+    "Pipline/0-SpritesheetFram16-Pipline",
+    "Pipline/0-SpritesheetFram8-Pipline",
+    "Pipline/1-SpritesheetFramReduce-Pipline",
+    "Pipline/2-SpritesheetResolution-Pipline",
+    "Pipline/3-SpritesheetColor-Pipline"
+  ],
+  "path_name_examples": ["Kapitel 1", "Grüne Höhle", "Test #1", "100%"]
+}

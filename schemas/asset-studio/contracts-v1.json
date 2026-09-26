@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:etherfood:asset-studio:contracts:1",
+  "description": "Versionierte Austauschverträge, keine Produktivfreigabe.",
+  "oneOf": [
+    {"$ref": "#/$defs/BuildRequest"},
+    {"$ref": "#/$defs/BuildResult"},
+    {"$ref": "#/$defs/RuntimePayload"},
+    {"$ref": "#/$defs/DeploymentJournal"},
+    {"$ref": "#/$defs/Review"}
+  ],
+  "$defs": {
+    "Id": {"type": "string", "format": "uuid"},
+    "Hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "RelativePath": {
+      "type": "string", "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[\\\\:]).+$"
+    },
+    "VariantKey": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset_id", "pose_id", "direction_id", "graphics_profile_id",
+        "frame_profile_id", "source_revision_id"],
+      "properties": {
+        "asset_id": {"$ref": "#/$defs/Id"},
+        "pose_id": {"anyOf": [{"$ref": "#/$defs/Id"}, {"type": "null"}]},
+        "direction_id": {"type": ["string", "null"], "minLength": 1},
+        "graphics_profile_id": {"type": "string", "minLength": 1},
+        "frame_profile_id": {"type": ["string", "null"], "minLength": 1},
+        "source_revision_id": {"$ref": "#/$defs/Id"}
+      }
+    },
+    "Artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "length"],
+      "properties": {
+        "path": {"$ref": "#/$defs/RelativePath"},
+        "sha256": {"$ref": "#/$defs/Hash"},
+        "length": {"type": "integer", "minimum": 0}
+      }
+    },
+    "BuildRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "kind", "id", "asset_id", "input_fingerprint",
+        "source_revision_ids", "profile_revision_ids", "mask_revision_ids",
+        "recipe_revision", "algorithm_version", "variants", "output_root"],
+      "properties": {
+        "schema_version": {"const": 1}, "kind": {"const": "BuildRequest"},
+        "id": {"$ref": "#/$defs/Id"}, "asset_id": {"$ref": "#/$defs/Id"},
+        "input_fingerprint": {"$ref": "#/$defs/Hash"},
+        "source_revision_ids": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/Id"}
+        },
+        "profile_revision_ids": {
+          "type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Id"}
+        },
+        "mask_revision_ids": {
+          "type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Id"}
+        },
+        "recipe_revision": {"type": "string", "minLength": 1},
+        "algorithm_version": {"type": "string", "minLength": 1},
+        "variants": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": {"$ref": "#/$defs/VariantKey"}
+        },
+        "output_root": {"const": "WORKSPACE_ROOT"}
+      }
+    },
+    "BuildResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "kind", "id", "request_id", "status", "outputs"],
+      "properties": {
+        "schema_version": {"const": 1}, "kind": {"const": "BuildResult"},
+        "id": {"$ref": "#/$defs/Id"}, "request_id": {"$ref": "#/$defs/Id"},
+        "status": {"enum": ["passed", "failed", "cancelled"]},
+        "outputs": {
+          "type": "array", "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["artifact", "variant", "columns", "rows", "frame_count",
+              "fps", "durations_ms", "geometry", "checks"],
+            "properties": {
+              "artifact": {"$ref": "#/$defs/Artifact"},
+              "variant": {"$ref": "#/$defs/VariantKey"},
+              "columns": {"type": "integer", "minimum": 1},
+              "rows": {"type": "integer", "minimum": 1},
+              "frame_count": {"type": ["integer", "null"], "minimum": 1},
+              "fps": {"type": ["number", "null"], "exclusiveMinimum": 0},
+              "durations_ms": {
+                "type": "array", "items": {"type": "number", "exclusiveMinimum": 0}
+              },
+              "geometry": {
+                "type": "object", "additionalProperties": false,
+                "required": ["crop", "cell_size", "anchor"],
+                "properties": {
+                  "crop": {"$ref": "#/$defs/Vector4"},
+                  "cell_size": {"$ref": "#/$defs/Vector2"},
+                  "anchor": {"$ref": "#/$defs/Vector2"}
+                }
+              },
+              "checks": {"type": "array", "items": {"enum": ["passed", "failed", "skipped"]}}
+            }
+          }
+        }
+      },
+      "if": {"properties": {"status": {"const": "passed"}}},
+      "then": {"properties": {"outputs": {"minItems": 1}}}
+    },
+    "Vector2": {
+      "type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}
+    },
+    "Vector4": {
+      "type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}
+    },
+    "RuntimePayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "kind", "id", "candidate_id", "files", "payload_digest"],
+      "properties": {
+        "schema_version": {"const": 1}, "kind": {"const": "RuntimePayload"},
+        "id": {"$ref": "#/$defs/Id"}, "candidate_id": {"$ref": "#/$defs/Id"},
+        "files": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/Artifact"}},
+        "payload_digest": {"$ref": "#/$defs/Hash"}
+      }
+    },
+    "DeploymentJournal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "kind", "id", "export_id", "target", "state", "owned_files"],
+      "properties": {
+        "schema_version": {"const": 1}, "kind": {"const": "DeploymentJournal"},
+        "id": {"$ref": "#/$defs/Id"}, "export_id": {"$ref": "#/$defs/Id"},
+        "target": {"enum": ["godot_test", "godot_runtime"]},
+        "state": {"enum": ["planned", "copied", "verified", "registered", "failed"]},
+        "owned_files": {"type": "array", "items": {"$ref": "#/$defs/Artifact"}}
+      }
+    },
+    "Review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "kind", "id", "build_id", "scope", "decision", "created_at"],
+      "properties": {
+        "schema_version": {"const": 1}, "kind": {"const": "Review"},
+        "id": {"$ref": "#/$defs/Id"}, "build_id": {"$ref": "#/$defs/Id"},
+        "scope": {"type": "string", "minLength": 1},
+        "decision": {"enum": ["accepted", "rejected", "needs_changes"]},
+        "created_at": {"type": "string", "format": "date-time", "pattern": "Z$"}
+      }
+    }
+  }
+}
