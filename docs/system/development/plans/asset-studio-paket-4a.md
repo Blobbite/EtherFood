@@ -35,8 +35,9 @@ Die bereits offenen Control-Änderungen gehören nicht in die 4a-Commits.
 - [x] Canvas-Bedienung und kollisionsfreie Beschriftung (#57).
 - [x] Kontextaktionen, Baum-Inhalte und Typicons (#58).
 - [x] Verständlicher Status und gemeinsame Verwendungen (#59).
-- [ ] Regressionstests, echte Qt-Ereignisse, Pipeline- und Standardcheck.
-- [ ] Prüfanleitung und Übergabe zum nächsten Briefing.
+- [x] Regressionstests, echte Qt-Ereignisse, Pipeline- und Standardcheck.
+- [x] [Prüfanleitung](../asset-studio/SICHTPRUEFUNG_4A.md) für das nächste Briefing
+  veröffentlicht; menschliche Abnahme bleibt offen.
 
 ## Entscheidungen und Erkenntnisse
 
@@ -88,6 +89,18 @@ vorhandenes Asset in zwei Kapiteln verwenden, dieselbe ID über beide Baumverwei
 öffnen und Abhängigkeit/Undo geprüft. Gemeinsame Dokumente sind auch im jeweiligen
 Kapitel-Suchbereich erreichbar. Synthetische Gesamtansicht und Aufgabenansicht geprüft.
 
+Abschlussprüfungen: `python3 tools/control.py asset-manager check` mit temporären
+Qt-Systembibliotheken erfolgreich: zuletzt 71 Studio-Tests und 171 Legacy-Pipeline-Tests.
+Zusätzliches Qt-Ereignisszenario: Beim Canvas-Kartenwechsel wird ein ungespeicherter
+Entwurf gespeichert. Kartenauswahl ist dazu wie die übrigen Canvas-Aktionen
+ereignisversetzt angebunden, damit der Szenenneuaufbau kein aktives Mausobjekt löscht.
+`python3 tools/control.py check` ausgeführt, nicht grün: Godot 4 fehlt; 257
+Python-Tests bestanden, 37 übersprungen, 2 bestehende Dokumentationsfehler wegen
+fehlender Spielentscheidungsdateien und 13 defekter Links. Geerbte Stilbefunde
+außerhalb des Studio bleiben bestehen. Keine Änderungen an Kanon oder Grafiken
+zur Umgehung dieser Fehler. Bereits vorhandene Control- und externe Asset-
+Änderungen bleiben außerhalb der 4a-Commits erhalten.
+
 ## Wiederholbarkeit und Wiederherstellung
 
 Alle Tests mit synthetischen Projekten in temporären Verzeichnissen. Keine
@@ -97,4 +110,9 @@ Arbeitsverzeichnis-spezifische Pfade, Qt-Bibliotheken und Credentials bleiben lo
 
 ## Ergebnis und Rückblick
 
-In Arbeit. Nach Abschluss folgt eine nummerierte Sichtprüfungs-Checkliste.
+Zwischenpaket 4a technisch umgesetzt und gezielt geprüft. Die vier Funktions-
+Commits `749d807`, `e81d2e7`, `e9ad6f3` und `edf65fb` wurden einzeln gepusht.
+Eine abschließende Absicherung der Canvas-Navigation und die Prüfanleitung bilden
+den Übergabe-Commit. Issues #56–#59 bleiben ausdrücklich bis zum Benutzerbriefing
+offen. Kein Folgepaket begonnen. Das vollständige Repository bleibt wegen der
+oben genannten unabhängigen Befunde noch ohne grünen Gesamtcheck.

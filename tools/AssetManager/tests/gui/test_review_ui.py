@@ -268,3 +268,20 @@ def test_visible_status_and_using_same_asset_from_two_chapters(window, monkeypat
     assert "Kapitel 2" in window.workflow_status.text()
     window.undo(False)
     assert "Externe Eingabe fehlt" in window.workflow_status.text()
+
+
+def test_canvas_selection_can_save_dirty_note_without_deleting_active_mouse_item(
+        window, qt_app, monkeypatch):
+    ids = arrange_demo(window, qt_app)
+    window.select_card(ids["one"])
+    document = window.documents.create_document("Canvas-Wechsel")
+    window.documents.editor.setPlainText("Entwurf vor Kartenwechsel")
+    window.tabs.setCurrentIndex(0)
+    window.canvas.fitInView(window.canvas.sceneRect(), Qt.KeepAspectRatio)
+    monkeypatch.setattr(QMessageBox, "question", lambda *a: QMessageBox.Save)
+    target = window.canvas.items_by_id[ids["two"]]
+    position = window.canvas.mapFromScene(target.scenePos() + QPointF(45, 40))
+    QTest.mouseClick(window.canvas.viewport(), Qt.LeftButton, pos=position)
+    qt_app.processEvents()
+    assert window.selected_id == ids["two"]
+    assert window.project.catalog.get(document.id).data["body"] == "Entwurf vor Kartenwechsel"

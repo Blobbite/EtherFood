@@ -9,6 +9,7 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Entwicklung, Tests und lokale Ablage](DEVELOPMENT.md)
 - [Karten, Dokumente und Workflowstatus](MODELS.md)
 - [Erste Sichtprüfung nach Paket 4](SICHTPRUEFUNG.md)
+- [Briefing und Nachprüfung von Zwischenpaket 4a](SICHTPRUEFUNG_4A.md)
 - [Ergebnisberichte T001–T012](task-results/index.md)
 - [Pfadkarte](PATH_MAP.json)
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)

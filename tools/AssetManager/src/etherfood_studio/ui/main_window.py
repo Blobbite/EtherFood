@@ -102,7 +102,8 @@ class MainWindow(QMainWindow):
             actions.addWidget(button(text, name, call))
         canvas_layout.addLayout(actions)
         self.canvas = Canvas()
-        self.canvas.selected.connect(self.select_card)
+        # Saving a dirty note can rebuild the scene; finish the pointer event first.
+        self.canvas.selected.connect(self.select_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.moved.connect(self.move_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.toggle_requested.connect(self.toggle_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.resized.connect(self.resize_canvas_card, Qt.ConnectionType.QueuedConnection)
