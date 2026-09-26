@@ -1,0 +1,132 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://test_scenes/characters/npc/guide/guide_companion.gd" id="1_guide"]
+[ext_resource type="Script" path="res://shared/interactions/interactable_area.gd" id="2_interactable"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interactable"]
+radius = 8.0
+
+[node name="GuideCompanion" type="Node2D"]
+y_sort_origin = 24
+script = ExtResource("1_guide")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Shadow" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-34, 17, -25, 11, 9, 9, 35, 15, 40, 22, 31, 27, -26, 27, -40, 23)
+color = Color(0.018, 0.025, 0.031, 0.7)
+
+[node name="Broom" type="Node2D" parent="Visual"]
+z_index = -2
+
+[node name="HandleOutline" type="Line2D" parent="Visual/Broom"]
+points = PackedVector2Array(-49, 22, 59, -17)
+width = 10.0
+default_color = Color(0.105, 0.059, 0.047, 1)
+antialiased = false
+
+[node name="Handle" type="Line2D" parent="Visual/Broom"]
+points = PackedVector2Array(-49, 20, 59, -19)
+width = 6.0
+default_color = Color(0.58, 0.298, 0.118, 1)
+antialiased = false
+
+[node name="HandleHighlight" type="Line2D" parent="Visual/Broom"]
+points = PackedVector2Array(-35, 14, 52, -17)
+width = 2.0
+default_color = Color(0.87, 0.55, 0.196, 1)
+antialiased = false
+
+[node name="BristlesDark" type="Polygon2D" parent="Visual/Broom"]
+polygon = PackedVector2Array(-72, 8, -45, 10, -35, 24, -52, 35, -82, 39, -70, 29, -88, 26, -69, 21, -84, 15)
+color = Color(0.322, 0.157, 0.067, 1)
+
+[node name="Bristles" type="Polygon2D" parent="Visual/Broom"]
+polygon = PackedVector2Array(-76, 11, -48, 13, -40, 23, -55, 30, -79, 34, -68, 26, -83, 25, -67, 20, -80, 17)
+color = Color(0.76, 0.455, 0.161, 1)
+
+[node name="BristleLight" type="Line2D" parent="Visual/Broom"]
+points = PackedVector2Array(-73, 16, -49, 18, -68, 26)
+width = 3.0
+default_color = Color(0.95, 0.68, 0.294, 1)
+antialiased = false
+
+[node name="TinyBody" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-14, -4, 12, -4, 18, 8, 11, 23, -12, 23, -19, 10)
+color = Color(0.157, 0.102, 0.247, 1)
+
+[node name="BodyHighlight" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-11, 2, -3, 2, -4, 18, -11, 18, -14, 9)
+color = Color(0.344, 0.176, 0.431, 1)
+
+[node name="LeftFoot" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-12, 19, -2, 19, -3, 27, -16, 27)
+color = Color(0.071, 0.063, 0.114, 1)
+
+[node name="RightFoot" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(2, 19, 12, 19, 16, 26, 3, 27)
+color = Color(0.071, 0.063, 0.114, 1)
+
+[node name="Hat" type="Node2D" parent="Visual"]
+
+[node name="BrimOutline" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-50, -12, -40, -24, 35, -26, 50, -16, 46, -2, 30, 6, -34, 7, -52, -1)
+color = Color(0.059, 0.031, 0.094, 1)
+
+[node name="Brim" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-44, -12, -35, -20, 32, -22, 44, -14, 40, -6, 27, 1, -31, 2, -45, -3)
+color = Color(0.353, 0.137, 0.416, 1)
+
+[node name="BrimHighlight" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-38, -15, -30, -19, 29, -20, 35, -16, 22, -13, -28, -11)
+color = Color(0.635, 0.259, 0.569, 1)
+
+[node name="CrownOutline" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-32, -18, -28, -49, -17, -73, -3, -88, 7, -69, 25, -60, 31, -21, 25, -10, -24, -8)
+color = Color(0.059, 0.031, 0.094, 1)
+
+[node name="Crown" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-27, -19, -23, -47, -13, -67, -4, -77, 3, -61, 20, -55, 26, -22, 21, -14, -20, -12)
+color = Color(0.267, 0.098, 0.353, 1)
+
+[node name="CrownLight" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-20, -48, -12, -65, -6, -70, -5, -55, 7, -48, 3, -40, -16, -35)
+color = Color(0.521, 0.196, 0.502, 1)
+
+[node name="CrownFold" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(7, -48, 19, -43, 22, -25, 13, -29, 4, -39)
+color = Color(0.176, 0.071, 0.271, 1)
+
+[node name="LeftEyeSocket" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-20, -30, -8, -32, -4, -20, -9, -13, -20, -15, -24, -24)
+color = Color(0.027, 0.039, 0.078, 1)
+
+[node name="RightEyeSocket" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(5, -31, 17, -31, 22, -22, 18, -14, 7, -14, 2, -22)
+color = Color(0.027, 0.039, 0.078, 1)
+
+[node name="LeftEye" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-18, -27, -10, -28, -7, -21, -10, -17, -17, -18, -20, -23)
+color = Color(0.68, 0.957, 0.984, 1)
+
+[node name="RightEye" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(7, -27, 15, -27, 19, -22, 16, -17, 9, -18, 5, -23)
+color = Color(0.68, 0.957, 0.984, 1)
+
+[node name="EyeGlintLeft" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(-17, -26, -13, -27, -13, -23, -17, -22)
+color = Color(0.94, 1, 1, 1)
+
+[node name="EyeGlintRight" type="Polygon2D" parent="Visual/Hat"]
+polygon = PackedVector2Array(8, -26, 12, -27, 12, -23, 8, -22)
+color = Color(0.94, 1, 1, 1)
+
+[node name="InteractableArea" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_interactable")
+interaction_prompt = "E / A: Ratgeber ansprechen"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractableArea"]
+shape = SubResource("CircleShape2D_interactable")

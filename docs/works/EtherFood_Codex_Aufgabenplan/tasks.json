@@ -1,0 +1,1583 @@
+{
+  "format": "etherfood-codex-task-plan",
+  "schema_version": 1,
+  "created_on": "2026-09-26",
+  "plan_only": true,
+  "task_count": 48,
+  "recommended_order": [
+    "T001",
+    "T002",
+    "T003",
+    "T004",
+    "T005",
+    "T006",
+    "T007",
+    "T008",
+    "T009",
+    "T010",
+    "T011",
+    "T012",
+    "T013",
+    "T014",
+    "T015",
+    "T016",
+    "T017",
+    "T018",
+    "T019",
+    "T020",
+    "T021",
+    "T022",
+    "T023",
+    "T024",
+    "T025",
+    "T026",
+    "T027",
+    "T028",
+    "T029",
+    "T030",
+    "T031",
+    "T032",
+    "T033",
+    "T034",
+    "T035",
+    "T036",
+    "T037",
+    "T038",
+    "T039",
+    "T040",
+    "T041",
+    "T042",
+    "T043",
+    "T044",
+    "T045",
+    "T046",
+    "T047",
+    "T048"
+  ],
+  "phases": [
+    {
+      "id": "A",
+      "title": "Grundlagen und Verwaltungskern",
+      "first": "T001",
+      "last": "T008"
+    },
+    {
+      "id": "B",
+      "title": "Dashboard und Asset-Anlage",
+      "first": "T009",
+      "last": "T016"
+    },
+    {
+      "id": "C",
+      "title": "Aufträge, Farben und Frame-Verarbeitung",
+      "first": "T017",
+      "last": "T024"
+    },
+    {
+      "id": "D",
+      "title": "Varianten, Texturen und Sichtprüfung",
+      "first": "T025",
+      "last": "T032"
+    },
+    {
+      "id": "E",
+      "title": "Versionen und Godot-Freigabe",
+      "first": "T033",
+      "last": "T040"
+    },
+    {
+      "id": "F",
+      "title": "Betrieb und Gesamtprüfung",
+      "first": "T041",
+      "last": "T048"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "number": 1,
+      "title": "Bestand aufnehmen und Schreibgrenzen festlegen",
+      "phase": "A",
+      "depends_on": [],
+      "requirements": [
+        "R19",
+        "R32",
+        "R36"
+      ],
+      "path": "aufgaben/001-bestand-und-schreibgrenzen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T002",
+      "number": 2,
+      "title": "Architektur und gemeinsame Datenverträge festschreiben",
+      "phase": "A",
+      "depends_on": [
+        "T001"
+      ],
+      "requirements": [
+        "R01",
+        "R34"
+      ],
+      "path": "aufgaben/002-architektur-und-vertraege/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T003",
+      "number": 3,
+      "title": "Python-Paket, CLI und Testgerüst anlegen",
+      "phase": "A",
+      "depends_on": [
+        "T002"
+      ],
+      "requirements": [
+        "R01",
+        "R35"
+      ],
+      "path": "aufgaben/003-python-grundgeruest/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T004",
+      "number": 4,
+      "title": "Projektkatalog und Datenmigrationen implementieren",
+      "phase": "A",
+      "depends_on": [
+        "T003"
+      ],
+      "requirements": [
+        "R20",
+        "R34"
+      ],
+      "path": "aufgaben/004-katalog-und-migrationen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T005",
+      "number": 5,
+      "title": "Sichere Pfade, Dateiablage und Importjournal bauen",
+      "phase": "A",
+      "depends_on": [
+        "T004"
+      ],
+      "requirements": [
+        "R19",
+        "R32",
+        "R33"
+      ],
+      "path": "aufgaben/005-pfade-und-objektspeicher/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T006",
+      "number": 6,
+      "title": "Akte, Kapitel und globale Inhalte als Dienste umsetzen",
+      "phase": "A",
+      "depends_on": [
+        "T004",
+        "T005"
+      ],
+      "requirements": [
+        "R02",
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "path": "aufgaben/006-akte-kapitel-und-globale-inhalte/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T007",
+      "number": 7,
+      "title": "Dokumentation, Anhänge und Fehlerkarten verwalten",
+      "phase": "A",
+      "depends_on": [
+        "T006"
+      ],
+      "requirements": [
+        "R04",
+        "R05",
+        "R18",
+        "R31"
+      ],
+      "path": "aufgaben/007-dokumente-notizen-und-aufgaben/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T008",
+      "number": 8,
+      "title": "Typabhängige Schrittketten und Freigabestatus modellieren",
+      "phase": "A",
+      "depends_on": [
+        "T002",
+        "T006",
+        "T007"
+      ],
+      "requirements": [
+        "R21",
+        "R30"
+      ],
+      "path": "aufgaben/008-workflow-und-statusmodell/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T009",
+      "number": 9,
+      "title": "Desktop-GUI und Projektstart implementieren",
+      "phase": "B",
+      "depends_on": [
+        "T003",
+        "T004",
+        "T006",
+        "T008"
+      ],
+      "requirements": [
+        "R01"
+      ],
+      "path": "aufgaben/009-gui-und-projektstart/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T010",
+      "number": 10,
+      "title": "Karten-Canvas für globale Inhalte, Akte und Kapitel bauen",
+      "phase": "B",
+      "depends_on": [
+        "T006",
+        "T009"
+      ],
+      "requirements": [
+        "R02",
+        "R03",
+        "R04"
+      ],
+      "path": "aufgaben/010-canvas-hierarchie/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T011",
+      "number": 11,
+      "title": "Verbindungen, Nebenpfade und Undo/Redo ergänzen",
+      "phase": "B",
+      "depends_on": [
+        "T008",
+        "T010"
+      ],
+      "requirements": [
+        "R03",
+        "R04"
+      ],
+      "path": "aufgaben/011-canvas-verbindungen-und-undo/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T012",
+      "number": 12,
+      "title": "Dokumentationseditor und Aufgabenansicht integrieren",
+      "phase": "B",
+      "depends_on": [
+        "T007",
+        "T009",
+        "T010"
+      ],
+      "requirements": [
+        "R05",
+        "R18",
+        "R31"
+      ],
+      "path": "aufgaben/012-dokumentations-und-aufgaben-gui/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T013",
+      "number": 13,
+      "title": "Asset-Typen, Posen und variable Richtungen modellieren",
+      "phase": "B",
+      "depends_on": [
+        "T004",
+        "T006",
+        "T008"
+      ],
+      "requirements": [
+        "R06",
+        "R07",
+        "R08",
+        "R13",
+        "R28",
+        "R30"
+      ],
+      "path": "aufgaben/013-assettypen-posen-und-richtungen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T014",
+      "number": 14,
+      "title": "Vorhandenen Asset-Bestand lesend erfassen und zuordnen",
+      "phase": "B",
+      "depends_on": [
+        "T005",
+        "T009",
+        "T013"
+      ],
+      "requirements": [
+        "R22",
+        "R32"
+      ],
+      "path": "aufgaben/014-bestandsimport-lesend/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T015",
+      "number": 15,
+      "title": "Quellbilder und externe Animationslieferungen importieren",
+      "phase": "B",
+      "depends_on": [
+        "T005",
+        "T013",
+        "T014"
+      ],
+      "requirements": [
+        "R08",
+        "R09",
+        "R19",
+        "R20",
+        "R32"
+      ],
+      "path": "aufgaben/015-quellen-und-spritesheet-import/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T016",
+      "number": 16,
+      "title": "NPC-Anlage, Vorlagen und Held-Menü implementieren",
+      "phase": "B",
+      "depends_on": [
+        "T008",
+        "T009",
+        "T013",
+        "T015"
+      ],
+      "requirements": [
+        "R07",
+        "R08",
+        "R09",
+        "R17"
+      ],
+      "path": "aufgaben/016-asset-anlage-und-held-menue/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T017",
+      "number": 17,
+      "title": "Arbeitsprozesse und gemeinsame Pipeline-Adapter bauen",
+      "phase": "C",
+      "depends_on": [
+        "T003",
+        "T005",
+        "T008",
+        "T015"
+      ],
+      "requirements": [
+        "R19",
+        "R21",
+        "R33"
+      ],
+      "path": "aufgaben/017-worker-und-pipeline-adapter/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T018",
+      "number": 18,
+      "title": "Build-Abhängigkeiten, Cache und Änderungsfolgen umsetzen",
+      "phase": "C",
+      "depends_on": [
+        "T008",
+        "T013",
+        "T015",
+        "T017"
+      ],
+      "requirements": [
+        "R20",
+        "R21",
+        "R22"
+      ],
+      "path": "aufgaben/018-buildplan-cache-und-invalidation/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T019",
+      "number": 19,
+      "title": "Freie Masterreferenzen und variable Richtungssets unterstützen",
+      "phase": "C",
+      "depends_on": [
+        "T013",
+        "T015",
+        "T018"
+      ],
+      "requirements": [
+        "R07",
+        "R10",
+        "R12",
+        "R36"
+      ],
+      "path": "aufgaben/019-masterreferenzen-und-profilversionen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T020",
+      "number": 20,
+      "title": "Materialdefinitionen, Maskenrevisionen und Validierung bauen",
+      "phase": "C",
+      "depends_on": [
+        "T005",
+        "T013",
+        "T015",
+        "T019"
+      ],
+      "requirements": [
+        "R11"
+      ],
+      "path": "aufgaben/020-materialmasken-und-quellbindung/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T021",
+      "number": 21,
+      "title": "Maskeneditor mit Materialauswahl und Sichtabnahme integrieren",
+      "phase": "C",
+      "depends_on": [
+        "T016",
+        "T020"
+      ],
+      "requirements": [
+        "R10",
+        "R11"
+      ],
+      "path": "aufgaben/021-maskeneditor-und-materialauswahl/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T022",
+      "number": 22,
+      "title": "Automatische Maskenvorschläge mit Unsicherheitsanzeige entwickeln",
+      "phase": "C",
+      "depends_on": [
+        "T017",
+        "T018",
+        "T020",
+        "T021"
+      ],
+      "requirements": [
+        "R11",
+        "R36"
+      ],
+      "path": "aufgaben/022-automatische-maskenvorschlaege/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T023",
+      "number": 23,
+      "title": "SourceColor und SpritesheetColor in die Build-Pipeline einbinden",
+      "phase": "C",
+      "depends_on": [
+        "T017",
+        "T018",
+        "T019",
+        "T020",
+        "T022"
+      ],
+      "requirements": [
+        "R08",
+        "R10",
+        "R12"
+      ],
+      "path": "aufgaben/023-farbkorrektur-pipeline/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T024",
+      "number": 24,
+      "title": "Frame-Abstufungen, Raster und Anker sicher ableiten",
+      "phase": "C",
+      "depends_on": [
+        "T017",
+        "T018",
+        "T023"
+      ],
+      "requirements": [
+        "R09",
+        "R13",
+        "R16",
+        "R22",
+        "R32"
+      ],
+      "path": "aufgaben/024-frameableitung-und-geometrie/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T025",
+      "number": 25,
+      "title": "Timing-Profile und gemeinsame Animationszeit ergänzen",
+      "phase": "D",
+      "depends_on": [
+        "T013",
+        "T018",
+        "T024"
+      ],
+      "requirements": [
+        "R13",
+        "R15"
+      ],
+      "path": "aufgaben/025-timing-und-animationsevents/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T026",
+      "number": 26,
+      "title": "Grafikstufen für Spritesheets integrieren",
+      "phase": "D",
+      "depends_on": [
+        "T018",
+        "T023",
+        "T024",
+        "T025"
+      ],
+      "requirements": [
+        "R14",
+        "R16",
+        "R22"
+      ],
+      "path": "aufgaben/026-grafikstufen-spritesheets/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T027",
+      "number": 27,
+      "title": "Exakte Farbprüfung und optionale Material-Nachzuordnung implementieren",
+      "phase": "D",
+      "depends_on": [
+        "T019",
+        "T020",
+        "T023",
+        "T024",
+        "T026"
+      ],
+      "requirements": [
+        "R12",
+        "R14",
+        "R16",
+        "R36"
+      ],
+      "path": "aufgaben/027-materialfarben-nach-skalierung/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T028",
+      "number": 28,
+      "title": "Statische Grafik- und Texturverarbeitung implementieren",
+      "phase": "D",
+      "depends_on": [
+        "T013",
+        "T017",
+        "T018",
+        "T026"
+      ],
+      "requirements": [
+        "R14",
+        "R16",
+        "R28",
+        "R29",
+        "R36"
+      ],
+      "path": "aufgaben/028-statische-texturpipeline/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T029",
+      "number": 29,
+      "title": "Asset-Pakete und Tempel-Arbeitsbereich umsetzen",
+      "phase": "D",
+      "depends_on": [
+        "T006",
+        "T013",
+        "T016",
+        "T028"
+      ],
+      "requirements": [
+        "R06",
+        "R28",
+        "R29"
+      ],
+      "path": "aufgaben/029-assetpakete-und-tempel/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T030",
+      "number": 30,
+      "title": "Automatische Schrittketten und Auftragsbedienung integrieren",
+      "phase": "D",
+      "depends_on": [
+        "T016",
+        "T017",
+        "T018",
+        "T023",
+        "T024",
+        "T025",
+        "T026",
+        "T027",
+        "T028",
+        "T029"
+      ],
+      "requirements": [
+        "R01",
+        "R13",
+        "R14",
+        "R21"
+      ],
+      "path": "aufgaben/030-pipeline-bedienung-im-dashboard/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T031",
+      "number": 31,
+      "title": "HTML-Vergleiche im Asset-Menü sicher wiederverwenden",
+      "phase": "D",
+      "depends_on": [
+        "T009",
+        "T016",
+        "T026",
+        "T027",
+        "T028",
+        "T030"
+      ],
+      "requirements": [
+        "R07",
+        "R15",
+        "R17"
+      ],
+      "path": "aufgaben/031-integrierte-vorschauen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T032",
+      "number": 32,
+      "title": "Variantenmatrix, Prüfcheckliste und Sichtbefunde implementieren",
+      "phase": "D",
+      "depends_on": [
+        "T007",
+        "T008",
+        "T013",
+        "T025",
+        "T027",
+        "T029",
+        "T031"
+      ],
+      "requirements": [
+        "R11",
+        "R17",
+        "R18",
+        "R25",
+        "R36"
+      ],
+      "path": "aufgaben/032-variantenpruefung-und-fehlerkarten/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T033",
+      "number": 33,
+      "title": "Unveränderliche Kandidaten und Versionsarchiv implementieren",
+      "phase": "E",
+      "depends_on": [
+        "T005",
+        "T018",
+        "T029",
+        "T032"
+      ],
+      "requirements": [
+        "R19",
+        "R20",
+        "R25"
+      ],
+      "path": "aufgaben/033-kandidaten-und-versionsarchiv/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T034",
+      "number": 34,
+      "title": "Git-Anbindung und Quellenrevisionen ergänzen",
+      "phase": "E",
+      "depends_on": [
+        "T001",
+        "T004",
+        "T015",
+        "T033"
+      ],
+      "requirements": [
+        "R20",
+        "R32",
+        "R34"
+      ],
+      "path": "aufgaben/034-git-und-quellenrevisionen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T035",
+      "number": 35,
+      "title": "Godot-Export und portable Runtime-Ressourcen implementieren",
+      "phase": "E",
+      "depends_on": [
+        "T001",
+        "T013",
+        "T025",
+        "T026",
+        "T028",
+        "T029",
+        "T033"
+      ],
+      "requirements": [
+        "R15",
+        "R16",
+        "R23",
+        "R26"
+      ],
+      "path": "aufgaben/035-godot-exportvertrag/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T036",
+      "number": 36,
+      "title": "Kandidaten im Godot-Testbereich bereitstellen und importieren",
+      "phase": "E",
+      "depends_on": [
+        "T005",
+        "T017",
+        "T033",
+        "T035"
+      ],
+      "requirements": [
+        "R19",
+        "R23"
+      ],
+      "path": "aufgaben/036-godot-testbereitstellung/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T037",
+      "number": 37,
+      "title": "Godot-Testszene, technische Prüfungen und manuelle Abnahme bauen",
+      "phase": "E",
+      "depends_on": [
+        "T025",
+        "T029",
+        "T035",
+        "T036"
+      ],
+      "requirements": [
+        "R24",
+        "R25",
+        "R29",
+        "R36"
+      ],
+      "path": "aufgaben/037-godot-tests-und-abnahmeszene/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T038",
+      "number": 38,
+      "title": "Freigaben mit exakten Build- und Testbindungen implementieren",
+      "phase": "E",
+      "depends_on": [
+        "T008",
+        "T032",
+        "T033",
+        "T036",
+        "T037"
+      ],
+      "requirements": [
+        "R24",
+        "R25",
+        "R26",
+        "R36"
+      ],
+      "path": "aufgaben/038-freigabe-und-pruefbindungen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T039",
+      "number": 39,
+      "title": "Freigegebene Versionen sicher ins Spiel übernehmen",
+      "phase": "E",
+      "depends_on": [
+        "T005",
+        "T033",
+        "T035",
+        "T036",
+        "T037",
+        "T038"
+      ],
+      "requirements": [
+        "R19",
+        "R26",
+        "R27",
+        "R33"
+      ],
+      "path": "aufgaben/039-runtime-promotion-und-rollback/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T040",
+      "number": 40,
+      "title": "Testbereitstellungen nach erfolgreicher Übernahme gezielt aufräumen",
+      "phase": "E",
+      "depends_on": [
+        "T005",
+        "T036",
+        "T038",
+        "T039"
+      ],
+      "requirements": [
+        "R27",
+        "R33"
+      ],
+      "path": "aufgaben/040-testbereich-sicher-aufraeumen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T041",
+      "number": 41,
+      "title": "Versionsverlauf, Vergleich und Dashboard-Fortschritt vervollständigen",
+      "phase": "F",
+      "depends_on": [
+        "T006",
+        "T007",
+        "T008",
+        "T032",
+        "T033",
+        "T034",
+        "T038",
+        "T039",
+        "T040"
+      ],
+      "requirements": [
+        "R01",
+        "R02",
+        "R06",
+        "R18",
+        "R20"
+      ],
+      "path": "aufgaben/041-versionsvergleich-und-projektfortschritt/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T042",
+      "number": 42,
+      "title": "Projekt- und Asset-Dokumentation automatisch erzeugen",
+      "phase": "F",
+      "depends_on": [
+        "T007",
+        "T012",
+        "T029",
+        "T033",
+        "T037",
+        "T038",
+        "T041"
+      ],
+      "requirements": [
+        "R05",
+        "R31"
+      ],
+      "path": "aufgaben/042-automatische-dokumentation-und-export/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T043",
+      "number": 43,
+      "title": "Erweiterbare Kartentypen und Pipeline-Vorlagen bereitstellen",
+      "phase": "F",
+      "depends_on": [
+        "T008",
+        "T013",
+        "T018",
+        "T029",
+        "T030",
+        "T041"
+      ],
+      "requirements": [
+        "R30"
+      ],
+      "path": "aufgaben/043-erweiterbare-vorlagen-und-typen/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T044",
+      "number": 44,
+      "title": "Sicherung, Wiederherstellung und Speicherpflege absichern",
+      "phase": "F",
+      "depends_on": [
+        "T004",
+        "T005",
+        "T017",
+        "T018",
+        "T033",
+        "T034",
+        "T039",
+        "T040",
+        "T041"
+      ],
+      "requirements": [
+        "R22",
+        "R33",
+        "R34"
+      ],
+      "path": "aufgaben/044-backup-recovery-und-speicherpflege/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T045",
+      "number": 45,
+      "title": "Gesamtablauf für Held und NPCs mit weniger Richtungen testen",
+      "phase": "F",
+      "depends_on": [
+        "T016",
+        "T022",
+        "T023",
+        "T024",
+        "T025",
+        "T026",
+        "T027",
+        "T030",
+        "T031",
+        "T032",
+        "T033",
+        "T034",
+        "T035",
+        "T036",
+        "T037",
+        "T038",
+        "T039",
+        "T040",
+        "T041",
+        "T044"
+      ],
+      "requirements": [
+        "R07",
+        "R09",
+        "R15",
+        "R24",
+        "R35"
+      ],
+      "path": "aufgaben/045-e2e-held-und-npc/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T046",
+      "number": 46,
+      "title": "Tempelpaket, globale Effekte und gemeinsame Verwendung testen",
+      "phase": "F",
+      "depends_on": [
+        "T028",
+        "T029",
+        "T033",
+        "T035",
+        "T036",
+        "T037",
+        "T038",
+        "T039",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T044"
+      ],
+      "requirements": [
+        "R06",
+        "R24",
+        "R28",
+        "R29",
+        "R30",
+        "R35"
+      ],
+      "path": "aufgaben/046-e2e-tempel-und-globale-verwendung/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T047",
+      "number": 47,
+      "title": "Installation, automatisierte Prüfungen und Betrieb dokumentieren",
+      "phase": "F",
+      "depends_on": [
+        "T003",
+        "T009",
+        "T031",
+        "T042",
+        "T043",
+        "T044",
+        "T045",
+        "T046"
+      ],
+      "requirements": [
+        "R35"
+      ],
+      "path": "aufgaben/047-paketierung-ci-und-betrieb/p.md",
+      "status": "not_started"
+    },
+    {
+      "id": "T048",
+      "number": 48,
+      "title": "Pilotmigration und abschließende Projektabnahme vorbereiten",
+      "phase": "F",
+      "depends_on": [
+        "T001",
+        "T014",
+        "T034",
+        "T039",
+        "T040",
+        "T041",
+        "T042",
+        "T044",
+        "T045",
+        "T046",
+        "T047"
+      ],
+      "requirements": [
+        "R32",
+        "R35",
+        "R36"
+      ],
+      "path": "aufgaben/048-pilotmigration-und-abschluss/p.md",
+      "status": "not_started"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R01",
+      "title": "Zentrales lokales Python-Dashboard statt manueller Ordnersuche",
+      "tasks": [
+        "T002",
+        "T003",
+        "T009",
+        "T030",
+        "T041"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R02",
+      "title": "Projektweiter oberer Rahmen für Held, Effekte und Grundlagen",
+      "tasks": [
+        "T006",
+        "T010",
+        "T041"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R03",
+      "title": "Akte und Kapitel anlegen, ordnen, aufklappen und verwalten",
+      "tasks": [
+        "T006",
+        "T010",
+        "T011"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R04",
+      "title": "Nebenkarten und sichtbare Verbindungen mit eindeutiger Bedeutung",
+      "tasks": [
+        "T006",
+        "T007",
+        "T010",
+        "T011"
+      ],
+      "origin": "Nutzer + Präzisierung"
+    },
+    {
+      "id": "R05",
+      "title": "Dokumente, Anforderungen, Notizen und Anhänge direkt im Dashboard",
+      "tasks": [
+        "T007",
+        "T012",
+        "T042"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R06",
+      "title": "Globale und akt-/kapitelbezogene Inhalte ohne doppelte Assets",
+      "tasks": [
+        "T006",
+        "T013",
+        "T029",
+        "T041",
+        "T046"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R07",
+      "title": "Variable Richtungszahlen je Asset und optional je Pose",
+      "tasks": [
+        "T013",
+        "T016",
+        "T019",
+        "T031",
+        "T045"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R08",
+      "title": "Posen und Source-Einzelbilder verwalten und erhalten",
+      "tasks": [
+        "T013",
+        "T015",
+        "T016",
+        "T023"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R09",
+      "title": "Externe Animation; importierte 16er-Sheets statt neuer Animationserzeugung",
+      "tasks": [
+        "T015",
+        "T016",
+        "T024",
+        "T045"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R10",
+      "title": "Masterreferenz für Farben ausdrücklich auswählen",
+      "tasks": [
+        "T019",
+        "T021",
+        "T023"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R11",
+      "title": "Masken vorschlagen, Materialbereiche festlegen, korrigieren und bestätigen",
+      "tasks": [
+        "T020",
+        "T021",
+        "T022",
+        "T032"
+      ],
+      "origin": "Nutzer + technische Grenze"
+    },
+    {
+      "id": "R12",
+      "title": "Automatische Farbkorrektur auf Grundlage der vorhandenen Werkzeuge",
+      "tasks": [
+        "T019",
+        "T023",
+        "T027"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R13",
+      "title": "Frame-Stufen 8/10/12/14/16 automatisch verwalten",
+      "tasks": [
+        "T013",
+        "T024",
+        "T025",
+        "T030"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R14",
+      "title": "Fünf vorhandene Grafikstufen automatisch erzeugen",
+      "tasks": [
+        "T026",
+        "T027",
+        "T028",
+        "T030"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R15",
+      "title": "Framezahl, FPS und Dauer getrennt behandeln; alte Semantik erhalten",
+      "tasks": [
+        "T025",
+        "T031",
+        "T035",
+        "T045"
+      ],
+      "origin": "Technische Präzisierung"
+    },
+    {
+      "id": "R16",
+      "title": "Zuschnitt, Anker, Maßstab und Masken räumlich konsistent halten",
+      "tasks": [
+        "T024",
+        "T026",
+        "T027",
+        "T028",
+        "T035"
+      ],
+      "origin": "Technische Präzisierung"
+    },
+    {
+      "id": "R17",
+      "title": "Held-Menü mit allen kombinierbaren Posen, Richtungen und Varianten",
+      "tasks": [
+        "T016",
+        "T031",
+        "T032"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R18",
+      "title": "Fehler mit genauer Variante und Version als Aufgabenkarte dokumentieren",
+      "tasks": [
+        "T007",
+        "T012",
+        "T032",
+        "T041"
+      ],
+      "origin": "Nutzer + Präzisierung"
+    },
+    {
+      "id": "R19",
+      "title": "Automatische Ablage in konfigurierten richtigen Bereichen",
+      "tasks": [
+        "T001",
+        "T005",
+        "T015",
+        "T017",
+        "T033",
+        "T036",
+        "T039"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R20",
+      "title": "Quellen-, Build- und Kandidatenversionierung mit Herkunft",
+      "tasks": [
+        "T004",
+        "T015",
+        "T018",
+        "T033",
+        "T034",
+        "T041"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R21",
+      "title": "Automatische Schrittkette mit externen und menschlichen Prüfpunkten",
+      "tasks": [
+        "T008",
+        "T017",
+        "T018",
+        "T030"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R22",
+      "title": "Nur betroffene Ergebnisse neu bauen; unvollständige Outputs erkennen",
+      "tasks": [
+        "T014",
+        "T018",
+        "T024",
+        "T026",
+        "T044"
+      ],
+      "origin": "Technische Präzisierung"
+    },
+    {
+      "id": "R23",
+      "title": "Ausgewählte Version im Godot-Testbereich bereitstellen",
+      "tasks": [
+        "T035",
+        "T036"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R24",
+      "title": "Godot technisch prüfen und manuelle Spiel-/Sichtprüfung festhalten",
+      "tasks": [
+        "T037",
+        "T038",
+        "T045",
+        "T046"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R25",
+      "title": "Freigabe exakt an den geprüften Inhalt binden",
+      "tasks": [
+        "T032",
+        "T033",
+        "T037",
+        "T038"
+      ],
+      "origin": "Nutzer + technische Grenze"
+    },
+    {
+      "id": "R26",
+      "title": "Geprüftes Paket in regulären Godot-Bereich übernehmen",
+      "tasks": [
+        "T035",
+        "T038",
+        "T039"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R27",
+      "title": "Testkopien erst nach erfolgreicher Übernahme gezielt entfernen",
+      "tasks": [
+        "T039",
+        "T040"
+      ],
+      "origin": "Nutzer + Schutzregel"
+    },
+    {
+      "id": "R28",
+      "title": "Statische Texturen ohne Frame-/GIF-Pflicht verarbeiten",
+      "tasks": [
+        "T013",
+        "T028",
+        "T029",
+        "T046"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R29",
+      "title": "Tempelpakete mit Boden, Decke, Säulen und gemeinsamem Maßstab",
+      "tasks": [
+        "T028",
+        "T029",
+        "T037",
+        "T046"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R30",
+      "title": "Neue Inhaltstypen und Workflows über Vorlagen ergänzen",
+      "tasks": [
+        "T008",
+        "T013",
+        "T043",
+        "T046"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R31",
+      "title": "Automatische Dokumentation und portable Berichte",
+      "tasks": [
+        "T007",
+        "T012",
+        "T042"
+      ],
+      "origin": "Nutzer"
+    },
+    {
+      "id": "R32",
+      "title": "Vorhandene Quellen, eigene Framevarianten und Skripte schützen",
+      "tasks": [
+        "T001",
+        "T005",
+        "T014",
+        "T015",
+        "T024",
+        "T034",
+        "T048"
+      ],
+      "origin": "Bestandsvertrag"
+    },
+    {
+      "id": "R33",
+      "title": "Abbruch, volle Datenträger, Wiederherstellung und Rollback",
+      "tasks": [
+        "T005",
+        "T017",
+        "T039",
+        "T040",
+        "T044"
+      ],
+      "origin": "Technische Schutzregel"
+    },
+    {
+      "id": "R34",
+      "title": "Metadatenmigration, lokaler Katalog und gezielte Git-Anbindung",
+      "tasks": [
+        "T002",
+        "T004",
+        "T034",
+        "T044"
+      ],
+      "origin": "Technische Planentscheidung"
+    },
+    {
+      "id": "R35",
+      "title": "Installation, GUI-/Godot-Tests und reale Pilotmigration",
+      "tasks": [
+        "T003",
+        "T045",
+        "T046",
+        "T047",
+        "T048"
+      ],
+      "origin": "Umsetzungsanforderung"
+    },
+    {
+      "id": "R36",
+      "title": "Keine unbelegten Testerfolge, Maskenfreigaben oder vorhandenen Features",
+      "tasks": [
+        "T001",
+        "T019",
+        "T022",
+        "T027",
+        "T028",
+        "T032",
+        "T037",
+        "T038",
+        "T048"
+      ],
+      "origin": "Quellen- und Prüfgrenze"
+    }
+  ],
+  "sources": [
+    {
+      "id": "Q01",
+      "path": "quellen/Q01_FramReduce_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          1342,
+          1471
+        ],
+        [
+          1211,
+          1251
+        ]
+      ]
+    },
+    {
+      "id": "Q02",
+      "path": "quellen/Q02_Resolution_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          4377,
+          4712
+        ]
+      ]
+    },
+    {
+      "id": "Q03",
+      "path": "quellen/Q03_Starter_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          3,
+          19
+        ],
+        [
+          474,
+          490
+        ]
+      ]
+    },
+    {
+      "id": "Q04",
+      "path": "quellen/Q04_Farbpipeline_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          7386,
+          7712
+        ]
+      ]
+    },
+    {
+      "id": "Q05",
+      "path": "quellen/Q05_SourceColor_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          11864,
+          11964
+        ]
+      ]
+    },
+    {
+      "id": "Q06",
+      "path": "quellen/Q06_Gemeinsame_Schreibregeln.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          11660,
+          11845
+        ]
+      ]
+    },
+    {
+      "id": "Q07",
+      "path": "quellen/Q07_Workspace_Skizze.md",
+      "original_name": "Eingefügtes Markdown.md",
+      "original_sha256": "fb076aa88bbfa674231ca216b1e832d7565fe1fbabb7278ddd17980f5a86666d",
+      "original_line_ranges": [
+        [
+          1340,
+          1449
+        ]
+      ]
+    },
+    {
+      "id": "Q08",
+      "path": "quellen/Q08_Referenzauswahl_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          9028,
+          9064
+        ]
+      ]
+    },
+    {
+      "id": "Q09",
+      "path": "quellen/Q09_Masken_Profilregeln_Bestand.md",
+      "original_name": "allsummary(1).md",
+      "original_sha256": "55bb37c2fb9909384a89d3ac4c7e4b011f1fa8d0319243c04e436fe567570c69",
+      "original_line_ranges": [
+        [
+          9636,
+          9805
+        ],
+        [
+          8216,
+          8290
+        ],
+        [
+          7100,
+          7109
+        ]
+      ]
+    }
+  ]
+}

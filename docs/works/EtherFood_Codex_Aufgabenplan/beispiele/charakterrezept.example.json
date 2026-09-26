@@ -1,0 +1,45 @@
+{
+  "format": "etherfood-recipe-example",
+  "schema_version": 1,
+  "example_only": true,
+  "type": "character",
+  "source_animation": "external_import",
+  "master_grid": [
+    16,
+    1
+  ],
+  "frame_counts": [
+    8,
+    10,
+    12,
+    14,
+    16
+  ],
+  "graphics_profiles": [
+    "comic_high",
+    "comic_mid",
+    "comic_low",
+    "pixel_high",
+    "pixel_low"
+  ],
+  "timing": {
+    "mode": "legacy_fixed_fps",
+    "fps": 8,
+    "preserve_duration_available_after": "T025"
+  },
+  "color": {
+    "mode": "material",
+    "reference_selection_id": null,
+    "mask_revision_ids": [],
+    "final_policy": "match_master_then_scale"
+  },
+  "human_gates": [
+    "master_mask_review",
+    "target_mask_review",
+    "asset_visual_review",
+    "godot_visual_review",
+    "release_approval"
+  ],
+  "ready_to_build": false,
+  "note": "Noch keine Quellen/Masken/Freigaben gebunden. Beispiel nicht als fertigen Auftrag ausführen."
+}

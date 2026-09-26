@@ -1,0 +1,30 @@
+{
+  "format": "etherfood-recipe-example",
+  "schema_version": 1,
+  "example_only": true,
+  "type": "static_package",
+  "member_roles": [
+    "floor",
+    "ceiling",
+    "column"
+  ],
+  "graphics_profiles": [
+    "comic_high",
+    "comic_mid",
+    "comic_low",
+    "pixel_high",
+    "pixel_low"
+  ],
+  "frame_counts": null,
+  "directions": null,
+  "generate_gif": false,
+  "package_scale_policy": "shared_scale",
+  "tile_size": null,
+  "human_gates": [
+    "package_visual_review",
+    "godot_visual_review",
+    "release_approval"
+  ],
+  "ready_to_build": false,
+  "note": "Kachel- und Weltmaße müssen am echten Paket festgelegt werden; keine animierte Verarbeitung."
+}

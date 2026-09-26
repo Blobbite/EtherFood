@@ -1,0 +1,381 @@
+{
+  "nodes": [
+    {
+      "id": "878c05ee-b348-4197-971b-7731fa7196e9",
+      "type": "text",
+      "text": "```text\n📁 spritesheet-fram16\n├── 📁 PixelEng\n│   ├── 🌐gif-vergleich.html\n│   ├── 📄 greenhero_hd_walk_spritesheet_N.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_NO.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_NO_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_NW.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_NW_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_N_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_O.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_O_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_S.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_SO.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_SO_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_SW.png\n│   ├── 📄 greenhero_hd_walk_spritesheet_SW_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_S_8fps.gif\n│   ├── 📄 greenhero_hd_walk_spritesheet_W.png\n│   └── 📄 greenhero_hd_walk_spritesheet_W_8fps.gif\n├── 🌐gif-vergleich.html\n├── 📄 greenhero_hd_walk_spritesheet_NO_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_NO_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_NW_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_NW_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_N_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_N_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_O_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_O_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_SO_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_SO_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_SW_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_SW_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_S_4x4_o.png\n├── 📄 greenhero_hd_walk_spritesheet_S_4x4_o_8fps.gif\n├── 📄 greenhero_hd_walk_spritesheet_W_4x4_o.png\n└── 📄 greenhero_hd_walk_spritesheet_W_4x4_o_8fps.gif\n```",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "markdown"
+      },
+      "x": 1632,
+      "y": -1584,
+      "width": 744,
+      "height": 1008,
+      "label": "spritesheet-fram16"
+    },
+    {
+      "id": "94132c7a-9ad1-4019-96b5-79cad834e39b",
+      "type": "text",
+      "text": "startet gemeinsamen Ablauf",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 960,
+      "y": -1272,
+      "width": 360,
+      "height": 72,
+      "label": "🐍 PyPiplineStart-SpritesheetFram16.py",
+      "color": "#249c98",
+      "group": "4d89929e-b6f2-478a-b993-861d74a9ce64"
+    },
+    {
+      "id": "7311a7b3-272c-4840-b2a1-b816dc246be7",
+      "type": "text",
+      "text": "16 Frames → 4x4\n--optimize: gemeinsamer Zuschnitt",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 960,
+      "y": -984,
+      "width": 312,
+      "height": 96,
+      "label": "🐍 PyImgGrid.py",
+      "color": "#249c98",
+      "group": "4d89929e-b6f2-478a-b993-861d74a9ce64"
+    },
+    {
+      "id": "7f1a9eb0-7b60-4c0f-8029-6da9dce50e0c",
+      "type": "text",
+      "text": "PixelEng: -f8\nRaster wie Quelle: 16x1 / 1x16",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 960,
+      "y": -1128,
+      "width": 312,
+      "height": 72,
+      "label": "🐍 PyImgGif.py",
+      "color": "#249c98",
+      "group": "4d89929e-b6f2-478a-b993-861d74a9ce64"
+    },
+    {
+      "id": "d4864afd-e518-4810-ba67-dab705631e16",
+      "type": "text",
+      "text": "gif-vergleich.html",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1296,
+      "y": -1128,
+      "width": 240,
+      "height": 72,
+      "label": "🌐 HTML",
+      "color": "5",
+      "group": "4d89929e-b6f2-478a-b993-861d74a9ce64"
+    },
+    {
+      "id": "e6924169-f146-4bdf-95b7-2ca8493c95dc",
+      "type": "text",
+      "text": "Hauptordner: -f8 --grid 4x4",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 960,
+      "y": -840,
+      "width": 312,
+      "height": 72,
+      "label": "🐍 PyImgGif.py",
+      "color": "#249c98",
+      "group": "4d89929e-b6f2-478a-b993-861d74a9ce64"
+    },
+    {
+      "id": "68fb4ad5-3d27-480e-958f-92abb9c7cbeb",
+      "type": "text",
+      "text": "gif-vergleich.html",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1296,
+      "y": -840,
+      "width": 240,
+      "height": 72,
+      "label": "🌐 HTML",
+      "color": "5",
+      "group": "4d89929e-b6f2-478a-b993-861d74a9ce64"
+    },
+    {
+      "id": "4d89929e-b6f2-478a-b993-861d74a9ce64",
+      "type": "group",
+      "label": "spritesheet-fram16",
+      "x": 912,
+      "y": -1320,
+      "width": 672,
+      "height": 576
+    },
+    {
+      "id": "c1da0d9f-71e0-46c4-83c8-66cada6470d9",
+      "type": "text",
+      "text": "📁 Pose\n📁 spritesheet-fram16\n📁 PixelEng\nRaster: 16x1 / 1x16",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1056,
+      "y": -1560,
+      "width": 336,
+      "height": 120,
+      "label": "spritesheet-fram16"
+    },
+    {
+      "id": "0c7514a0-3c86-4534-a52a-1a032683955a",
+      "type": "text",
+      "text": "spritesheet-fram16\n",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1080,
+      "y": -696,
+      "width": 312,
+      "height": 72,
+      "label": "comic_high"
+    },
+    {
+      "id": "0e7f9b79-2f49-47c2-bc09-263faaf2afa8",
+      "type": "text",
+      "text": "Vor PNG/GIF/HTML: Ziel + Modus prüfen\n--dry-run: nur prüfen\nNormal: Fehlendes ergänzen\n--overwrite: Ausgaben neu erstellen\n--dry-run --overwrite: nur Plan\nOriginale + fremde Dateien behalten.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 384,
+      "y": -936,
+      "width": 456,
+      "height": 216,
+      "label": "🐍 PyPipelineOutputs.py",
+      "color": "#249c98"
+    },
+    {
+      "id": "fram16-shared-pipeline",
+      "type": "text",
+      "text": "Originale → PixelEng\nSteuert GIF/HTML → Grid → GIF/HTML",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 504,
+      "y": -1272,
+      "width": 360,
+      "height": 96,
+      "label": "🐍 PySpritesheetPipeline.py",
+      "color": "#249c98"
+    }
+  ],
+  "edges": [
+    {
+      "id": "aaab68cf-7fde-40bc-852b-abd0867452b8",
+      "fromNode": "7f1a9eb0-7b60-4c0f-8029-6da9dce50e0c",
+      "toNode": "d4864afd-e518-4810-ba67-dab705631e16",
+      "fromSide": "top",
+      "toSide": "top",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1116,
+            "y": -1128
+          },
+          {
+            "x": 1116,
+            "y": -1156
+          },
+          {
+            "x": 1416,
+            "y": -1156
+          },
+          {
+            "x": 1416,
+            "y": -1128
+          }
+        ]
+      }
+    },
+    {
+      "id": "1e6b43a1-dc8a-47c7-8ea7-5d2cb4e107f8",
+      "fromNode": "e6924169-f146-4bdf-95b7-2ca8493c95dc",
+      "toNode": "68fb4ad5-3d27-480e-958f-92abb9c7cbeb",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1116,
+            "y": -768
+          },
+          {
+            "x": 1116,
+            "y": -740
+          },
+          {
+            "x": 1416,
+            "y": -740
+          },
+          {
+            "x": 1416,
+            "y": -768
+          }
+        ]
+      }
+    },
+    {
+      "id": "fram16-starter-to-controller",
+      "fromNode": "94132c7a-9ad1-4019-96b5-79cad834e39b",
+      "toNode": "fram16-shared-pipeline",
+      "fromSide": "left",
+      "toSide": "right",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "color": "#249c98",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 960,
+            "y": -1236.0
+          },
+          {
+            "x": 892,
+            "y": -1236.0
+          },
+          {
+            "x": 892,
+            "y": -1224.0
+          },
+          {
+            "x": 864,
+            "y": -1224.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "11e5fc99-4d03-4e7c-b4a0-a49efbd9f455",
+      "fromNode": "7f1a9eb0-7b60-4c0f-8029-6da9dce50e0c",
+      "toNode": "7311a7b3-272c-4840-b2a1-b816dc246be7",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1116,
+            "y": -1056
+          },
+          {
+            "x": 1116,
+            "y": -1020
+          },
+          {
+            "x": 1116,
+            "y": -1020
+          },
+          {
+            "x": 1116,
+            "y": -984
+          }
+        ]
+      }
+    },
+    {
+      "id": "d9ba72a7-8d7f-4c86-92c4-a116db396820",
+      "fromNode": "7311a7b3-272c-4840-b2a1-b816dc246be7",
+      "toNode": "e6924169-f146-4bdf-95b7-2ca8493c95dc",
+      "fromSide": "left",
+      "toSide": "left",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 960,
+            "y": -936
+          },
+          {
+            "x": 932,
+            "y": -936
+          },
+          {
+            "x": 932,
+            "y": -804
+          },
+          {
+            "x": 960,
+            "y": -804
+          }
+        ]
+      }
+    },
+    {
+      "id": "fram16-controller-to-gif",
+      "fromNode": "fram16-shared-pipeline",
+      "toNode": "7f1a9eb0-7b60-4c0f-8029-6da9dce50e0c",
+      "fromSide": "right",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "color": "#249c98",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [{
+            "x": 864,
+            "y": -1224
+          }, {
+            "x": 892,
+            "y": -1224
+          }, {
+            "x": 892,
+            "y": -1092.0
+          }, {"x":960,"y":-1092}]
+      }
+    },
+    {
+      "id": "outputs-to-flow",
+      "fromNode": "0e7f9b79-2f49-47c2-bc09-263faaf2afa8",
+      "toNode": "4d89929e-b6f2-478a-b993-861d74a9ce64",
+      "fromSide": "right",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "color": "#249c98",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [{
+            "x": 840,
+            "y": -828
+          }, {
+            "x": 868,
+            "y": -828
+          }, {
+            "x": 868,
+            "y": -1032.0
+          }, {
+            "x": 912,
+            "y": -1032.0
+          }]
+      }
+    }
+  ],
+  "mdvieweditor": {"version": 1, "folderSync": {
+      "groups": {}
+    }, "settings": {
+      "showGrid": true,
+      "snap": true
+    }, "routingSnapshot": {"geometry":"a73a3f3f5c0fabac80b958af69d0ff00d16a634b386059787856402a910a76e8","automatic":true}}
+}

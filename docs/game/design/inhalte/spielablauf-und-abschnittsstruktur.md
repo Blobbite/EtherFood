@@ -18,16 +18,18 @@ Referenzablauf; die Einzelheiten der späteren Regionen bleiben offen.
 
 ## Gesamtstruktur
 
-| Nr. | Abschnitt | Hauptfunktion |
-|---:|---|---|
-| 1 | Grasland | Einführung in Erkundung, Kampf, Wiederherstellung, Seelenbefreiung, Erinnerung und Lernen durch Bewohner |
-| 2 | Wald | Zweiter Wiederherstellungsabschnitt; genauer Ablauf offen |
-| 3 | Eis und Gebirge beziehungsweise Hochland | Dritter Wiederherstellungsabschnitt; genauer Ablauf offen |
-| 4 | Hauptstadt | Vierter Wiederherstellungsabschnitt; ähnelt dem früheren Machtbereich des Helden und führt zur entscheidenden Enthüllung |
-| 5 | Tatok I | Anwendung des Gelernten ohne erneute große Wiederherstellung |
-| 6 | Tatok II | Weitere kampforientierte Passage mit steigender Anforderung |
-| 7 | Tatok III | Letzte Passage durch Tators Sphärenreich und Weg zum Kampf gegen Tator |
-| 8 | Semms Bereich | Eigenständiger Schlussabschnitt mit dem letzten Bosskampf gegen Semm |
+| Nr. | Abschnitt                                | Hauptfunktion                                                                                                            |
+| --: | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+|   1 | Grasland                                 | Einführung in Erkundung, Kampf, Wiederherstellung, Seelenbefreiung, Erinnerung und Lernen durch Bewohner                 |
+|   2 | Wald                                     | Zweiter Wiederherstellungsabschnitt; genauer Ablauf offen                                                                |
+|   3 | Eis und Gebirge beziehungsweise Hochland | Dritter Wiederherstellungsabschnitt; genauer Ablauf offen                                                                |
+|   4 | Hauptstadt                               | Vierter Wiederherstellungsabschnitt; ähnelt dem früheren Machtbereich des Helden und führt zur entscheidenden Enthüllung |
+|   5 | Tatok I                                  | Anwendung des Gelernten ohne erneute große Wiederherstellung                                                             |
+|   6 | Tatok II                                 | Weitere kampforientierte Passage mit steigender Anforderung                                                              |
+|   7 | Tatok III                                | Letzte Passage durch Tators Sphärenreich und Weg zum Kampf gegen Tator                                                   |
+|   8 | Semms Bereich                            | Eigenständiger Schlussabschnitt mit dem letzten Bosskampf gegen Semm                                                     |
+|     |                                          |                                                                                                                          |
+|     |                                          |                                                                                                                          |
 
 Die zweite Reise durch bereits befreite Gebiete gehört zum Endgame, zählt aber
 nicht als neunter Abschnitt. Sie verbindet die Enthüllung in der Hauptstadt

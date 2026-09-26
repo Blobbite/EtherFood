@@ -131,6 +131,10 @@ func is_configured() -> bool:
 	)
 
 
+func has_route(route_id: StringName) -> bool:
+	return is_configured() and route_id in _route_table.route_ids()
+
+
 func get_route_host() -> Node:
 	return _route_host if is_instance_valid(_route_host) else null
 

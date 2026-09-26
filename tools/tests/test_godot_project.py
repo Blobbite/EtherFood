@@ -166,13 +166,13 @@ class GodotProjectTests(unittest.TestCase):
                 self.assertNotRegex(project, rf"(?m)^{re.escape(action)}=\{{")
 
     def test_visual_lab_tools_stay_compact_transparent_and_non_blocking(self) -> None:
-        scene = (GODOT_ROOT / "scenes" / "dev" / "visual_lab.tscn").read_text(
+        scene = (GODOT_ROOT / "test_scenes" / "visual_lab" / "visual_lab.tscn").read_text(
             encoding="utf-8"
         )
         menu_scene = (
-            GODOT_ROOT / "scenes" / "dev" / "visual_lab_menu.tscn"
+            GODOT_ROOT / "test_scenes" / "visual_lab" / "visual_lab_menu.tscn"
         ).read_text(encoding="utf-8")
-        script = (GODOT_ROOT / "scenes" / "dev" / "visual_lab.gd").read_text(
+        script = (GODOT_ROOT / "test_scenes" / "visual_lab" / "visual_lab.gd").read_text(
             encoding="utf-8"
         )
 
@@ -389,19 +389,21 @@ class GodotProjectTests(unittest.TestCase):
         self.assertNotIn("get_tree().quit", script_text)
 
     def test_bootstrap_has_a_dedicated_integration_test_runner(self) -> None:
-        runner = GODOT_ROOT / "tests" / "bootstrap_integration_test.gd"
+        runner = GODOT_ROOT / "test_scenes" / "helpers" / "bootstrap_integration_test.gd"
         self.assertTrue(runner.is_file())
         runner_text = runner.read_text(encoding="utf-8")
         self.assertIn('ProjectSettings.get_setting("application/run/main_scene"', runner_text)
         self.assertIn("bootstrap.get_script()", runner_text)
         self.assertIn("bootstrap.get_node_or_null", runner_text)
         self.assertNotIn("Forge2DTemplateBootstrap", runner_text)
-        self.assertIn("res://tests/runtime/scene_router_test.gd", runner_text)
-        self.assertIn("res://tests/runtime/application_root_test.gd", runner_text)
-        self.assertIn("res://tests/runtime/input_map_test.gd", runner_text)
-        self.assertIn("res://tests/runtime/hero_movement_v0_test.gd", runner_text)
-        self.assertIn("res://tests/runtime/visual_lab_atmosphere_test.gd", runner_text)
-        self.assertIn("res://tests/runtime/touch_action_adapter_test.gd", runner_text)
+        self.assertIn("res://test_scenes/helpers/runtime/scene_router_test.gd", runner_text)
+        self.assertIn("res://test_scenes/helpers/runtime/application_root_test.gd", runner_text)
+        self.assertIn("res://test_scenes/helpers/runtime/input_map_test.gd", runner_text)
+        self.assertIn("res://test_scenes/helpers/runtime/hero_movement_v0_test.gd", runner_text)
+        self.assertIn(
+            "res://test_scenes/helpers/runtime/visual_lab_atmosphere_test.gd", runner_text
+        )
+        self.assertIn("res://test_scenes/helpers/runtime/touch_action_adapter_test.gd", runner_text)
         self.assertIn("ApplicationRoot/RouteHost/TitleScreen", runner_text)
         self.assertIn('scene_router.get_current_route_id() == &"main_menu"', runner_text)
         self.assertIn("EtherFood bootstrap integration test: passed", runner_text)

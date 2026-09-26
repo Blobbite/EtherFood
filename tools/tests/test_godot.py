@@ -165,7 +165,7 @@ class GodotTests(unittest.TestCase):
     def test_command_construction(self) -> None:
         game = REPOSITORY_ROOT / "game"
         executable = Path("/usr/bin/godot")
-        test_runner = game / "tests" / "bootstrap_integration_test.gd"
+        test_runner = game / "test_scenes" / "helpers" / "bootstrap_integration_test.gd"
 
         self.assertEqual(
             build_godot_editor_command(executable, game),

@@ -11,13 +11,17 @@ var _navigation_requested := false
 
 
 func _ready() -> void:
-	var development_build := OS.is_debug_build()
-	visual_lab_button.visible = development_build
-	visual_lab_button.disabled = not development_build
+	var has_hero_room := SceneRouter.has_route(HERO_ROOM_ROUTE)
+	new_game_button.disabled = not has_hero_room
+	new_game_button.focus_mode = Control.FOCUS_ALL if has_hero_room else Control.FOCUS_NONE
+	var has_visual_lab := SceneRouter.has_route(VISUAL_LAB_ROUTE)
+	visual_lab_button.visible = has_visual_lab
+	visual_lab_button.disabled = not has_visual_lab
 	visual_lab_button.focus_mode = (
-		Control.FOCUS_ALL if development_build else Control.FOCUS_NONE
+		Control.FOCUS_ALL if has_visual_lab else Control.FOCUS_NONE
 	)
-	new_game_button.grab_focus()
+	if has_hero_room:
+		new_game_button.grab_focus()
 
 
 func _unhandled_input(event: InputEvent) -> void:

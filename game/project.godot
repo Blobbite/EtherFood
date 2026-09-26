@@ -29,6 +29,10 @@ window/size/resizable=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
 
+[editor]
+
+import/use_multiple_threads=false
+
 [input]
 
 ui_accept={

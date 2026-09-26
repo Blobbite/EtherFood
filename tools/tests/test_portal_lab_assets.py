@@ -8,7 +8,7 @@ from xml.etree import ElementTree
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-ASSET_ROOT = REPOSITORY_ROOT / "game/tests/assets/prototypes/portal_lab"
+ASSET_ROOT = REPOSITORY_ROOT / "game/test_assets/environment/locations/portal_lab"
 TEST_ASSET_ROOT = ASSET_ROOT / "test"
 ASSET_NAMES = {"door", "crate", "lamp", "monster", "particle", "floor_tile"}
 PALETTE = {
@@ -73,10 +73,10 @@ class PortalLabAssetTests(unittest.TestCase):
 
     def test_runtime_does_not_reference_the_old_flat_asset_paths(self) -> None:
         pattern = re.compile(
-            r"res://tests/assets/prototypes/portal_lab/(?:"
+            r"res://test_assets/environment/locations/portal_lab/(?:"
             + "|".join(sorted(ASSET_NAMES)) + r")\.(?:png|svg)"
         )
-        scene_root = REPOSITORY_ROOT / "game/scenes/dev"
+        scene_root = REPOSITORY_ROOT / "game/test_scenes/visual_lab"
         for path in scene_root.rglob("*"):
             if path.suffix in {".gd", ".tscn"}:
                 with self.subTest(source=path.relative_to(scene_root)):

@@ -1,0 +1,361 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://test_scenes/visual_lab/world_state_preview.gd" id="1_world_state"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/damaged_ground.png" id="2_damaged_ground"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/damaged_ground_detail.png" id="3_damaged_detail"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/damaged_path.png" id="4_damaged_path"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/damaged_building.png" id="5_damaged_building"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/dead_tree.png" id="6_dead_tree"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/dead_plant.png" id="7_dead_plant"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/damaged_fog.png" id="8_damaged_fog"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/restored_ground.png" id="9_restored_ground"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/restored_ground_detail.png" id="10_restored_detail"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/restored_path.png" id="11_restored_path"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/restored_building.png" id="12_restored_building"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/living_tree.png" id="13_living_tree"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/living_plant.png" id="14_living_plant"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/restored_fog.png" id="15_restored_fog"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/damaged_sawmill.png" id="16_damaged_sawmill"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/world_states/restored_sawmill.png" id="17_restored_sawmill"]
+
+[node name="WorldStatePreview" type="Node2D"]
+script = ExtResource("1_world_state")
+
+[node name="DamagedState" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Ground" type="Sprite2D" parent="DamagedState"]
+texture_filter = 1
+z_index = -10
+centered = false
+texture = ExtResource("2_damaged_ground")
+
+[node name="GroundTexture" type="Sprite2D" parent="DamagedState"]
+texture_filter = 1
+z_index = -9
+centered = false
+texture = ExtResource("3_damaged_detail")
+
+[node name="Path" type="Sprite2D" parent="DamagedState"]
+texture_filter = 1
+z_index = -8
+centered = false
+texture = ExtResource("4_damaged_path")
+
+[node name="BrokenBuilding" type="Node2D" parent="DamagedState"]
+z_index = 2
+position = Vector2(70, 50)
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/BrokenBuilding"]
+texture_filter = 1
+position = Vector2(0, -12)
+centered = false
+texture = ExtResource("5_damaged_building")
+
+[node name="DamageDetails" type="Node2D" parent="DamagedState/BrokenBuilding"]
+
+[node name="RuinedSawmill" type="Node2D" parent="DamagedState"]
+z_index = 2
+position = Vector2(430, 350)
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/RuinedSawmill"]
+texture_filter = 1
+centered = false
+texture = ExtResource("16_damaged_sawmill")
+
+[node name="DamageDetails" type="Node2D" parent="DamagedState/RuinedSawmill"]
+
+[node name="DeadTree" type="Node2D" parent="DamagedState"]
+z_index = 2
+position = Vector2(520, 145)
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/DeadTree"]
+texture_filter = 1
+position = Vector2(-84, -84)
+centered = false
+texture = ExtResource("6_dead_tree")
+
+[node name="Forest" type="Node2D" parent="DamagedState"]
+z_index = 1
+y_sort_enabled = true
+
+[node name="Tree01" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(800, 120)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree02" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1010, 120)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree03" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1220, 130)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree04" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1350, 220)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree05" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(860, 330)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree06" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1080, 330)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree07" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1280, 390)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree08" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(930, 535)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree09" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1140, 550)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree10" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1350, 610)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree11" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1030, 710)
+texture = ExtResource("6_dead_tree")
+
+[node name="Tree12" type="Sprite2D" parent="DamagedState/Forest"]
+texture_filter = 1
+position = Vector2(1240, 700)
+texture = ExtResource("6_dead_tree")
+
+[node name="DeadPlants" type="Node2D" parent="DamagedState"]
+z_index = 1
+
+[node name="PlantLeft" type="Node2D" parent="DamagedState/DeadPlants"]
+position = Vector2(486, 334)
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/DeadPlants/PlantLeft"]
+texture_filter = 1
+position = Vector2(-32, -32)
+centered = false
+texture = ExtResource("7_dead_plant")
+
+[node name="PlantMiddle" type="Node2D" parent="DamagedState/DeadPlants"]
+position = Vector2(582, 350)
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/DeadPlants/PlantMiddle"]
+texture_filter = 1
+position = Vector2(-32, -32)
+centered = false
+texture = ExtResource("7_dead_plant")
+
+[node name="PlantRight" type="Node2D" parent="DamagedState/DeadPlants"]
+position = Vector2(660, 302)
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/DeadPlants/PlantRight"]
+texture_filter = 1
+position = Vector2(-32, -32)
+centered = false
+texture = ExtResource("7_dead_plant")
+
+[node name="Fog" type="Node2D" parent="DamagedState"]
+z_index = 4
+
+[node name="Sprite2D" type="Sprite2D" parent="DamagedState/Fog"]
+texture_filter = 1
+centered = false
+texture = ExtResource("8_damaged_fog")
+
+[node name="ColdLight" type="Polygon2D" parent="DamagedState"]
+z_index = 5
+polygon = PackedVector2Array(0, 0, 1440, 0, 1440, 810, 0, 810)
+color = Color(0.22, 0.34, 0.48, 0.12)
+
+[node name="RestoredState" type="Node2D" parent="."]
+visible = false
+y_sort_enabled = true
+
+[node name="Ground" type="Sprite2D" parent="RestoredState"]
+texture_filter = 1
+z_index = -10
+centered = false
+texture = ExtResource("9_restored_ground")
+
+[node name="GroundTexture" type="Sprite2D" parent="RestoredState"]
+texture_filter = 1
+z_index = -9
+centered = false
+texture = ExtResource("10_restored_detail")
+
+[node name="Path" type="Sprite2D" parent="RestoredState"]
+texture_filter = 1
+z_index = -8
+centered = false
+texture = ExtResource("11_restored_path")
+
+[node name="RepairedBuilding" type="Node2D" parent="RestoredState"]
+z_index = 2
+position = Vector2(70, 50)
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/RepairedBuilding"]
+texture_filter = 1
+position = Vector2(0, -12)
+centered = false
+texture = ExtResource("12_restored_building")
+
+[node name="RepairedDetails" type="Node2D" parent="RestoredState/RepairedBuilding"]
+
+[node name="WorkingSawmill" type="Node2D" parent="RestoredState"]
+z_index = 2
+position = Vector2(430, 350)
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/WorkingSawmill"]
+texture_filter = 1
+centered = false
+texture = ExtResource("17_restored_sawmill")
+
+[node name="RepairedDetails" type="Node2D" parent="RestoredState/WorkingSawmill"]
+
+[node name="LivingTree" type="Node2D" parent="RestoredState"]
+z_index = 2
+position = Vector2(520, 145)
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/LivingTree"]
+texture_filter = 1
+position = Vector2(-84, -84)
+centered = false
+texture = ExtResource("13_living_tree")
+
+[node name="Forest" type="Node2D" parent="RestoredState"]
+z_index = 1
+y_sort_enabled = true
+
+[node name="Tree01" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(800, 120)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree02" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1010, 120)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree03" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1220, 130)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree04" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1350, 220)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree05" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(860, 330)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree06" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1080, 330)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree07" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1280, 390)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree08" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(930, 535)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree09" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1140, 550)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree10" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1350, 610)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree11" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1030, 710)
+texture = ExtResource("13_living_tree")
+
+[node name="Tree12" type="Sprite2D" parent="RestoredState/Forest"]
+texture_filter = 1
+position = Vector2(1240, 700)
+texture = ExtResource("13_living_tree")
+
+[node name="LivingPlants" type="Node2D" parent="RestoredState"]
+z_index = 1
+
+[node name="PlantLeft" type="Node2D" parent="RestoredState/LivingPlants"]
+position = Vector2(486, 334)
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/LivingPlants/PlantLeft"]
+texture_filter = 1
+position = Vector2(-32, -32)
+centered = false
+texture = ExtResource("14_living_plant")
+
+[node name="PlantMiddle" type="Node2D" parent="RestoredState/LivingPlants"]
+position = Vector2(582, 350)
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/LivingPlants/PlantMiddle"]
+texture_filter = 1
+position = Vector2(-32, -32)
+centered = false
+texture = ExtResource("14_living_plant")
+
+[node name="PlantRight" type="Node2D" parent="RestoredState/LivingPlants"]
+position = Vector2(660, 302)
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/LivingPlants/PlantRight"]
+texture_filter = 1
+position = Vector2(-32, -32)
+centered = false
+texture = ExtResource("14_living_plant")
+
+[node name="Fog" type="Node2D" parent="RestoredState"]
+z_index = 4
+
+[node name="Sprite2D" type="Sprite2D" parent="RestoredState/Fog"]
+texture_filter = 1
+centered = false
+texture = ExtResource("15_restored_fog")
+
+[node name="ClearAir" type="Polygon2D" parent="RestoredState"]
+z_index = 5
+polygon = PackedVector2Array(0, 0, 1440, 0, 1440, 810, 0, 810)
+color = Color(0.64, 0.84, 0.8, 0.025)
+
+[node name="WarmLight" type="Polygon2D" parent="RestoredState"]
+z_index = 5
+polygon = PackedVector2Array(0, 0, 1440, 0, 1440, 810, 0, 810)
+color = Color(1, 0.72, 0.3, 0.065)
+
+[node name="Title" type="Label" parent="."]
+z_index = 10
+offset_top = -42.0
+offset_right = 1440.0
+offset_bottom = -10.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.86, 0.83, 0.68, 1)
+theme_override_font_sizes/font_size = 20
+text = "Weltzustand · Haus, Wald und Sägewerk · Beschädigt ↔ Wiederhergestellt"
+horizontal_alignment = 1

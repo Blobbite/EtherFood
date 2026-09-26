@@ -53,7 +53,7 @@ PASS = "pass"
 WARN = "warn"
 FAIL = "fail"
 
-GODOT_TEST_RUNNER_PATH = Path("tests/bootstrap_integration_test.gd")
+GODOT_TEST_RUNNER_PATH = Path("test_scenes/helpers/bootstrap_integration_test.gd")
 GODOT_RESOURCE_IMPORT_TIMEOUT_SECONDS = 180
 GODOT_LABELED_VERSION_RE = re.compile(
     r"(?i)\bgodot\b.*?\bv?(?P<major>\d+)\.(?P<minor>\d+)"

@@ -1,0 +1,414 @@
+{
+  "format": "etherfood-plan-manifest",
+  "schema_version": 1,
+  "created_on": "2026-09-26",
+  "scope": "planning_package_only",
+  "self_excluded": "MANIFEST.json",
+  "files": [
+    {
+      "path": "ABHAENGIGKEITEN.md",
+      "bytes": 5270,
+      "sha256": "7cf4d509e48c9a66c5c2a148ed61793e46e0bc7c235e7b1b52ef2e92e51652e3"
+    },
+    {
+      "path": "AUFGABENINDEX.md",
+      "bytes": 9186,
+      "sha256": "d2aa8db28f48ba2b08439c63f10807582f065200ba22936667b858307be46e44"
+    },
+    {
+      "path": "FORTSCHRITT.md",
+      "bytes": 9236,
+      "sha256": "9e3e7fbb3d22e634a676b06941303f64d678453220afadf1ff654ca77b7b5ad8"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4248,
+      "sha256": "e16e2d884232b04d95df9589c1199c28d1c82895179f7976cf10ed8c3482ee1a"
+    },
+    {
+      "path": "START_HIER.md",
+      "bytes": 2035,
+      "sha256": "e464c2541861faf1a2d2610fb7f5342246e894d650856e46024b68ec5f706088"
+    },
+    {
+      "path": "aufgaben/001-bestand-und-schreibgrenzen/p.md",
+      "bytes": 6339,
+      "sha256": "5829e82cc9aa7db4108f5a762c49efcbf5e6d29d0d78fd2ee95929401ceb7409"
+    },
+    {
+      "path": "aufgaben/002-architektur-und-vertraege/p.md",
+      "bytes": 5762,
+      "sha256": "9de948bcf82bc2fbdef923461c16615fdd078a335978bcccd44f72733fd9f309"
+    },
+    {
+      "path": "aufgaben/003-python-grundgeruest/p.md",
+      "bytes": 5340,
+      "sha256": "67f7c700dc7dde2d72e3a0002cfac96089c85a0962b4bc8308721a8aa5a551f7"
+    },
+    {
+      "path": "aufgaben/004-katalog-und-migrationen/p.md",
+      "bytes": 5348,
+      "sha256": "a38b14bd274d4aa6b329e2865fc546f7f8954c88791cb90dda054bfe980e6b5f"
+    },
+    {
+      "path": "aufgaben/005-pfade-und-objektspeicher/p.md",
+      "bytes": 5691,
+      "sha256": "46b9008802b711908bfa6ba540579b8c93d2ce0dd7ad47d86cd203db1bc3aa52"
+    },
+    {
+      "path": "aufgaben/006-akte-kapitel-und-globale-inhalte/p.md",
+      "bytes": 5311,
+      "sha256": "cd7b00f4eae776e22f0b61bfd6d6ae224a29aa2a6cf04f9e6d24ca7d5a0a50d8"
+    },
+    {
+      "path": "aufgaben/007-dokumente-notizen-und-aufgaben/p.md",
+      "bytes": 5298,
+      "sha256": "c59f8eb6d4ba9ed68937f687ea2d2c69ac13680d0f6a45b5349bca644aa1e89a"
+    },
+    {
+      "path": "aufgaben/008-workflow-und-statusmodell/p.md",
+      "bytes": 5642,
+      "sha256": "2c1b679c4711b53f44bf2351d896a19995b6e314ed6a5139d759f19b34e259cd"
+    },
+    {
+      "path": "aufgaben/009-gui-und-projektstart/p.md",
+      "bytes": 5453,
+      "sha256": "d1aafd1e104ef56282b369171e26c6e6ed23ec305f0aabf9e19111322ee3a161"
+    },
+    {
+      "path": "aufgaben/010-canvas-hierarchie/p.md",
+      "bytes": 5229,
+      "sha256": "5c0fa86b4988419630ed25d646a1841943a9306f1887548d5d34834e03e00757"
+    },
+    {
+      "path": "aufgaben/011-canvas-verbindungen-und-undo/p.md",
+      "bytes": 5214,
+      "sha256": "5b998192fed5f2d23d0be2baf8f391894fbb7bd933ef4af81759f6a6314b179a"
+    },
+    {
+      "path": "aufgaben/012-dokumentations-und-aufgaben-gui/p.md",
+      "bytes": 5216,
+      "sha256": "4a433f743239bf2861acafd5295202cd15fe9c8063cfb8b8efd95a6d7ed8d692"
+    },
+    {
+      "path": "aufgaben/013-assettypen-posen-und-richtungen/p.md",
+      "bytes": 5483,
+      "sha256": "8156a37d096a3ce8b76200fb56a1e4aba1e9f2e141272cfec32563543675c523"
+    },
+    {
+      "path": "aufgaben/014-bestandsimport-lesend/p.md",
+      "bytes": 5505,
+      "sha256": "51acad114bdbb7d0fcb5ceb9a36503a8ee9f7f4ae252e9d2b1959fc25b7b5f51"
+    },
+    {
+      "path": "aufgaben/015-quellen-und-spritesheet-import/p.md",
+      "bytes": 5576,
+      "sha256": "33338b26c8f227da0e05e6bd0a1c8480a6c98b97dc779c85b40b276b4e67e70d"
+    },
+    {
+      "path": "aufgaben/016-asset-anlage-und-held-menue/p.md",
+      "bytes": 5428,
+      "sha256": "c9807c37eace023b32b9d5ca1058e0b005b5ebef17d4cb84cfb1c8cc769cab7b"
+    },
+    {
+      "path": "aufgaben/017-worker-und-pipeline-adapter/p.md",
+      "bytes": 5856,
+      "sha256": "e900b3b1b876480012b684f89f181cb7de165e9c9b855938c157b530f21b3891"
+    },
+    {
+      "path": "aufgaben/018-buildplan-cache-und-invalidation/p.md",
+      "bytes": 5763,
+      "sha256": "beabfbfe9154e48ccc374d9d46c5d2feb72750f79d0045728f628902d530b2a6"
+    },
+    {
+      "path": "aufgaben/019-masterreferenzen-und-profilversionen/p.md",
+      "bytes": 5974,
+      "sha256": "22a2349b4a271a5906f212fffc4873458d8e985cc71c77d7895347ff8db8a6db"
+    },
+    {
+      "path": "aufgaben/020-materialmasken-und-quellbindung/p.md",
+      "bytes": 5703,
+      "sha256": "2838aa1fa5b3cfc053649650dd2b61ea47e094696752c404242d00f87b22c213"
+    },
+    {
+      "path": "aufgaben/021-maskeneditor-und-materialauswahl/p.md",
+      "bytes": 5286,
+      "sha256": "29f55da3f637e3c7578f714eee14264d1e0997fc1ac8036958bd1afa6a12d376"
+    },
+    {
+      "path": "aufgaben/022-automatische-maskenvorschlaege/p.md",
+      "bytes": 5870,
+      "sha256": "3c77571f11396f7dbc102876a064d5bce46affd744ae3d490d955c33b3b59dc4"
+    },
+    {
+      "path": "aufgaben/023-farbkorrektur-pipeline/p.md",
+      "bytes": 6072,
+      "sha256": "b79e6ac9002691e38c150ef41ac165ea093dd5767ad1e84ae8616e65c4cfa07b"
+    },
+    {
+      "path": "aufgaben/024-frameableitung-und-geometrie/p.md",
+      "bytes": 5808,
+      "sha256": "99903fb984c5ede8835646665c2d22da676f936095183753e730f8823f5025e1"
+    },
+    {
+      "path": "aufgaben/025-timing-und-animationsevents/p.md",
+      "bytes": 5565,
+      "sha256": "6f6a97a65422e0ab7cb5dfe174115c69b2328734810f24e885bb8a861a5f144b"
+    },
+    {
+      "path": "aufgaben/026-grafikstufen-spritesheets/p.md",
+      "bytes": 5696,
+      "sha256": "00bd20ccec1b71aa82d11702a41d400f03b26dd4889e7fc3d50705ac069504b0"
+    },
+    {
+      "path": "aufgaben/027-materialfarben-nach-skalierung/p.md",
+      "bytes": 6178,
+      "sha256": "330a183f464625abaf6f6764bfbb9d7c0ea94855d05426e9dab0874181f1c539"
+    },
+    {
+      "path": "aufgaben/028-statische-texturpipeline/p.md",
+      "bytes": 5631,
+      "sha256": "25fcf48e9e27fecaec2725f71d7ff776991be4b7286c31e57cc70a314d880714"
+    },
+    {
+      "path": "aufgaben/029-assetpakete-und-tempel/p.md",
+      "bytes": 5478,
+      "sha256": "7f5c34e8b6de495e7f3fbe38a73ee65669cd015c8d2a2772c9ce14fd72efd8f0"
+    },
+    {
+      "path": "aufgaben/030-pipeline-bedienung-im-dashboard/p.md",
+      "bytes": 5921,
+      "sha256": "4bc7abb49fc131765858ca6fbfe6a9187fe9fc56dec1ff8e510c8e3268a16393"
+    },
+    {
+      "path": "aufgaben/031-integrierte-vorschauen/p.md",
+      "bytes": 5876,
+      "sha256": "10946e20838ed251bfb6ec705abfe29b03db1d6cb0ec852f147082251c07dfff"
+    },
+    {
+      "path": "aufgaben/032-variantenpruefung-und-fehlerkarten/p.md",
+      "bytes": 5917,
+      "sha256": "0e2b6ccfebe69265c638facd7606f9b804f941648985c3bf5943aac3dcd5343f"
+    },
+    {
+      "path": "aufgaben/033-kandidaten-und-versionsarchiv/p.md",
+      "bytes": 5882,
+      "sha256": "26d06f5d146a6009c52887014184e9ef60ac4ce6a8d55959f20e33ef80a1a0fd"
+    },
+    {
+      "path": "aufgaben/034-git-und-quellenrevisionen/p.md",
+      "bytes": 5791,
+      "sha256": "7d29711ed0b81881f6712233acd7f8499847427d727c8ad360ba55b622e77ea2"
+    },
+    {
+      "path": "aufgaben/035-godot-exportvertrag/p.md",
+      "bytes": 6281,
+      "sha256": "9b038970d5e0422318ac6e3a302ad3cd17d871101b9d7975e0d4c1d7676ab6ec"
+    },
+    {
+      "path": "aufgaben/036-godot-testbereitstellung/p.md",
+      "bytes": 5469,
+      "sha256": "805813d3b60cbb7057d71bf7cbfeb3b0a62a02db9c4b928501786dd107f3d536"
+    },
+    {
+      "path": "aufgaben/037-godot-tests-und-abnahmeszene/p.md",
+      "bytes": 5704,
+      "sha256": "685a3d7cc2b399afb044c73b970a33e1907e6daff710cf032dbedfaad19d7500"
+    },
+    {
+      "path": "aufgaben/038-freigabe-und-pruefbindungen/p.md",
+      "bytes": 5654,
+      "sha256": "266dee75973945f6f73dcfefb87c409691c09f5f42e7a1d7ba73ff744598270d"
+    },
+    {
+      "path": "aufgaben/039-runtime-promotion-und-rollback/p.md",
+      "bytes": 5927,
+      "sha256": "6049246dc6b2d7b997239adb193ceff8a0fe8085b4f5c9df67266fd40eae44b5"
+    },
+    {
+      "path": "aufgaben/040-testbereich-sicher-aufraeumen/p.md",
+      "bytes": 5426,
+      "sha256": "56e84c00f04f81d754cc406f96c6774862843a757628daacd042acb8d3d8b6a3"
+    },
+    {
+      "path": "aufgaben/041-versionsvergleich-und-projektfortschritt/p.md",
+      "bytes": 5951,
+      "sha256": "67226caf25e3206160cc7539630f868aa1d7c3b8fb3ae4919f1dec209be8c251"
+    },
+    {
+      "path": "aufgaben/042-automatische-dokumentation-und-export/p.md",
+      "bytes": 5973,
+      "sha256": "3085adc833d663f547f824e138752471f80a9015015f0db037e6cb2bc1622a2d"
+    },
+    {
+      "path": "aufgaben/043-erweiterbare-vorlagen-und-typen/p.md",
+      "bytes": 5688,
+      "sha256": "c127c61f8168b4bd8b31ae75820da5d025f9b261d1110fca74e4fae88fe3f7fb"
+    },
+    {
+      "path": "aufgaben/044-backup-recovery-und-speicherpflege/p.md",
+      "bytes": 5940,
+      "sha256": "321e83a00ee4d4fdc1433a6a71e26922b74d024421af6c9ad665cd241b8d1c34"
+    },
+    {
+      "path": "aufgaben/045-e2e-held-und-npc/p.md",
+      "bytes": 6848,
+      "sha256": "27a191b66aaed1aa3f50f4fe08ce91a4429d6f67fd2afe5100fe00f2da3d0b3e"
+    },
+    {
+      "path": "aufgaben/046-e2e-tempel-und-globale-verwendung/p.md",
+      "bytes": 6144,
+      "sha256": "d752102536e1372012f6e198a3f68efa5facfff2eabf50ed6477c3121f1962ee"
+    },
+    {
+      "path": "aufgaben/047-paketierung-ci-und-betrieb/p.md",
+      "bytes": 5787,
+      "sha256": "a53264e3b798a83520afba6f82db863b399a8d16e6e6ce68b22765c286aae6ed"
+    },
+    {
+      "path": "aufgaben/048-pilotmigration-und-abschluss/p.md",
+      "bytes": 6227,
+      "sha256": "4a0126c53b511d1c2aa9f73a6bbfbda71933e5a1a6aaac01b1d67916221c0d45"
+    },
+    {
+      "path": "beispiele/README.md",
+      "bytes": 447,
+      "sha256": "3fe516a3fa7b681d915a03a2a8e277da4ea5608ab2069ba73ef94fdb465832f9"
+    },
+    {
+      "path": "beispiele/charakterrezept.example.json",
+      "bytes": 924,
+      "sha256": "dae3b33c95afc6a0d9c5d8afddfd69c52b1ba6993413de97c5eb2d7df8314a26"
+    },
+    {
+      "path": "beispiele/projektstruktur.example.json",
+      "bytes": 1777,
+      "sha256": "c3d1e77f79c23443a5556ad1235b275310e91f7363ac269169701c00c32bec74"
+    },
+    {
+      "path": "beispiele/tempelrezept.example.json",
+      "bytes": 672,
+      "sha256": "942ef8799b3a6e07e46e90b591018c7ef30c5b2d8db9fdeee0dc8018164d749d"
+    },
+    {
+      "path": "grundlagen/ABLAGE_UND_SICHERHEIT.md",
+      "bytes": 3349,
+      "sha256": "562d4b6a270e12f5f8d14a70949bd4b14ece41b39ca1a05031990f2cb745fe25"
+    },
+    {
+      "path": "grundlagen/ANFORDERUNGSMATRIX.md",
+      "bytes": 12379,
+      "sha256": "55bc0cfeaf09f9ebbb33928969991ed9c22ab32265cb0669dff822229f9ebe26"
+    },
+    {
+      "path": "grundlagen/ARBEITSREGELN_CODEX.md",
+      "bytes": 3636,
+      "sha256": "c982ef469b82b5c0d646257b25e2215268aad805ecd76c297c74453a46805323"
+    },
+    {
+      "path": "grundlagen/ARCHITEKTUR.md",
+      "bytes": 7576,
+      "sha256": "090e1b0772747fe9faa5f034c09975167dc9c46dc09772baf3d1628094fbf392"
+    },
+    {
+      "path": "grundlagen/DATENVERTRAEGE.md",
+      "bytes": 8943,
+      "sha256": "348af74f0ee5b01d6132fb08227a681f8dc0a1f601efbe27b2b5168948fc1039"
+    },
+    {
+      "path": "grundlagen/ENTSCHEIDUNGEN_UND_RISIKEN.md",
+      "bytes": 4163,
+      "sha256": "e655bfe70f183f442749cfdaf3410bafd84a8f0f4aa5ddbec78f3de739d4169c"
+    },
+    {
+      "path": "grundlagen/OFFIZIELLE_REFERENZEN.md",
+      "bytes": 2923,
+      "sha256": "e8b8b437b25251c340b53d9d42d4d1ae51f417d32458fc850811388cc45397eb"
+    },
+    {
+      "path": "grundlagen/PROJEKTBRIEF.md",
+      "bytes": 6021,
+      "sha256": "50b9a9eb4d1cb144bf96366dd54e3991e55a702bbf3251aee24cde6966bd8357"
+    },
+    {
+      "path": "grundlagen/TESTSTRATEGIE.md",
+      "bytes": 5509,
+      "sha256": "6a053091d54318aca1009ce0884ebabc0705a192339b553df5c21c9f01525cde"
+    },
+    {
+      "path": "pruefung/PAKETPRUEFUNG.md",
+      "bytes": 1878,
+      "sha256": "cce77febd9a2312ef74f07dacd22e2291362fe9a2c806fdbc326cc991cca296e"
+    },
+    {
+      "path": "pruefung/check_plan.py",
+      "bytes": 7128,
+      "sha256": "723839c0a1d4bad20dfc14678e9a723f7a26a5797880a745e46d84fe8cbf972c"
+    },
+    {
+      "path": "quellen/Q01_FramReduce_Bestand.md",
+      "bytes": 10033,
+      "sha256": "9ca1e0828c1a90aa910f551c6c6e6d3553c1a4d00103f60a1926e137d3ce55c0"
+    },
+    {
+      "path": "quellen/Q02_Resolution_Bestand.md",
+      "bytes": 20643,
+      "sha256": "18041cc6f591d1a808048566114e7e56e90252f36583a420f4af01d1e66ab3bd"
+    },
+    {
+      "path": "quellen/Q03_Starter_Bestand.md",
+      "bytes": 1703,
+      "sha256": "cc0def4458b44196569cab2147793c30a9edaffee721b2379b03036e6d08d216"
+    },
+    {
+      "path": "quellen/Q04_Farbpipeline_Bestand.md",
+      "bytes": 20085,
+      "sha256": "8adc11acb9da40b66714578c92f0d4222fa42199656fc5f7703de34ddd24c929"
+    },
+    {
+      "path": "quellen/Q05_SourceColor_Bestand.md",
+      "bytes": 5603,
+      "sha256": "1fa2b5fbeafc53122b6bc3389a5a7445e750cb7d0da9a4718c4cb7d0e3883486"
+    },
+    {
+      "path": "quellen/Q06_Gemeinsame_Schreibregeln.md",
+      "bytes": 11708,
+      "sha256": "46357e6dd52deb22ce8bf699847250c13571fa92ac95a936ca2a246f858d569c"
+    },
+    {
+      "path": "quellen/Q07_Workspace_Skizze.md",
+      "bytes": 8656,
+      "sha256": "723a4f49cb02af71fb582dd761393297eacaf3a0ce91ccd642a22499ebbe32c5"
+    },
+    {
+      "path": "quellen/Q08_Referenzauswahl_Bestand.md",
+      "bytes": 2495,
+      "sha256": "24b5d7ee74986e0ec190aa7578a6f1cca18c76dca3e8903d1f0dca485c5ef3eb"
+    },
+    {
+      "path": "quellen/Q09_Masken_Profilregeln_Bestand.md",
+      "bytes": 15045,
+      "sha256": "aa76da801e63f924845027caece94e09904414cd3942dfdf9d8212cf2c7ebb63"
+    },
+    {
+      "path": "quellen/QUELLENINDEX.md",
+      "bytes": 3258,
+      "sha256": "a451d192d5a304e26de438ed64a73c75e990c20e6e6904d35157f31dd924403e"
+    },
+    {
+      "path": "tasks.json",
+      "bytes": 33532,
+      "sha256": "0cac1bb2fd13940785a3ad73d62947a2449b939a0563cc6b4bf9d577b9cdd00b"
+    },
+    {
+      "path": "vorlagen/ERGEBNISBERICHT.md",
+      "bytes": 1490,
+      "sha256": "baf452ca0902444df09a88df87125d3f5b87abfd1cc11acb90a993e9ad93db35"
+    },
+    {
+      "path": "vorlagen/FOLGEAUFGABE_STARTEN.md",
+      "bytes": 919,
+      "sha256": "7ee52efaf9e6591b7666e51f20c81cb3b054e57af6348aebaf94608b40f84a25"
+    }
+  ]
+}

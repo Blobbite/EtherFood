@@ -27,7 +27,8 @@ Beginne bei der [Dokumentationsübersicht](docs/index.md).
   [`.agent/PLANS.md`](.agent/PLANS.md).
 - Aktualisiere Tests und passende Dokumentation, wenn sich Verhalten ändert.
   Es gelten die geerbten Python- und GDScript-Stilregeln.
-- Assets ohne finale Freigabe liegen unter `game/tests/assets/`. Erst final
+- Assets ohne finale Freigabe liegen unter `game/test_assets/`. Godot-Testszenen
+  und Testhilfen liegen unter `game/test_scenes/`. Erst final
   freigegebene und ins Spiel übernommene Dateien werden nach `game/assets/`
   verschoben. Die Verwendung in Prototypszenen ist keine Freigabe; siehe
   [Asset-Ablage und Freigabe](docs/system/development/architecture/asset-ablage-und-freigabe.md).

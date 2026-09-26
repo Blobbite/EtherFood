@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://shared/resources/route_table.gd" id="1_table"]
+[ext_resource type="Script" path="res://shared/resources/route_entry.gd" id="2_entry"]
+[ext_resource type="PackedScene" path="res://test_scenes/environment/hero_room.tscn" id="3_hero_room"]
+[ext_resource type="PackedScene" path="res://test_scenes/visual_lab/visual_lab.tscn" id="4_visual_lab"]
+
+[sub_resource type="Resource" id="RouteEntry_hero_room"]
+script = ExtResource("2_entry")
+route_id = &"hero_room"
+scene = ExtResource("3_hero_room")
+development_only = true
+
+[sub_resource type="Resource" id="RouteEntry_visual_lab"]
+script = ExtResource("2_entry")
+route_id = &"visual_lab"
+scene = ExtResource("4_visual_lab")
+development_only = true
+
+[resource]
+script = ExtResource("1_table")
+entries = Array[ExtResource("2_entry")]([SubResource("RouteEntry_hero_room"), SubResource("RouteEntry_visual_lab")])

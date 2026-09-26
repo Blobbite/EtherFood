@@ -19,7 +19,7 @@ import zlib
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 TOOLS_ROOT = REPOSITORY_ROOT / "game" / "tools"
 MANIFEST_PATH = (
-    REPOSITORY_ROOT / "game/tests/assets/characters/heroes/green_hero/test/stand_walk_manifest.json"
+    REPOSITORY_ROOT / "game/test_assets/characters/heroes/greenhero/test/stand_walk_manifest.json"
 )
 INPUT_DIRECTIONS = ("N", "NO", "O", "SO", "S", "SW", "W", "NW")
 
@@ -47,6 +47,10 @@ def _snapshot(root: Path) -> dict[str, str]:
     }
 
 
+@unittest.skipUnless(
+    MANIFEST_PATH.is_file(),
+    "legacy manifest importer is not part of the five-variant animation matrix",
+)
 class GreenHeroTestImportTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -91,15 +95,13 @@ class GreenHeroTestImportTests(unittest.TestCase):
             )
             for optional in ("source_canvas", *self.importer.LAYOUT_FIELDS):
                 animation.pop(optional, None)
-            source = "sources/imported/" + animation["runtime_file"]
             animation["source"] = {
                 "optimized": [animation["runtime_file"], digest],
-                "input_sheet": [source, digest],
+                "input_sheet": [animation["runtime_file"], digest],
             }
-            for relative in (animation["runtime_file"], source):
-                path = self.package_root / relative
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(payload)
+            path = self.package_root / animation["runtime_file"]
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(payload)
         self.manifest_path = self.package_root / "stand_walk_manifest.json"
         self.manifest_path.write_text(json.dumps(manifest))
         package = self.generator.load_package(self.manifest_path)
@@ -124,7 +126,7 @@ class GreenHeroTestImportTests(unittest.TestCase):
                 (root / f"{stem}.png").write_bytes(_png(3, 4, action_index * 8 + index))
                 (root / f"{stem}_solo_4x4.png").write_bytes(_png(12, 16, 240))
 
-    def test_all_named_poses_use_single_images_and_archive_previous_sheets(self) -> None:
+    def test_all_named_poses_replace_sheets_without_creating_raw_copies(self) -> None:
         self._pose_inputs(self.source_root)
         inputs = _snapshot(self.source_root)
         old_images = {
@@ -146,23 +148,28 @@ class GreenHeroTestImportTests(unittest.TestCase):
             self.assertFalse(animation.loop)
             self.assertEqual(animation.height_pixels, 4)
             self.assertEqual(animation.foot_anchor, (1, 4))
-        for relative, payload in old_images.items():
+        for relative in old_images:
             self.assertFalse((self.package_root / relative).exists())
-            digest = hashlib.sha256(payload).hexdigest()
-            archive = self.package_root / "sources/previous" / digest / relative
-            self.assertEqual(archive.read_bytes(), payload)
+        self.assertFalse((self.package_root / "sources").exists())
+        for animation in package.animations:
+            self.assertEqual(animation.input_sheet.relative_path, animation.runtime_file)
         before = _snapshot(self.package_root)
         self._prepare()
         self.assertEqual(_snapshot(self.package_root), before)
 
-    def test_named_sources_take_precedence_over_old_loose_test_grids(self) -> None:
-        self._pose_inputs(self.package_root / "sources")
-        for path in self.source_root.iterdir():
-            shutil.copyfile(path, self.package_root / path.name)
-        self.importer.prepare_test_package(self.package_root)
-        package = self.generator.load_package(self.manifest_path)
-        self.assertEqual(len(package.animations), 48)
-        self.assertTrue(all(animation.frame_count == 1 for animation in package.animations))
+    def test_import_requires_an_explicit_external_candidate(self) -> None:
+        before = _snapshot(self.package_root)
+        with self.assertRaisesRegex(self.generator.AnimationPackageError, "--source-dir"):
+            self.importer.prepare_test_package(self.package_root)
+        self.assertEqual(_snapshot(self.package_root), before)
+
+    def test_import_rejects_sources_inside_the_godot_project(self) -> None:
+        before = _snapshot(self.package_root)
+        with self.assertRaisesRegex(self.generator.AnimationPackageError, "outside the Godot"):
+            self.importer.prepare_test_package(
+                self.package_root, source_root=TOOLS_ROOT.parent / "test_assets",
+            )
+        self.assertEqual(_snapshot(self.package_root), before)
 
     def test_named_grids_without_single_images_remain_nonanimated_poses(self) -> None:
         self._pose_inputs(self.source_root, ("jump",))
@@ -342,15 +349,16 @@ class GreenHeroTestImportTests(unittest.TestCase):
         self.assertEqual(walk.read_bytes(), payload)
         self.assertNotEqual(stand.read_bytes(), payload)
 
-    def test_full_grid_names_in_test_root_override_sources_and_runtime_outputs(self) -> None:
+    def test_external_grid_names_leave_candidate_inputs_unchanged(self) -> None:
+        incoming = self.root / "candidate"
+        incoming.mkdir()
         for source in self.source_root.iterdir():
             name = source.name.replace("_4x4_o.png", "_4x4.png")
-            shutil.copyfile(source, self.package_root / name)
-            (self.package_root / "sources" / source.name).write_bytes(_png(20, 24, 240))
+            shutil.copyfile(source, incoming / name)
         before_inputs = {
-            path.name: path.read_bytes() for path in self.package_root.glob("*.png")
+            path.name: path.read_bytes() for path in incoming.glob("*.png")
         }
-        self.importer.prepare_test_package(self.package_root)
+        self.importer.prepare_test_package(self.package_root, source_root=incoming)
         package = self.generator.load_package(self.manifest_path)
         self.generator.validate_runtime_assets(package, self.package_root)
         for direction in INPUT_DIRECTIONS:
@@ -362,17 +370,19 @@ class GreenHeroTestImportTests(unittest.TestCase):
                 )
                 self.assertEqual(output.read_bytes(), payload)
         self.assertEqual(
-            {path.name: path.read_bytes() for path in self.package_root.glob("*.png")},
+            {path.name: path.read_bytes() for path in incoming.glob("*.png")},
             before_inputs,
         )
 
-    def test_incomplete_test_root_cannot_fall_back_to_existing_runtime_images(self) -> None:
+    def test_incomplete_candidate_cannot_fall_back_to_existing_runtime_images(self) -> None:
+        incoming = self.root / "incomplete"
+        incoming.mkdir()
         shutil.copyfile(
-            self.source_root / "N_solo_4x4_o.png", self.package_root / "N_solo_4x4.png",
+            self.source_root / "N_solo_4x4_o.png", incoming / "N_solo_4x4.png",
         )
         before = _snapshot(self.package_root)
         with self.assertRaisesRegex(self.generator.AnimationPackageError, "missing stand"):
-            self.importer.prepare_test_package(self.package_root)
+            self.importer.prepare_test_package(self.package_root, source_root=incoming)
         self.assertEqual(_snapshot(self.package_root), before)
 
     def test_full_grid_names_are_supported_in_sources(self) -> None:
@@ -431,7 +441,7 @@ class GreenHeroTestImportTests(unittest.TestCase):
         tools.mkdir(parents=True)
         for filename in ("prepare_green_hero_test.py", "generate_green_hero_animations.py"):
             shutil.copyfile(TOOLS_ROOT / filename, tools / filename)
-        target = repository / "game/tests/assets/characters/heroes/green_hero/test"
+        target = repository / "game/test_assets/characters/heroes/greenhero/test"
         shutil.copytree(self.package_root, target)
         wrapper = target / "rename_test_assets.sh"
         shutil.copyfile(MANIFEST_PATH.parent / wrapper.name, wrapper)

@@ -1,6 +1,7 @@
 """Tests for the deterministic Green Hero animation package generator."""
 
 from importlib import util
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -14,11 +15,10 @@ GAME_ROOT = REPOSITORY_ROOT / "game"
 GENERATOR_PATH = GAME_ROOT / "tools" / "generate_green_hero_animations.py"
 PACKAGE_ROOT = (
     GAME_ROOT
-    / "tests"
-    / "assets"
+    / "test_assets"
     / "characters"
     / "heroes"
-    / "green_hero"
+    / "greenhero"
     / "ultra"
 )
 MANIFEST_PATH = PACKAGE_ROOT / "stand_walk_manifest.json"
@@ -35,6 +35,10 @@ def _load_generator() -> ModuleType:
     return module
 
 
+@unittest.skipUnless(
+    MANIFEST_PATH.is_file(),
+    "legacy stand/walk package is not part of the five-variant animation matrix",
+)
 class GreenHeroAnimationGeneratorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -138,7 +142,7 @@ class GreenHeroAnimationGeneratorTests(unittest.TestCase):
                     48 if variant == "test" else 16,
                 )
 
-    def test_test_package_uses_all_original_still_poses_without_animation(self) -> None:
+    def test_test_package_retains_audited_still_poses_without_raw_copies(self) -> None:
         root = PACKAGE_ROOT.parent / "test"
         package = self.generator.load_package(root / "stand_walk_manifest.json")
         self.assertEqual(package.variant, "test")
@@ -146,9 +150,10 @@ class GreenHeroAnimationGeneratorTests(unittest.TestCase):
         self.assertEqual(len(package.animations), 48)
         for animation in package.animations:
             with self.subTest(animation=animation.name):
-                source = root / "sources" / f"greenhero_hd_{animation.name}.png"
-                self.assertEqual((root / animation.runtime_file).read_bytes(), source.read_bytes())
-                self.assertTrue(source.with_stem(source.stem + "_solo_4x4").is_file())
+                payload = (root / animation.runtime_file).read_bytes()
+                self.assertEqual(
+                    hashlib.sha256(payload).hexdigest(), animation.optimized_source.sha256,
+                )
                 self.assertEqual(animation.frame_order, (0,))
                 self.assertEqual((animation.columns, animation.rows), (1, 1))
                 self.assertFalse(animation.loop)
@@ -156,6 +161,7 @@ class GreenHeroAnimationGeneratorTests(unittest.TestCase):
                 self.assertEqual(animation.crop_rect, (0, 0, 1436, 1254))
                 self.assertEqual(animation.height_pixels, 1205)
                 self.assertEqual(animation.foot_anchor, (718, 1224))
+        self.assertFalse((root / "sources").exists())
 
     def test_declared_test_actions_require_complete_directions_and_base_actions(self) -> None:
         path = PACKAGE_ROOT.parent / "test/stand_walk_manifest.json"

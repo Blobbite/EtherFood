@@ -1,0 +1,174 @@
+---
+title: "NewPipline"
+---
+{
+  "nodes": [
+    {
+      "id": "project-root",
+      "type": "text",
+      "x": -140,
+      "y": -80,
+      "width": 280,
+      "height": 160,
+      "text": "NewPipline",
+      "label": "NewPipline",
+      "color": "4",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      }
+    },
+    {
+      "id": "project-file-1",
+      "type": "file",
+      "x": -130,
+      "y": -844,
+      "width": 260,
+      "height": 150,
+      "file": "Pipline.canvas",
+      "label": "Pipline",
+      "mdvieweditor": {
+        "version": 1,
+        "canvasMode": "title"
+      },
+      "color": "1"
+    },
+    {
+      "id": "project-file-2",
+      "type": "file",
+      "x": 536,
+      "y": -459,
+      "width": 260,
+      "height": 150,
+      "file": "SpritesheetColor-Pipline/SpritesheetColor-Pipline.canvas",
+      "label": "SpritesheetColor-Pipline",
+      "mdvieweditor": {
+        "version": 1,
+        "canvasMode": "title"
+      },
+      "color": "2"
+    },
+    {
+      "id": "project-file-3",
+      "type": "file",
+      "x": 536,
+      "y": 309,
+      "width": 260,
+      "height": 150,
+      "file": "SpritesheetFram8-Pipline/SpritesheetFram8-Pipline.canvas",
+      "label": "SpritesheetFram8-Pipline",
+      "mdvieweditor": {
+        "version": 1,
+        "canvasMode": "title"
+      },
+      "color": "3"
+    },
+    {
+      "id": "project-file-4",
+      "type": "file",
+      "x": -130,
+      "y": 694,
+      "width": 260,
+      "height": 150,
+      "file": "SpritesheetFram16-Pipline/SpritesheetFram16-Pipline.canvas",
+      "label": "SpritesheetFram16-Pipline",
+      "mdvieweditor": {
+        "version": 1,
+        "canvasMode": "title"
+      },
+      "color": "4"
+    },
+    {
+      "id": "project-file-5",
+      "type": "file",
+      "x": -796,
+      "y": 310,
+      "width": 260,
+      "height": 150,
+      "file": "SpritesheetFramReduce-Pipline/SpritesheetFramReduce-Pipline.canvas",
+      "label": "SpritesheetFramReduce-Pipline",
+      "mdvieweditor": {
+        "version": 1,
+        "canvasMode": "title"
+      },
+      "color": "5"
+    },
+    {
+      "id": "project-file-6",
+      "type": "file",
+      "x": -796,
+      "y": -460,
+      "width": 260,
+      "height": 150,
+      "file": "SpritesheetResolution-Pipline/SpritesheetResolution-Pipline.canvas",
+      "label": "SpritesheetResolution-Pipline",
+      "mdvieweditor": {
+        "version": 1,
+        "canvasMode": "title"
+      },
+      "color": "6"
+    }
+  ],
+  "edges": [
+    {
+      "id": "project-edge-1",
+      "fromNode": "project-root",
+      "toNode": "project-file-1",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "fromEnd": "none",
+      "toEnd": "none",
+      "color": "1"
+    },
+    {
+      "id": "project-edge-2",
+      "fromNode": "project-root",
+      "toNode": "project-file-2",
+      "fromSide": "right",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "none",
+      "color": "2"
+    },
+    {
+      "id": "project-edge-3",
+      "fromNode": "project-root",
+      "toNode": "project-file-3",
+      "fromSide": "right",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "none",
+      "color": "3"
+    },
+    {
+      "id": "project-edge-4",
+      "fromNode": "project-root",
+      "toNode": "project-file-4",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "fromEnd": "none",
+      "toEnd": "none",
+      "color": "4"
+    },
+    {
+      "id": "project-edge-5",
+      "fromNode": "project-root",
+      "toNode": "project-file-5",
+      "fromSide": "left",
+      "toSide": "right",
+      "fromEnd": "none",
+      "toEnd": "none",
+      "color": "5"
+    },
+    {
+      "id": "project-edge-6",
+      "fromNode": "project-root",
+      "toNode": "project-file-6",
+      "fromSide": "left",
+      "toSide": "right",
+      "fromEnd": "none",
+      "toEnd": "none",
+      "color": "6"
+    }
+  ]
+}

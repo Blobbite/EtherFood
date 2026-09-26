@@ -32,6 +32,19 @@ keine Shell-Interpretation und beendet sich mit dem Exit-Code des
 Godot-Prozesses. Der Import besitzt ein begrenztes Timeout und zeigt Godots
 Ausgabe sowie einen klaren Primärfehler an, wenn die Vorbereitung scheitert.
 
+Große Heldenraster werden nacheinander importiert. Die Projekteinstellung
+`editor/import/use_multiple_threads=false` begrenzt die gleichzeitigen
+Speicherspitzen; ein paralleler Vollimport überschritt bei der Strukturumstellung
+das Containerlimit von 4 GiB. Die Auflösung und Qualität der Bilder bleiben
+unverändert. Die Einstellung ist in der
+[Godot-Referenz](https://docs.godotengine.org/en/stable/classes/class_projectsettings.html#class-projectsettings-property-editor-import-use-multiple-threads)
+beschrieben.
+
+Testressourcen unter `test_assets/` und `test_scenes/` bleiben im Editor
+importierbar. Ihre Ausschlüsse werden ausschließlich über die
+[Exportvorlagen](../architecture/asset-ablage-und-freigabe.md#release-export)
+gesteuert.
+
 ## Automatische Vorbereitung
 
 Die üblichen Befehle verwenden denselben Importablauf automatisch:
@@ -44,7 +57,7 @@ python tools/control.py check
 
 `godot4 run` importiert zuerst und startet das Spiel nur nach erfolgreicher
 Vorbereitung. `godot4 test` importiert ebenfalls zuerst und startet danach den
-Repository-eigenen `bootstrap_integration_test.gd`. Nutzerargumente hinter `--`
+Repository-eigenen `test_scenes/helpers/bootstrap_integration_test.gd`. Nutzerargumente hinter `--`
 gelangen nur an den eigentlichen Run- oder Testprozess, nicht an den Import.
 Der Editor-Modus benötigt keinen vorgeschalteten zweiten Prozess, weil der
 normale Godot-Editor selbst importiert.

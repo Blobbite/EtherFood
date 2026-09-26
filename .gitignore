@@ -29,6 +29,14 @@ htmlcov/
 
 # Godot editor imports and local state
 .godot/
+*.import
+
+# Local asset-pipeline outputs and generated previews
+/tools/PyGameTools/greenhero/
+/tools/PyGameTools/**/.pipeline-build/
+/tools/PyGameTools/**/.compare/
+/tools/PyGameTools/**/__pycache__/
+/tools/PyGameTools/**/media-*
 
 # Editors and operating systems
 .idea/

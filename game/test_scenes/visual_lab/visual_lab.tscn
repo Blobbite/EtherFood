@@ -1,0 +1,421 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://test_scenes/visual_lab/visual_lab.gd" id="1_visual_lab"]
+[ext_resource type="PackedScene" path="res://test_scenes/characters/heroes/greenhero/hero_character.tscn" id="2_hero"]
+[ext_resource type="Script" path="res://test_scenes/visual_lab/tile_grid_preview.gd" id="3_tile_grid"]
+[ext_resource type="PackedScene" path="res://test_scenes/visual_lab/world_state_preview.tscn" id="4_world_state"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/scale_references/scale_ground.png" id="5_scale_ground"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/scale_references/small_enemy.png" id="6_small_enemy"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/scale_references/door_entrance.png" id="7_door"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/scale_references/house_wall.png" id="8_house_wall"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/scale_references/large_enemy.png" id="9_large_enemy"]
+[ext_resource type="Texture2D" path="res://test_assets/environment/scale_references/tree.png" id="10_tree"]
+[ext_resource type="Script" path="res://test_scenes/visual_lab/collision_debug_overlay.gd" id="11_collision_overlay"]
+[ext_resource type="PackedScene" path="res://test_scenes/visual_lab/visual_lab_menu.tscn" id="12_visual_lab_menu"]
+
+[ext_resource type="Script" path="res://test_scenes/environment/portal_lab/lab_navigation.gd" id="13_navigation"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_bound"]
+size = Vector2(32, 2160)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_bound"]
+size = Vector2(3840, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle"]
+size = Vector2(150, 80)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
+bg_color = Color(0.047, 0.071, 0.078, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.68, 0.53, 0.25, 1)
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+
+[node name="VisualLab" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_visual_lab")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -10
+follow_viewport_enabled = false
+
+[node name="Background" type="ColorRect" parent="BackgroundLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.062745, 0.109804, 0.156863, 1)
+
+[node name="TestWorld" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Floor" type="Polygon2D" parent="TestWorld"]
+z_index = -100
+polygon = PackedVector2Array(0, 0, 3840, 0, 3840, 2160, 0, 2160)
+color = Color(0.062745, 0.109804, 0.156863, 1)
+
+[node name="ArenaBounds" type="Node2D" parent="TestWorld"]
+
+[node name="LeftWall" type="StaticBody2D" parent="TestWorld/ArenaBounds"]
+position = Vector2(0, 1080)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/ArenaBounds/LeftWall"]
+shape = SubResource("RectangleShape2D_vertical_bound")
+
+[node name="RightWall" type="StaticBody2D" parent="TestWorld/ArenaBounds"]
+position = Vector2(3840, 1080)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/ArenaBounds/RightWall"]
+shape = SubResource("RectangleShape2D_vertical_bound")
+
+[node name="TopWall" type="StaticBody2D" parent="TestWorld/ArenaBounds"]
+position = Vector2(1920, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/ArenaBounds/TopWall"]
+shape = SubResource("RectangleShape2D_horizontal_bound")
+
+[node name="BottomWall" type="StaticBody2D" parent="TestWorld/ArenaBounds"]
+position = Vector2(1920, 2160)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/ArenaBounds/BottomWall"]
+shape = SubResource("RectangleShape2D_horizontal_bound")
+
+[node name="TileComparison" type="Node2D" parent="TestWorld"]
+visible = false
+position = Vector2(1536, 220)
+
+[node name="TileGridPreview" type="Node2D" parent="TestWorld/TileComparison"]
+script = ExtResource("3_tile_grid")
+
+[node name="Title" type="Label" parent="TestWorld/TileComparison"]
+offset_top = -42.0
+offset_right = 768.0
+offset_bottom = -10.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.88, 0.79, 0.52, 1)
+theme_override_font_sizes/font_size = 20
+text = "Tilegrößenvergleich · feste Fläche 768 × 384"
+horizontal_alignment = 1
+
+[node name="WorldStatePreview" parent="TestWorld" instance=ExtResource("4_world_state")]
+visible = false
+position = Vector2(2400, 620)
+
+[node name="ScaleComparison" type="Node2D" parent="TestWorld"]
+visible = false
+position = Vector2(700, 1760)
+y_sort_enabled = true
+
+[node name="GroundStrip" type="Sprite2D" parent="TestWorld/ScaleComparison"]
+texture_filter = 1
+z_index = -20
+position = Vector2(1200, -80)
+texture = ExtResource("5_scale_ground")
+
+[node name="Baseline" type="Line2D" parent="TestWorld/ScaleComparison"]
+z_index = -10
+points = PackedVector2Array(0, 0, 2400, 0)
+width = 4.0
+default_color = Color(0.84, 0.66, 0.25, 0.9)
+
+[node name="SmallEnemyReference" type="Node2D" parent="TestWorld/ScaleComparison"]
+position = Vector2(180, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="TestWorld/ScaleComparison/SmallEnemyReference"]
+texture_filter = 1
+texture = ExtResource("6_small_enemy")
+offset = Vector2(0, -28)
+
+[node name="Label" type="Label" parent="TestWorld/ScaleComparison/SmallEnemyReference"]
+z_index = 50
+z_as_relative = false
+offset_left = -150.0
+offset_top = 18.0
+offset_right = 150.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 18
+text = "Kleiner Gegner · 56 px"
+horizontal_alignment = 1
+
+[node name="HeroStandMarker" type="Polygon2D" parent="TestWorld/ScaleComparison"]
+position = Vector2(520, 0)
+polygon = PackedVector2Array(0, -12, 9, -9, 12, 0, 9, 9, 0, 12, -9, 9, -12, 0, -9, -9)
+color = Color(1, 0.82, 0.24, 0.65)
+
+[node name="Label" type="Label" parent="TestWorld/ScaleComparison/HeroStandMarker"]
+z_index = 50
+z_as_relative = false
+offset_left = -150.0
+offset_top = 18.0
+offset_right = 150.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.46, 1)
+theme_override_font_sizes/font_size = 18
+text = "Held · steuerbar"
+horizontal_alignment = 1
+
+[node name="DoorReference" type="Node2D" parent="TestWorld/ScaleComparison"]
+position = Vector2(840, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="TestWorld/ScaleComparison/DoorReference"]
+texture_filter = 1
+texture = ExtResource("7_door")
+offset = Vector2(0, -56)
+
+[node name="Label" type="Label" parent="TestWorld/ScaleComparison/DoorReference"]
+z_index = 50
+z_as_relative = false
+offset_left = -150.0
+offset_top = 18.0
+offset_right = 150.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 18
+text = "Tür · 112 px"
+horizontal_alignment = 1
+
+[node name="HouseWallReference" type="Node2D" parent="TestWorld/ScaleComparison"]
+position = Vector2(1250, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="TestWorld/ScaleComparison/HouseWallReference"]
+texture_filter = 1
+texture = ExtResource("8_house_wall")
+offset = Vector2(0, -72)
+
+[node name="Label" type="Label" parent="TestWorld/ScaleComparison/HouseWallReference"]
+z_index = 50
+z_as_relative = false
+offset_left = -180.0
+offset_top = 18.0
+offset_right = 180.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 18
+text = "Hauswand · 144 px"
+horizontal_alignment = 1
+
+[node name="LargeEnemyReference" type="Node2D" parent="TestWorld/ScaleComparison"]
+position = Vector2(1730, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="TestWorld/ScaleComparison/LargeEnemyReference"]
+texture_filter = 1
+texture = ExtResource("9_large_enemy")
+offset = Vector2(0, -64)
+
+[node name="Label" type="Label" parent="TestWorld/ScaleComparison/LargeEnemyReference"]
+z_index = 50
+z_as_relative = false
+offset_left = -180.0
+offset_top = 18.0
+offset_right = 180.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 18
+text = "Großer Gegner · 128 px"
+horizontal_alignment = 1
+
+[node name="TreeReference" type="Node2D" parent="TestWorld/ScaleComparison"]
+position = Vector2(2180, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="TestWorld/ScaleComparison/TreeReference"]
+texture_filter = 1
+texture = ExtResource("10_tree")
+offset = Vector2(0, -96)
+
+[node name="Label" type="Label" parent="TestWorld/ScaleComparison/TreeReference"]
+z_index = 50
+z_as_relative = false
+offset_left = -150.0
+offset_top = 18.0
+offset_right = 150.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.88, 0.84, 0.76, 1)
+theme_override_font_sizes/font_size = 18
+text = "Baum · 192 px"
+horizontal_alignment = 1
+
+[node name="TestObstacle" type="StaticBody2D" parent="TestWorld"]
+visible = false
+position = Vector2(2360, 1080)
+
+[node name="Visual" type="Polygon2D" parent="TestWorld/TestObstacle"]
+polygon = PackedVector2Array(-75, -40, 75, -40, 75, 40, -75, 40)
+color = Color(0.270588, 0.4, 0.486275, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TestWorld/TestObstacle"]
+disabled = true
+shape = SubResource("RectangleShape2D_obstacle")
+
+[node name="CollisionDebugOverlay" type="Node2D" parent="TestWorld"]
+visible = false
+z_index = 90
+z_as_relative = false
+script = ExtResource("11_collision_overlay")
+hero_collision_path = NodePath("../HeroCharacter/CollisionShape2D")
+obstacle_collision_path = NodePath("../TestObstacle/CollisionShape2D")
+arena_bounds_path = NodePath("../ArenaBounds")
+
+[node name="HeroCharacter" parent="TestWorld" instance=ExtResource("2_hero")]
+position = Vector2(1920, 1080)
+
+[node name="InterfaceLayer" type="CanvasLayer" parent="."]
+layer = 10
+follow_viewport_enabled = false
+
+[node name="HudPanel" type="Panel" parent="InterfaceLayer"]
+visible = false
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 636.0
+offset_bottom = 716.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
+
+[node name="Accent" type="ColorRect" parent="InterfaceLayer/HudPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 118.0
+offset_bottom = 16.0
+mouse_filter = 2
+color = Color(0.84, 0.66, 0.25, 1)
+
+[node name="ControlsPrompt" type="Label" parent="InterfaceLayer"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 240.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.67451, 0.768627, 0.823529, 1)
+theme_override_colors/font_outline_color = Color(0.03, 0.05, 0.06, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "F5 · Steuerung"
+
+[node name="DiagnosticsPanel" type="Control" parent="InterfaceLayer"]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -466.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 636.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="InterfaceLayer/DiagnosticsPanel"]
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 436.0
+offset_bottom = 36.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 18
+text = "F11 · SPIELDIAGNOSE"
+
+[node name="Values" type="Label" parent="InterfaceLayer/DiagnosticsPanel"]
+offset_left = 14.0
+offset_top = 42.0
+offset_right = 436.0
+offset_bottom = 608.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/line_spacing = 1
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+text = ""
+
+[node name="PerformancePanel" type="Control" parent="InterfaceLayer"]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -940.0
+offset_top = 16.0
+offset_right = -482.0
+offset_bottom = 636.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="InterfaceLayer/PerformancePanel"]
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 436.0
+offset_bottom = 36.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 18
+text = "F12 · LEISTUNG UND TECHNIK"
+
+[node name="Values" type="Label" parent="InterfaceLayer/PerformancePanel"]
+offset_left = 14.0
+offset_top = 42.0
+offset_right = 436.0
+offset_bottom = 608.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/line_spacing = 1
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 2
+text = ""
+
+[node name="Interface" parent="InterfaceLayer" instance=ExtResource("12_visual_lab_menu")]
+visible = false
+offset_left = 26.0
+offset_top = 24.0
+offset_right = 626.0
+offset_bottom = 708.0
+
+[node name="RoomHost" type="Node2D" parent="TestWorld"]
+y_sort_enabled = true
+
+[node name="LabNavigation" type="Node" parent="."]
+script = ExtResource("13_navigation")
+
+[node name="RoomStatus" type="Label" parent="InterfaceLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -54.0
+offset_right = 1600.0
+offset_bottom = -20.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = "Portalturm"
+
+[node name="RoomActions" type="HBoxContainer" parent="InterfaceLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -104.0
+offset_right = 824.0
+offset_bottom = -62.0
+grow_vertical = 0
+theme_override_constants/separation = 12

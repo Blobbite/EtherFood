@@ -239,7 +239,9 @@ class CliTests(unittest.TestCase):
 
     def test_godot_test_imports_first_and_preserves_test_arguments(self) -> None:
         layout = self._layout()
-        test_runner = layout.game_directory / "tests" / "bootstrap_integration_test.gd"
+        test_runner = (
+            layout.game_directory / "test_scenes" / "helpers" / "bootstrap_integration_test.gd"
+        )
         with (
             patch("g2dtool.cli.discover_repository_layout", return_value=layout),
             patch("g2dtool.cli.discover_godot", return_value=self._godot_result()),

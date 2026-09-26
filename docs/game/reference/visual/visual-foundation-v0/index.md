@@ -25,7 +25,7 @@ sind technische Referenzen und keine finalen Produktionsgrafiken.
 
 ## Herkunft
 
-- Quelle: Laufzeitaufnahme aus `game/scenes/development/visual_lab.tscn`.
+- Quelle: Laufzeitaufnahme aus `game/test_scenes/visual_labelopment/visual_lab.tscn`.
 - Projektstand: Maßstab V0 und abgeschlossene Nebel-/Lichtprüfung vom
   3. September 2026.
 - Aufnahmegröße: 1280 × 720 Pixel.

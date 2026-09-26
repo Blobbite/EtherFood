@@ -1,0 +1,93 @@
+{
+  "format": "etherfood-project-example",
+  "schema_version": 1,
+  "example_only": true,
+  "project": {
+    "id": "EXAMPLE_PROJECT",
+    "name": "EtherFood Demo"
+  },
+  "cards": [
+    {
+      "id": "EXAMPLE_GLOBAL",
+      "type": "global_scope",
+      "parent_id": "EXAMPLE_PROJECT"
+    },
+    {
+      "id": "EXAMPLE_ACT_1",
+      "type": "act",
+      "parent_id": "EXAMPLE_PROJECT",
+      "order": 1
+    },
+    {
+      "id": "EXAMPLE_CHAPTER_1",
+      "type": "chapter",
+      "parent_id": "EXAMPLE_ACT_1",
+      "order": 1
+    },
+    {
+      "id": "EXAMPLE_CHAPTER_2",
+      "type": "chapter",
+      "parent_id": "EXAMPLE_ACT_1",
+      "order": 2
+    }
+  ],
+  "assets": [
+    {
+      "id": "EXAMPLE_HERO",
+      "type": "character",
+      "owner_scope_id": "EXAMPLE_GLOBAL",
+      "directions": [
+        "N",
+        "NO",
+        "O",
+        "SO",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "poses": [
+        "stand",
+        "walk"
+      ]
+    },
+    {
+      "id": "EXAMPLE_NPC",
+      "type": "character",
+      "owner_scope_id": "EXAMPLE_CHAPTER_1",
+      "directions": [
+        "O",
+        "W"
+      ],
+      "poses": [
+        "stand",
+        "walk"
+      ]
+    },
+    {
+      "id": "EXAMPLE_TEMPLE",
+      "type": "static_package",
+      "owner_scope_id": "EXAMPLE_ACT_1",
+      "members": [
+        "EXAMPLE_FLOOR",
+        "EXAMPLE_CEILING",
+        "EXAMPLE_COLUMN"
+      ]
+    }
+  ],
+  "uses": [
+    {
+      "from": "EXAMPLE_CHAPTER_1",
+      "to": "EXAMPLE_HERO"
+    },
+    {
+      "from": "EXAMPLE_CHAPTER_2",
+      "to": "EXAMPLE_HERO"
+    },
+    {
+      "from": "EXAMPLE_CHAPTER_1",
+      "to": "EXAMPLE_TEMPLE"
+    }
+  ],
+  "note": "Illustratives Zielmodell; noch kein implementiertes Importformat. Alle IDs sind Beispiele."
+}

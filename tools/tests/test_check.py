@@ -32,8 +32,10 @@ class CheckTests(unittest.TestCase):
         (self.root / "tools" / "src").mkdir(parents=True)
         (self.root / "game").mkdir()
         (self.root / "game" / "project.godot").write_text("", encoding="utf-8")
-        self.test_runner = self.root / "game" / "tests" / "bootstrap_integration_test.gd"
-        self.test_runner.parent.mkdir()
+        self.test_runner = (
+            self.root / "game" / "test_scenes" / "helpers" / "bootstrap_integration_test.gd"
+        )
+        self.test_runner.parent.mkdir(parents=True)
         self.test_runner.write_text(
             "extends SceneTree\n",
             encoding="utf-8",

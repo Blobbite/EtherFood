@@ -25,6 +25,9 @@ RUNTIME_PATHS = (
     REPOSITORY_ROOT / "game" / "services",
     REPOSITORY_ROOT / "game" / "shared",
     REPOSITORY_ROOT / "game" / "src",
+    REPOSITORY_ROOT / "game" / "test_scenes" / "characters",
+    REPOSITORY_ROOT / "game" / "test_scenes" / "environment",
+    REPOSITORY_ROOT / "game" / "test_scenes" / "visual_lab",
 )
 DOCUMENTATION_ENTRY_POINTS = (
     REPOSITORY_ROOT / "README.md",

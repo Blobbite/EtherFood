@@ -1,12 +1,10 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/app/application_root.gd" id="1_application"]
 [ext_resource type="Script" path="res://shared/resources/route_entry.gd" id="2_entry"]
 [ext_resource type="Script" path="res://shared/resources/route_table.gd" id="3_table"]
 [ext_resource type="PackedScene" path="res://scenes/menu/title_screen.tscn" id="4_title"]
 [ext_resource type="PackedScene" path="res://scenes/menu/main_menu.tscn" id="5_main_menu"]
-[ext_resource type="PackedScene" path="res://scenes/gameplay/hero_room.tscn" id="6_hero_room"]
-[ext_resource type="PackedScene" path="res://scenes/dev/visual_lab.tscn" id="7_visual_lab"]
 
 [sub_resource type="Resource" id="RouteEntry_title"]
 script = ExtResource("2_entry")
@@ -18,20 +16,9 @@ script = ExtResource("2_entry")
 route_id = &"main_menu"
 scene = ExtResource("5_main_menu")
 
-[sub_resource type="Resource" id="RouteEntry_hero_room"]
-script = ExtResource("2_entry")
-route_id = &"hero_room"
-scene = ExtResource("6_hero_room")
-
-[sub_resource type="Resource" id="RouteEntry_visual_lab"]
-script = ExtResource("2_entry")
-route_id = &"visual_lab"
-scene = ExtResource("7_visual_lab")
-development_only = true
-
 [sub_resource type="Resource" id="RouteTable_application"]
 script = ExtResource("3_table")
-entries = Array[ExtResource("2_entry")]([SubResource("RouteEntry_title"), SubResource("RouteEntry_main_menu"), SubResource("RouteEntry_hero_room"), SubResource("RouteEntry_visual_lab")])
+entries = Array[ExtResource("2_entry")]([SubResource("RouteEntry_title"), SubResource("RouteEntry_main_menu")])
 
 [node name="ApplicationRoot" type="Node"]
 script = ExtResource("1_application")

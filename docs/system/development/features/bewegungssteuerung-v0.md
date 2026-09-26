@@ -63,10 +63,11 @@ kombiniert dieses Signal mit dem szeneneigenen `CameraProfile`.
 Die Bewegungslogik stellt zusätzlich eine achtteilige Animationsrichtung und
 die tatsächlich nach Kollision verbleibende Bodenbewegung bereit. Der getrennte
 Animationscontroller verwendet diese Angaben für die eingebundenen
-[Green-Hero-Stand- und Gehfolgen](green-hero-stand-und-gehen.md), ohne Eingaben
-oder Geschwindigkeiten ein zweites Mal auszuwerten. Bis eigene Bildfolgen
-folgen, zeigen alle Bodenbewegungsstufen die Gehfolge und alle Sprünge das
-erste Standbild ihrer Richtung.
+[Green-Hero-Stand- und Gehfolgen](green-hero-stand-und-gehen.md). Normale
+Richtungseingaben zeigen `walk`; gehaltenes Shift zeigt außerhalb des aktiven
+Rennens `slowwalk`. Aktives Rennen mit Shift zeigt `sprint`. Eingaben und
+Geschwindigkeiten werden dabei nicht doppelt ausgewertet. Alle Sprünge zeigen
+das erste Standbild ihrer Richtung.
 
 ## Gameplay-Labor
 

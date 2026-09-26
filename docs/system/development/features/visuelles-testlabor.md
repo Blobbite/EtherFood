@@ -30,11 +30,15 @@ Testlabor verwendet ein Themenmenü, trennt lokale Testwerte von versionierten
 Spielstandards und kennzeichnet letztere mit goldenem Rahmen und Stern. Die
 früheren Direktkürzel der einzelnen Testparameter sind entfernt.
 
-Unter `Darstellung` kann der Laborheld zwischen HD, Pixel Art, Ultra und
-Testversion umgeschaltet werden. Dieselbe Auswahl schaltet auch die
-Blueprint-Texturen des Portal-Labors: Pixel Art verwendet `portal_lab/pixelart`,
-Testversion verwendet `portal_lab/test`. Für HD und Ultra dienen vorerst
-die vorhandenen HD-Testvorlagen als Ersatz; der F5-Status nennt diese Zuordnung.
+Unter `Darstellung` kann der Laborheld zwischen Comic High, Comic Mittel,
+Comic Low, Pixel Art High und Pixel Art Low umgeschaltet werden. Eine zweite
+Die Darstellung besitzt zwei getrennte Spalten: links wählt man 8, 10, 12,
+14 oder 16 Frames, rechts `Neu` oder die Wiedergabe in 8, 10, 12, 14 oder
+16 FPS. Ein Klick auf Frames setzt die FPS-Spalte auf `Neu`; so kann jede
+Frames/FPS-Kombination unabhängig verglichen werden.
+Dieselbe Grafikauswahl schaltet die Blueprint-Texturen des Portal-Labors;
+Pixelvarianten verwenden `portal_lab/pixelart`, Comicvarianten
+`portal_lab/test`.
 Diese Auswahl
 ist ein lokaler Sichtvergleich und ausdrücklich kein übernehmbarer
 Spielstandard.
@@ -172,7 +176,7 @@ Nicht jede Laborfunktion stellt einen Spielstandard dar:
 | Pixel-Snap und Texturfilter | ja | Darstellungsstandard beziehungsweise spätere Voreinstellung |
 | Nebel und Licht | ja, je Weltzustand | atmosphärischer Standard des jeweiligen Zustands |
 | Bewegungsgeschwindigkeiten und Sprungwerte | ja, je fokussiertem Regler | versionierte Bewegungsressource |
-| Hero-Grafik | nein | lokaler Vergleich von HD, Pixel Art, Ultra und Testversion |
+| Hero-Grafik und Animations-Frames/FPS | ja, als Paar | lokaler Vergleich von fünf Varianten und frei kombinierbaren Frames-/FPS-Stufen |
 | angezeigter Weltzustand | nein | gleichberechtigte Vorschau bestehender Spielzustände |
 | Diagnose, Kollision und Fensterwerte | nein | reine Entwicklungswerkzeuge und Messwerte |
 
@@ -201,13 +205,15 @@ Weltzustände. Das Dorfprofil bleibt zunächst als eigene Ressource vorbereitet,
 erbt aber über die Zuordnung den Außenweltwert. Erst die ausdrückliche
 Übernahme eines Dorfzooms löst diese Vererbung.
 
-Der lokale Arbeitsstand verwendet Speicherschema 4. Neben
+Der lokale Arbeitsstand verwendet Speicherschema 5. Neben
 `camera_context` werden `camera_zoom_world`, `camera_zoom_village`,
 `camera_zoom_dungeon` und `camera_zoom_small_interior` getrennt gespeichert.
 Die Gameplay-Regler werden als begrenzte Zahlenwerte gespeichert;
-`hero_graphics` merkt `ultra` oder `pixel_art`. Gültige Werte der Versionen 1
-bis 3 werden beim Laden übernommen und unmittelbar in das neue Schema
-geschrieben. Fehlt die Grafikauswahl, bleibt `ultra` aktiv; andere fehlende
+`hero_graphics` merkt die fünf Grafik-IDs, `hero_frames` die Sprite-Framezahl
+und `hero_fps` die gewählte Wiedergabe-FPS (`new` bedeutet noch keine
+Zuordnung). Gültige Werte der Versionen 1 bis 4 werden beim Laden übernommen
+und unmittelbar in das neue Schema geschrieben. Fehlt die Grafikauswahl,
+bleibt `comic_high` bei 8 Frames und 8 FPS aktiv; andere fehlende
 oder ungültige Werte fallen auf ihren jeweiligen Spielstandard zurück.
 
 Der Gameplay-Held erhält beim Öffnen eine tiefe Kopie von
@@ -227,10 +233,11 @@ Laborfigur:
 
 | Auswahl | Inhalt | Verhalten |
 |---|---|---|
-| `Ultra` | acht neue Posen mit je 16 identischen Frames, für Stand und Gehen verwendet | Startwert, auch im Heldenraum; noch ohne finale Asset-Freigabe |
-| `Pixel Art` | acht Stand- und acht Gehposen mit je einem Frame | nur lokaler Laborvergleich |
-| `HD` | frühere animierte Stand- und Gehfolgen mit 640-Pixel-Bezugsfeld | bestätigte Zuordnung für den Laborvergleich |
-| `Testversion` | 48 Einzelposen mit 1436 × 1254 Pixeln; per SH-Skript austauschbar | sechs Zustände in acht Richtungen unter `green_hero/test/` |
+| `Comic High` | Stand, Slow Walk, Walk, Sneak, Run und Sprint in fünf wählbaren Frameraten; Jump als Einzelpose | höchste Comic-Auflösung, nur Testasset |
+| `Comic Mittel` | dieselben sieben Zustände und acht Richtungen | mittlere Comic-Auflösung, nur Testasset |
+| `Comic Low` | dieselben sieben Zustände und acht Richtungen | niedrige Comic-Auflösung, nur Testasset |
+| `Pixel Art High` | dieselben sieben Zustände und acht Richtungen | hohe Pixel-Art-Auflösung, nur Testasset |
+| `Pixel Art Low` | dieselben sieben Zustände und acht Richtungen | niedrige Pixel-Art-Auflösung, nur Testasset |
 
 Alle Varianten verwenden `stand_` und `walk_` mit den deutschen
 Richtungskürzeln `N`, `NO`, `NW`, `O`, `S`, `SO`, `SW`, `W`, zum Beispiel
@@ -241,14 +248,15 @@ wechselt die Figur zur passenden Gehpose, innerhalb derselben Richtung bleibt
 das Bild stehen. Die Ultra-Testfassung verwendet beim Gehen dieselbe Pose wie
 im Stand, damit sich die neuen Grafiken während der Bewegung beurteilen lassen.
 
-Die Testversion verwendet `stand`, `walk`, `run`, `sneak`, `sprint` und `jump`
-als nicht animierte Einzelposen. Laufen und Rennen teilen `run`; nach einem
-Sprung folgt wieder die passende Bodenpose. Alle Posen behalten den Maßstab
-und Fußanker der Standreferenz, einschließlich transparenter Ränder.
-Neue Posen lassen sich über `test/rename_test_assets.sh` umbenennen und einbinden; die
-[Anleitung im Testordner](../../../../game/tests/assets/characters/heroes/green_hero/test/README.md)
-beschreibt den Ablauf. Nach dem Godot-Import lädt ein erneuter Klick auf
-Testversion die Ressource und ihre Texturen neu.
+Die neue Testmatrix verwendet `stand`, `slowwalk`, `walk`, `sneak`, `run`,
+`sprint` und `jump` in acht Richtungen. `sprint` verwendet dieselben Run-Sheets
+wie `run`, wird aber fest mit 12 Frames und 12 FPS abgespielt. `jump` besteht pro Richtung aus
+genau einer eingefrorenen Standpose. Die Auswahl unter Darstellung schaltet
+zwischen 8, 10, 12, 14 und 16 Frames; die FPS-Spalte startet nach jedem
+Frames-Wechsel bei `Neu`. Für jede Auswahl wird das passende
+Spritesheet-Raster verwendet. Alle Varianten bleiben unter
+`game/test_assets/characters/heroes/greenhero/spritesheets/` und werden erst
+nach ausdrücklicher Freigabe zu Laufzeitassets.
 
 Alle Pixelart-Dateien besitzen einen transparenten `265 × 265`-Canvas und
 eine sichtbare Figurenhöhe von 245 Pixeln. Das Labor normalisiert sie wie die
@@ -256,11 +264,11 @@ Ultra-Referenz auf die gewählte Heldenhöhe und richtet den gemeinsamen
 Fußpunkt auf dem Bodenanker aus. So vergleicht der Test Grafikauflösung und
 Bildwirkung, nicht versehentlich Figurengröße oder Weltposition.
 
-Die Auswahl wird nur in `user://visual_lab_settings.cfg` gemerkt. Sie besitzt
-keinen goldenen Stern, kann weder über den Menüknopf noch über
-`Strg + Alt + E` übernommen werden und verändert den `HeroCharacter` im
-Heldenraum nicht. Es ist noch nicht entschieden, welche Variante angenehmer
-wirkt; dieses Ergebnis entsteht erst im direkten Sichttest.
+Die Auswahl wird in `user://visual_lab_settings.cfg` gemerkt. Eine gewählte
+Frames/FPS-Kombination kann über den Menüknopf oder `Strg + Alt + E` in die
+versionierte Visual-Lab-Standardressource übernommen werden. `Neu` ist dabei
+nicht übernehmbar. Die Grafikvariante bleibt ein lokaler Testwert und verändert
+den `HeroCharacter` im Heldenraum nicht.
 
 ## Zoomprofile nach Zielbereich
 
@@ -419,16 +427,17 @@ Laufzeitlogik.
 
 ### 1. Helden-Testfläche
 
-Die Figur bleibt in allen Räumen steuerbar. Der Sprite-Testraum enthält
-zusätzlich vier statische Vergleichsfiguren für die Grafikvarianten.
+Die Figur bleibt in allen Räumen steuerbar. Das Darstellungspanel enthält
+fünf Grafikvarianten und die fünf Frames-/FPS-Stufen als direkt prüfbare Auswahl.
 Damit lassen sich folgende Eigenschaften prüfen:
 
 ```text
 - Spielfigur anzeigen
-- Schleichen, Gehen, Laufen, Rennen und Sprinten in acht Animationsrichtungen
+- Slow Walk, Gehen, Schleichen, Laufen und Sprinten in acht Animationsrichtungen
+- 8, 10, 12, 14 und 16 Frames mit dem jeweils passenden Spritesheet-Raster
 - Steh-, Geh-, Lauf-, Renn- und Sprintsprung
-- Idle- und Laufanimation testen
-- HD, Pixel Art, Ultra und Testversion direkt vergleichen
+- Jump als richtungsabhängige Einzelpose prüfen
+- Comic High, Comic Mittel, Comic Low, Pixel Art High und Pixel Art Low direkt vergleichen
 - Figurengröße vergleichen
 - Schatten und Kollisionskörper anzeigen
 ```
@@ -475,7 +484,7 @@ Umschaltbar sein sollen:
 - weiter Kamerazoom
 - Pixel-Snap ein und aus
 - Texturfilterung zum Vergleich
-- HD-, Pixel-Art-, Ultra- und Testgrafik vergleichen
+- fünf Grafikvarianten und fünf Animations-Frames/FPS-Stufen vergleichen
 - Nebelstärken je Weltzustand
 - Lichtprofile je Weltzustand
 ```
@@ -487,12 +496,13 @@ Varianten bleiben für spätere Regressionen verfügbar.
 #### Hero-Grafikvergleich
 
 Im Thema `Darstellung` steht oberhalb von Pixel-Snap und Texturfilter die
-gemeinsame Auswahl `Grafik: Figur und Portal-Labor` mit `HD`, `Pixel Art`,
-`Ultra` und `Testversion` in zwei Spalten. Der aktuelle Wert wird
-markiert und lokal gespeichert. Weil noch keine Grafikentscheidung getroffen
-wurde, fehlt bewusst die goldene Spielstandard-Markierung und die
-Übernahmeaktion bleibt für diesen Eintrag gesperrt. Größenwahl, Kamera,
-Texturfilter und Pixel-Snap können unabhängig davon weitergeschaltet werden.
+gemeinsame Auswahl `Grafik: Figur und Portal-Labor` mit `Comic High`,
+`Comic Mittel`, `Comic Low`, `Pixel Art High` und `Pixel Art Low`. Darunter
+stehen Frames- und FPS-Spalte nebeneinander. Der aktuelle Wert wird markiert
+und lokal gespeichert. Die gewählte Frames/FPS-Kombination kann mit dem
+Übernahmeknopf oder `Strg + Alt + E` als Spielstandard gespeichert werden;
+`Neu` bleibt eine reine Vergleichsauswahl. Die Grafikvariante bleibt ein
+lokaler Testwert.
 Ein zusätzlicher Status nennt den verwendeten Portal-Bildsatz. Die Zuordnung
 und die Ordnerverwendung sind unter
 [Portal-Testlabor](portal-testlabor.md#f5-grafikvarianten-für-figur-und-portal-labor) beschrieben.
@@ -802,7 +812,7 @@ Das visuelle Testlabor ist ausreichend festgelegt, wenn:
 - Spielszenen ausschließlich versionierte Spielwerte und niemals lokale
   Testwerte als Ausgangspunkt verwenden,
 - beschädigte und wiederhergestellte Welt direkt verglichen werden können,
-- HD, Pixel Art, Ultra und Testversion ohne Änderung des Spielstandards
+- fünf Grafikvarianten und fünf Frames-/FPS-Stufen ohne Änderung des Spielstandards
   direkt verglichen werden können,
 - F11 und F12 ausschließlich weißen Text ohne Rahmen oder Hintergrund
   zeigen und keine Messwerte doppelt führen,

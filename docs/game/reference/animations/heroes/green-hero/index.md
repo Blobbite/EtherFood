@@ -20,39 +20,31 @@ updated: 2026-09-10
 | ID | `green-hero` |
 | Name | Green Hero |
 | Kurzbeschreibung | Spielbarer grüner Held |
-| Animationsstandard | 25 Animationstypen mit je 8 Richtungen |
-| Aktuell dokumentiert | 7 Animationstypen; 6 davon vollständig in 8 Richtungen |
-| Belegte Richtungsplätze | 49 von 200 |
+| Animationsstandard | 7 Animationstypen mit je 8 Richtungen |
+| Aktuell dokumentiert | Stand, Slow Walk, Walk, Sneak, Run, Sprint und Jump vollständig |
+| Belegte Richtungsplätze | 56 von 56 im Testmodell |
 | Dokumentierte GIFs | 51 |
 | Frames je GIF | 6 bis 16 |
 | Dokumentationsformat | GIF |
 | Doku-Assets | `docs/game/reference/animations/heroes/green-hero/previews/` |
-| Im Spiel eingebunden | Ultra: Stehen und Gehen, je 8 Richtungen × 16 Frames; Testversion: 48 Einzelposen; HD und Pixel Art zusätzlich im Testlabor |
+| Im Spiel eingebunden | Keine der fünf Testvarianten ist final freigegeben; alle sieben Animationstypen laufen im visuellen Testlabor |
 
 ## Kurzbeschreibung
 
-Die Ultra-Standgrafik im Prototyp wurde am 10. September 2026 durch neue PNGs
-ersetzt. Für den Bewegungstest werden dieselben neuen Posen auch beim Gehen
-angezeigt. Die Stand- und Geh-GIFs dieser Seite zeigen weiterhin die frühere
-Fassung; für die neue Version wurden keine GIF-Vorschauen geliefert. Aktuelle
-Bilddaten und Richtungszuordnung stehen unter
-[Green Hero – Stehen und Gehen](../../../../../system/development/features/green-hero-stand-und-gehen.md).
-Alle Laufzeitgrafiken bleiben bis zur finalen Freigabe unter `game/tests/assets/`.
+Das Testmodell verwendet fünf bereitgestellte Bildvarianten: Comic High,
+Comic Mittel, Comic Low, Pixel Art High und Pixel Art Low. Für Stand, Slow Walk,
+Walk, Sneak und Run stehen 8, 10, 12, 14 und 16 Frames mit jeweils gleicher
+FPS-Zahl als passende
+Spritesheet-Raster zur Verfügung. Sprint liest das Run-Raster mit 12 FPS;
+Jump verwendet pro Richtung genau ein Standbild. Alle Testgrafiken bleiben bis
+zur finalen Freigabe unter `game/test_assets/`.
 
 Der Green Hero ist eine spielbare Heldenfigur von EtherFood. Diese Seite
-dokumentiert die tatsächlich vorhandenen visuellen GIF-Vorschauen und weist
-davon getrennt aus, welche Folgen bereits als Laufzeitgrafik eingebunden sind.
-Stehen, langes Warten, Gehen, Laufen, Rennen und Sprinten liegen in allen acht
-Richtungen vor. Genervtes Warten ist als dreiteilige Folge nach Süden
-dokumentiert. Rennen verwendet die GIFs aus dem Arbeitsordner `sprint`,
-Sprinten die GIFs aus `race`. Ihre Bildfolgen sind je Richtung pixelgleich;
-die hinterlegten Wiedergabegeschwindigkeiten werden unverändert übernommen.
-
-Der vollständige Heldenstandard bleibt mit 25 Animationstypen sichtbar. Ein
-Gedankenstrich (`—`) bedeutet, dass für diesen Richtungsplatz aktuell kein GIF in
-der Dokumentation verfügbar ist. Er ist weder ein kaputter Bildlink noch eine
-Aussage darüber, ob außerhalb dieses Dokumentationsbestands bereits weitere
-Arbeiten existieren.
+dokumentiert die vorhandenen visuellen Vorschauen und trennt sie vom noch
+nicht freigegebenen Testbestand. Die neuen Testanimationen werden in fünf
+Varianten und fünf Frames-/FPS-Stufen im Godot-Testlabor aufgebaut. Ein Gedankenstrich
+(`—`) bedeutet bei den historischen GIF-Tabellen, dass für diesen
+Richtungsplatz keine Vorschau vorliegt.
 
 ## Herkunft und Verwendung
 
@@ -62,21 +54,15 @@ Arbeiten existieren.
 | Herkunft | Fertige GIF-Exporte aus der lokal bereitgestellten Green-Hero-Arbeitsstruktur |
 | Dokumentationsstand | 8. September 2026 |
 | Grafikbestand | Stehen, langes Warten, Gehen, Laufen, Rennen und Sprinten vollständig; genervtes Warten nur nach Süden |
-| Laufzeitstand | Stehen und Gehen als Ultra-Sheets; Testversion mit sechs Einzelposen je Richtung; HD und Pixel Art zusätzlich für den Laborvergleich |
-| Technische Merkmale | Alle GIFs mit 640 × 640 Pixeln; 35 GIFs mit 16 Frames; Gehen und Laufen mit je 16 Frames; Rennen und Sprinten mit je 6 Frames pro Richtung |
-| Quellzuordnung | Gehen: `walk`; Laufen: `run`; Rennen: `sprint`; Sprinten: `race` |
-| Renn-Wiedergabe | `sprint`: sieben Richtungen mit 12 Hundertstelsekunden je Frame (etwa 8,3 FPS), Südosten mit 6 (etwa 16,7 FPS) |
-| Sprint-Wiedergabe | `race`: 6 Hundertstelsekunden je Frame, etwa 16,7 FPS |
+| Laufzeitstand | Testlabor: fünf Grafikvarianten, fünf Frames-/FPS-Stufen und sieben Animationstypen je acht Richtungen |
+| Technische Merkmale | Stand, Slow Walk, Walk, Sneak und Run verwenden 8/10/12/14/16 Frames; Sprint nutzt Run bei 12 Frames und 12 FPS; Jump ist ein Einzelbild |
+| Quellzuordnung | Sprint: `run` bei 12 FPS; Jump: `jump`-Einzelbilder |
 | Urheberschaft und Lizenzstatus | Ausgangsmotiv vom Benutzer bereitgestellt; die Übernahme der Vorschauen verändert dessen Nutzungsrechte nicht |
 
-Die Arbeitsstruktur und ihre PNG-, Spritesheet- und Quelldateien bleiben lokal
-und sind nicht Bestandteil dieser Referenz. Für diese Dokumentation wurden die
-GIFs ausschließlich kopiert. Quelldateien und Quellordner wurden weder
-verändert noch verschoben oder umbenannt.
-
-Die Zielordner der Dokumentation folgen den deutschen Animationsbezeichnungen:
-Unter `race/` liegen die für Rennen bestimmten Kopien aus der Quelle `sprint`,
-unter `sprint/` die für Sprinten bestimmten Kopien aus der Quelle `race`.
+Die Test-Spritesheets liegen unter
+`game/test_assets/characters/heroes/greenhero/spritesheets/`. Die historischen
+GIFs unter `previews/` bleiben reine Dokumentationsvorschauen und bestimmen
+nicht den Godot-Testablauf.
 
 ## Richtungen
 
@@ -94,46 +80,22 @@ Für richtungsabhängige Animationen gilt diese einheitliche Reihenfolge:
 | NW | Nordwesten |
 
 Die Laufzeitdateien und Godot-Animationen verwenden diese Kürzel in
-Großschreibung, etwa `greenhero_NO_walk_spritesheet_4x4_o.png` und `walk_NO`.
+Großschreibung, etwa `greenhero_hd_walk_spritesheet_NO_4x4_o.png` und
+`walk_NO`.
 Die historischen GIF-Vorschauen behalten ihre vorhandenen Dateipfade.
 
 ## Laufzeit-Einbindung
 
-Im Spiel verwendet der `HeroCharacter` derzeit genau 16 optimierte
-Spritesheets: acht für Stehen und acht für Gehen. Jedes Sheet besitzt ein
-4×4-Raster und 16 Frames; die gemeinsame `SpriteFrames`-Ressource umfasst
-damit 256 Frames. Alle Folgen laufen in Endlosschleife mit 120 Millisekunden je
-Frame. In dieser Testfassung sind die Frames je Richtung identisch und die
-Stand- und Walk-Sheets bytegleich. Beim Start blickt der Held nach Süden;
-beim Anhalten behält er die letzte der acht Richtungen.
+Im Spieltest baut `green_hero_animation_library.gd` die `SpriteFrames` aus den
+Spritesheets unter `game/test_assets/characters/heroes/greenhero/spritesheets/`
+auf. Die Auswahl von Grafikvariante sowie Frames und FPS wird im flüchtigen
+`user://visual_lab_settings.cfg` gespeichert. Das automatische Godot-Testmodell
+prüft die vollständige Matrix aus fünf Varianten, fünf Frames-/FPS-Stufen, sieben
+Animationstypen und acht Richtungen sowie die Bewegungssteuerung.
 
-Die Laufzeitassets liegen unter
-`game/tests/assets/characters/heroes/green_hero/ultra/`. Manifest,
-Ausschnittkoordinaten, Fußanker, Referenzmaß und Wiederherstellung des
-1254 × 1254-px-Bezugsfelds sind in der
-[Entwicklungsdokumentation zur Einbindung](../../../../../system/development/features/green-hero-stand-und-gehen.md)
-festgehalten.
-
-Ultra besitzt noch keine eigenen Laufzeitfolgen für Laufen, Rennen,
-Sprinten, Schleichen, Sprünge und Wartevarianten. Seine Bodenbewegungen
-verwenden die passende Gehfolge; der bestehende Sprung friert das erste
-Standbild der Richtung ein. Die Testversion ergänzt eigene feste Posen
-für die Bewegungszustände.
-
-Das visuelle Testlabor besitzt daneben eine eigenständige Pixelart-Ressource
-unter `game/tests/assets/characters/heroes/green_hero/pixel_art/`. Sie ordnet je ein
-transparentes `265 × 265`-PNG denselben acht Stand- und acht Gehnamen zu. Die
-Figurenhöhe und der Fußpunkt sind für einen deckungsgleichen Vergleich mit
-Ultra normalisiert. HD verwendet die bestätigte frühere animierte Fassung mit
-640-Pixel-Bezugsfeld. Die unabhängige Testversion enthält 48 nicht animierte
-Einzelposen mit 1436 × 1254 Pixeln: `stand`, `walk`, `run`, `sneak`, `sprint`
-und `jump` in jeweils acht Richtungen. Laufen und Rennen verwenden `run`.
-Ihre ursprünglichen Einzelbilder und Raster bleiben als Quellen erhalten.
-Ihr SH-Skript ermöglicht den schnellen Austausch neuer Testposen. Alle vier
-Varianten werden im Testlabor unter Darstellung → Hero-Grafik gewählt.
-
-Diese Standbilder sind weder GIF-Vorschauen noch eine
-angenommene neue Spielgrafik; außerhalb des Labors bleibt Ultra aktiv.
+Diese Testbilder sind weder GIF-Vorschauen noch angenommene neue Spielgrafik.
+Eine finale Variante wird erst nach der dokumentierten Asset-Freigabe in
+`game/assets/` übernommen.
 
 ## Animationsübersicht
 

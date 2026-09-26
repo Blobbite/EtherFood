@@ -64,9 +64,9 @@ Interaktionsdetektor des Helden und blockiert keine Laufwege.
    Ansprechen spielt `depart` einmal vollständig. Das Leuchten klingt mit
    den Frames ab; nach dem letzten Frame ist die Seele verschwunden.
 
-Die drei gelieferten Raster unter `game/tests/assets/characters/sools/`
+Die drei gelieferten Raster unter `game/test_assets/characters/npc/sools/`
 enthalten jeweils acht Frames in vier Spalten und zwei Zeilen. Die Szene
-`game/scenes/dev/portal_lab/soul.tscn` und `soul_frames.tres` referenzieren
+`game/test_scenes/environment/portal_lab/soul.tscn` und `soul_frames.tres` referenzieren
 die unveränderten PNGs. Der Abschied verwendet ausdrücklich
 `soul_depart_spritesheet_4x2.png`, einschließlich seines transparenten Endes.
 `soul_script.svg` zeichnet die Fantasiezeichen unabhängig von installierten
@@ -108,7 +108,7 @@ Tag-Nacht-Raum statt. Der Turm behält neutrales Umgebungslicht; die Seele
 ergänzt ein schwaches, räumlich begrenztes blaues Licht.
 
 Die SVG-Testvorlagen liegen unter
-`game/tests/assets/prototypes/portal_lab/test/`. Bodenplatte, Tür, Lampe, Objekt,
+`game/test_assets/environment/locations/portal_lab/test/`. Bodenplatte, Tür, Lampe, Objekt,
 Monster und Partikel besitzen mindestens 1024 Pixel auf der längeren Seite.
 Feine Konturen und Vektorformen ersetzen grobe Pixelstufen. Godot importiert
 die Texturen verlustfrei in nativer HD-Größe; die sichtbare Größe im Raum
@@ -124,7 +124,7 @@ Rückportale, Lampen, Objekt- und Shaderproben, Monsterplatzhalter und
 Partikel um. Die Wahl gilt sofort im geöffneten Raum und wird bei allen
 weiteren Raumwechseln sowie nach einem Neustart wieder verwendet.
 
-| Auswahl | Bildsatz unter `game/tests/assets/prototypes/portal_lab/` |
+| Auswahl | Bildsatz unter `game/test_assets/environment/locations/portal_lab/` |
 |---|---|
 | Pixel Art | Benutzer-PNGs unter `pixelart/` |
 | Testversion | Testvorlagen unter `test/` |
@@ -152,12 +152,12 @@ verwenden bei Pixel Art harte Kanten und bei den Testvorlagen Kantenglättung.
 
 ## Einen Raum ergänzen
 
-Die Erweiterungsstelle ist `game/scenes/dev/portal_lab/rooms.tres`. Ihre
+Die Erweiterungsstelle ist `game/test_scenes/environment/portal_lab/rooms.tres`. Ihre
 Reihenfolge bestimmt die Nummerierung der Türen im Turm. Jede Definition
 enthält eine eindeutige `room_id`, `title`, `description` und die `scene`.
 Der Name `hub` ist für den Turm reserviert.
 
-1. Unter `game/scenes/dev/portal_lab/rooms/` eine Szene von `test_room.tscn`
+1. Unter `game/test_scenes/environment/portal_lab/rooms/` eine Szene von `test_room.tscn`
    ableiten. Für einen leeren neuen Fachraum `room_kind` auf eine eigene ID
    setzen. Neue Testobjekte unter `Contents` hinzufügen.
 2. `world_size`, `return_portal_position` und `return_arrival_offset` im
@@ -177,7 +177,7 @@ Raum eingeblendet. Gemeinsame Spiel- und Testeinstellungen verwaltet weiterhin
 
 ## Prüfung und Abgrenzung
 
-`game/tests/runtime/portal_lab_test.gd` prüft tatsächliche Hin- und Rückwege
+`game/test_scenes/helpers/runtime/portal_lab_test.gd` prüft tatsächliche Hin- und Rückwege
 durch alle neun Türen, sichere Ankunft, gehaltene Bewegung, fremde Körper,
 Raumzustände, gemeinsame Testwerte, getrennte Effekte und einen auf 33 Räume
 erweiterten Katalog. `portal_lab_graphics_test.gd` prüft die echten

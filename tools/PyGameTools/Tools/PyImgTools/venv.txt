@@ -1,0 +1,4 @@
+# Minimale Pakete für PyImgD.py und PyImgH.py
+pillow
+numpy
+opencv-python

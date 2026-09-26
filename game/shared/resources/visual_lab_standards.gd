@@ -10,6 +10,8 @@ const CONTEXT_SMALL_INTERIOR := &"small_interior"
 
 @export_range(1, 100, 1) var schema_version: int = 1
 @export var scale_profile: VisualScaleProfile
+@export_range(8, 16, 2) var hero_frame_count: int = 8
+@export_range(8, 16, 2) var hero_fps: int = 8
 @export var world_camera_profile: CameraProfile
 @export var village_camera_profile: CameraProfile
 @export var village_inherits_world: bool = true

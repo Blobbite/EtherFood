@@ -1,0 +1,615 @@
+{
+  "nodes": [
+    {
+      "id": "reduce-source",
+      "type": "text",
+      "text": "📁 spritesheet-fram16\n└── 📁 PixelEng\nOriginale bleiben erhalten.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1032,
+      "y": 1032,
+      "width": 336,
+      "height": 120,
+      "label": "spritesheet-fram16"
+    },
+    {
+      "id": "reduce-flow",
+      "type": "group",
+      "label": "SpritesheetFramReduce-Pipline",
+      "x": 888,
+      "y": 1272,
+      "width": 672,
+      "height": 1224
+    },
+    {
+      "id": "reduce-starter",
+      "type": "text",
+      "text": "startet Pipeline\nJeden Schritt für alle Varianten.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 984,
+      "y": 1320,
+      "width": 480,
+      "height": 96,
+      "label": "🐍 PyPiplineStart-SpritesheetFramReduce.py",
+      "color": "#249c98",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-folders",
+      "type": "text",
+      "text": "8 / 10 / 12 / 14 Frames\nmit PixelEng anlegen / verwenden\nNormal: belegte Varianten überspringen.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1080,
+      "y": 1464,
+      "width": 360,
+      "height": 96,
+      "label": "📁 Zielordner",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-copy",
+      "type": "text",
+      "text": "16er-PNGs in alle PixelEng kopieren.\nAlle Kopien prüfen.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1080,
+      "y": 1608,
+      "width": 312,
+      "height": 96,
+      "label": "📄 Originale kopieren",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-select",
+      "type": "text",
+      "text": "16 → 8 / 10 / 12 / 14 → Nx1\nGleichmäßig, gleiche Reihenfolge.\nGleiche Indizes je Richtung.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1008,
+      "y": 1752,
+      "width": 360,
+      "height": 120,
+      "label": "🐍 PyImgFrameSelect.py",
+      "color": "#249c98",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-gif-original",
+      "type": "text",
+      "text": "PixelEng: -f8 --grid Nx1\nEndlosschleife",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 936,
+      "y": 1896,
+      "width": 312,
+      "height": 96,
+      "label": "🐍 PyImgGif.py",
+      "color": "#249c98",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-html-original",
+      "type": "text",
+      "text": "gif-vergleich.html",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1320,
+      "y": 1920,
+      "width": 240,
+      "height": 72,
+      "label": "🌐 HTML",
+      "color": "5",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-grid",
+      "type": "text",
+      "text": "--frames N --source-grid Nx1\n--target-grid CxR --optimize\nGemeinsamer Randzuschnitt.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 936,
+      "y": 2040,
+      "width": 312,
+      "height": 120,
+      "label": "🐍 PyImgGrid.py",
+      "color": "#249c98",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-mapping",
+      "type": "text",
+      "text": "8 → 4×2\n10 → 5×2\n12 → 4×3\n14 → 7×2",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1320,
+      "y": 2040,
+      "width": 240,
+      "height": 144,
+      "label": "Zielraster (C×R)",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-gif-optimized",
+      "type": "text",
+      "text": "Hauptordner: -f8 --grid CxR\nEndlosschleife",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 936,
+      "y": 2208,
+      "width": 312,
+      "height": 96,
+      "label": "🐍 PyImgGif.py",
+      "color": "#249c98",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-html-optimized",
+      "type": "text",
+      "text": "gif-vergleich.html",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1320,
+      "y": 2208,
+      "width": 240,
+      "height": 72,
+      "label": "🌐 HTML",
+      "color": "5",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-verify",
+      "type": "text",
+      "text": "Frames / Raster / Loop prüfen\nIndizes + Aufrufe dokumentieren",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 936,
+      "y": 2352,
+      "width": 312,
+      "height": 96,
+      "label": "✅ Prüfung",
+      "group": "reduce-flow"
+    },
+    {
+      "id": "reduce-result",
+      "type": "text",
+      "text": "spritesheet-fram14\nspritesheet-fram12\nspritesheet-fram10\nspritesheet-fram8",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1056,
+      "y": 2544,
+      "width": 312,
+      "height": 168,
+      "label": "comic_high"
+    },
+    {
+      "id": "reduce-tree",
+      "type": "text",
+      "text": "```text\n📁 comic_high\n├── 📁 spritesheet-fram16\n│   └── 📁 PixelEng (Quelle)\n├── 📁 spritesheet-fram14\n├── 📁 spritesheet-fram12\n├── 📁 spritesheet-fram10\n└── 📁 spritesheet-fram8\n\n📁 spritesheet-framN\n├── 📁 PixelEng\n│   ├── 📄 <Name>.png\n│   ├── 🎞️ <Name>_8fps.gif\n│   └── 🌐 gif-vergleich.html\n├── 📄 <Name>_<CxR>_o.png\n├── 🎞️ <Name>_<CxR>_o_8fps.gif\n├── 🌐 gif-vergleich.html\n├── 📝 README.md\n├── 📄 build-info.json\n└── 📄 pruefung.json\n```",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "markdown"
+      },
+      "x": 1752,
+      "y": 1560,
+      "width": 456,
+      "height": 624,
+      "label": "comic_high"
+    },
+    {
+      "id": "913bd873-c811-43d9-a3f1-01ce4f17239b",
+      "type": "text",
+      "text": "Vor PNG/GIF/HTML/Berichten: Ziele prüfen\n--dry-run: nur prüfen\nNormal: belegte Varianten überspringen\n--overwrite: Ausgaben neu erstellen\n--dry-run --overwrite: nur Plan\nOriginale + fremde Dateien behalten.",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      },
+      "x": 1752,
+      "y": 2232,
+      "width": 456,
+      "height": 216,
+      "label": "🐍 PyPipelineOutputs.py",
+      "color": "#249c98"
+    }
+  ],
+  "edges": [
+    {
+      "id": "reduce-source-to-starter",
+      "fromNode": "reduce-source",
+      "toNode": "reduce-starter",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1200,
+            "y": 1152
+          },
+          {
+            "x": 1200,
+            "y": 1292
+          },
+          {
+            "x": 1224,
+            "y": 1292
+          },
+          {
+            "x": 1224,
+            "y": 1320
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-starter-to-folders",
+      "fromNode": "reduce-starter",
+      "toNode": "reduce-folders",
+      "fromSide": "right",
+      "toSide": "right",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1464,
+            "y": 1368
+          },
+          {
+            "x": 1492,
+            "y": 1368
+          },
+          {
+            "x": 1492,
+            "y": 1512
+          },
+          {
+            "x": 1440,
+            "y": 1512
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-folders-to-copy",
+      "fromNode": "reduce-folders",
+      "toNode": "reduce-copy",
+      "fromSide": "left",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1080,
+            "y": 1512
+          },
+          {
+            "x": 1052,
+            "y": 1512
+          },
+          {
+            "x": 1052,
+            "y": 1656
+          },
+          {
+            "x": 1080,
+            "y": 1656
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-copy-to-select",
+      "fromNode": "reduce-copy",
+      "toNode": "reduce-select",
+      "fromSide": "right",
+      "toSide": "right",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1392,
+            "y": 1656
+          },
+          {
+            "x": 1420,
+            "y": 1656
+          },
+          {
+            "x": 1420,
+            "y": 1812
+          },
+          {
+            "x": 1368,
+            "y": 1812
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-select-to-gif-original",
+      "fromNode": "reduce-select",
+      "toNode": "reduce-gif-original",
+      "fromSide": "left",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1008,
+            "y": 1812
+          },
+          {
+            "x": 908,
+            "y": 1812
+          },
+          {
+            "x": 908,
+            "y": 1944
+          },
+          {
+            "x": 936,
+            "y": 1944
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-gif-original-to-grid",
+      "fromNode": "reduce-gif-original",
+      "toNode": "reduce-grid",
+      "fromSide": "left",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 936,
+            "y": 1944
+          },
+          {
+            "x": 908,
+            "y": 1944
+          },
+          {
+            "x": 908,
+            "y": 2100
+          },
+          {
+            "x": 936,
+            "y": 2100
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-grid-to-gif-optimized",
+      "fromNode": "reduce-grid",
+      "toNode": "reduce-gif-optimized",
+      "fromSide": "left",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 936,
+            "y": 2100
+          },
+          {
+            "x": 908,
+            "y": 2100
+          },
+          {
+            "x": 908,
+            "y": 2256
+          },
+          {
+            "x": 936,
+            "y": 2256
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-gif-optimized-to-verify",
+      "fromNode": "reduce-gif-optimized",
+      "toNode": "reduce-verify",
+      "fromSide": "left",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 936,
+            "y": 2256
+          },
+          {
+            "x": 908,
+            "y": 2256
+          },
+          {
+            "x": 908,
+            "y": 2400
+          },
+          {
+            "x": 936,
+            "y": 2400
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-verify-to-result",
+      "fromNode": "reduce-verify",
+      "toNode": "reduce-result",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1092,
+            "y": 2448
+          },
+          {
+            "x": 1092,
+            "y": 2476
+          },
+          {
+            "x": 1212,
+            "y": 2476
+          },
+          {
+            "x": 1212,
+            "y": 2544
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-gif-original-to-html-original",
+      "fromNode": "reduce-gif-original",
+      "toNode": "reduce-html-original",
+      "fromSide": "right",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1248,
+            "y": 1944
+          },
+          {
+            "x": 1292,
+            "y": 1944
+          },
+          {
+            "x": 1292,
+            "y": 1956
+          },
+          {
+            "x": 1320,
+            "y": 1956
+          }
+        ]
+      }
+    },
+    {
+      "id": "reduce-gif-optimized-to-html-optimized",
+      "fromNode": "reduce-gif-optimized",
+      "toNode": "reduce-html-optimized",
+      "fromSide": "right",
+      "toSide": "left",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1248,
+            "y": 2256
+          },
+          {
+            "x": 1292,
+            "y": 2256
+          },
+          {
+            "x": 1292,
+            "y": 2244
+          },
+          {
+            "x": 1320,
+            "y": 2244
+          }
+        ]
+      }
+    },
+    {
+      "id": "outputs-to-flow",
+      "fromNode": "913bd873-c811-43d9-a3f1-01ce4f17239b",
+      "toNode": "reduce-flow",
+      "fromSide": "left",
+      "toSide": "right",
+      "fromEnd": "none",
+      "toEnd": "arrow",
+      "color": "#249c98",
+      "mdvieweditor": {
+        "version": 1,
+        "points": [
+          {
+            "x": 1752,
+            "y": 2340.0
+          },
+          {
+            "x": 1656.0,
+            "y": 2340.0
+          },
+          {
+            "x": 1656.0,
+            "y": 1884.0
+          },
+          {
+            "x": 1560,
+            "y": 1884.0
+          }
+        ]
+      }
+    }
+  ],
+  "mdvieweditor": {
+    "version": 1,
+    "folderSync": {
+      "groups": {}
+    },
+    "settings": {
+      "showGrid": true,
+      "snap": true
+    }
+  }
+}

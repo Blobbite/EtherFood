@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "id": "source-0",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 440,
+      "height": 120,
+      "label": "📁 Source-Einzelbilder",
+      "text": "Posen × acht Richtungen\nJedes Bild: 1x1",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      }
+    },
+    {
+      "id": "source-1",
+      "type": "text",
+      "x": 0,
+      "y": 190,
+      "width": 440,
+      "height": 120,
+      "label": "🎨 Materialmasken",
+      "text": "IDs je Pixel · Quellhash\nGemeinsame Stand-Farbreihen",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      }
+    },
+    {
+      "id": "source-2",
+      "type": "text",
+      "x": 0,
+      "y": 380,
+      "width": 440,
+      "height": 120,
+      "label": "🐍 SourceColor-Pipline",
+      "text": "PyPiplineStart-SourceColor.py\nPyImgColorPipeline.py",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      }
+    },
+    {
+      "id": "source-3",
+      "type": "text",
+      "x": 0,
+      "y": 570,
+      "width": 440,
+      "height": 120,
+      "label": "📦 Ergebnis",
+      "text": "PNG + Farbvergleich + Bericht\nGröße und Alpha erhalten",
+      "mdvieweditor": {
+        "version": 1,
+        "textMode": "plain"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-0",
+      "fromNode": "source-0",
+      "toNode": "source-1",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "edge-1",
+      "fromNode": "source-1",
+      "toNode": "source-2",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "source-2",
+      "toNode": "source-3",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "toEnd": "arrow"
+    }
+  ]
+}

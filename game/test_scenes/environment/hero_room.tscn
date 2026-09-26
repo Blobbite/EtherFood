@@ -1,0 +1,337 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://test_scenes/environment/hero_room.gd" id="1_hero_room"]
+[ext_resource type="PackedScene" path="res://test_scenes/characters/heroes/greenhero/hero_character.tscn" id="2_hero"]
+[ext_resource type="PackedScene" path="res://test_scenes/characters/npc/guide/guide_companion.tscn" id="3_guide"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical_wall"]
+size = Vector2(32, 1440)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal_wall"]
+size = Vector2(2560, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stone_block"]
+size = Vector2(192, 128)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_development_hint"]
+bg_color = Color(0.035, 0.055, 0.063, 0.94)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.65, 0.49, 0.23, 1)
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_interaction_prompt"]
+bg_color = Color(0.035, 0.055, 0.063, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72, 0.56, 0.26, 1)
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue"]
+bg_color = Color(0.027, 0.043, 0.051, 0.98)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.72, 0.56, 0.26, 1)
+
+[node name="HeroRoom" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hero_room")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="Background" type="ColorRect" parent="BackgroundLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.018, 0.029, 0.035, 1)
+
+[node name="World" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Floor" type="Polygon2D" parent="World"]
+z_index = -100
+polygon = PackedVector2Array(0, 0, 2560, 0, 2560, 1440, 0, 1440)
+color = Color(0.075, 0.118, 0.116, 1)
+
+[node name="StoneBandTop" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(96, 112, 864, 112, 864, 120, 96, 120)
+color = Color(0.104, 0.153, 0.145, 1)
+
+[node name="StoneBandCenter" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(960, 672, 1600, 672, 1600, 680, 960, 680)
+color = Color(0.052, 0.09, 0.092, 1)
+
+[node name="StoneBandBottom" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(1696, 1248, 2368, 1248, 2368, 1256, 1696, 1256)
+color = Color(0.104, 0.153, 0.145, 1)
+
+[node name="FloorStoneNorthWest" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(256, 288, 352, 288, 368, 304, 352, 336, 256, 336, 240, 320)
+color = Color(0.09, 0.135, 0.132, 1)
+
+[node name="FloorStoneNorthEast" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(2080, 256, 2176, 256, 2192, 272, 2176, 304, 2080, 304, 2064, 288)
+color = Color(0.057, 0.096, 0.098, 1)
+
+[node name="FloorStoneSouthWest" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(384, 1120, 480, 1120, 496, 1136, 480, 1168, 384, 1168, 368, 1152)
+color = Color(0.057, 0.096, 0.098, 1)
+
+[node name="FloorStoneSouthEast" type="Polygon2D" parent="World/Floor"]
+polygon = PackedVector2Array(2208, 1072, 2304, 1072, 2320, 1088, 2304, 1120, 2208, 1120, 2192, 1104)
+color = Color(0.09, 0.135, 0.132, 1)
+
+[node name="FloorCrackLeft" type="Line2D" parent="World/Floor"]
+points = PackedVector2Array(560, 832, 584, 824, 600, 840, 624, 832)
+width = 4.0
+default_color = Color(0.035, 0.068, 0.074, 1)
+antialiased = false
+
+[node name="FloorCrackRight" type="Line2D" parent="World/Floor"]
+points = PackedVector2Array(1936, 512, 1952, 496, 1976, 504, 1992, 488)
+width = 4.0
+default_color = Color(0.035, 0.068, 0.074, 1)
+antialiased = false
+
+[node name="RoomBounds" type="Node2D" parent="World"]
+y_sort_enabled = true
+
+[node name="LeftWall" type="StaticBody2D" parent="World/RoomBounds"]
+position = Vector2(0, 720)
+
+[node name="Visual" type="Polygon2D" parent="World/RoomBounds/LeftWall"]
+polygon = PackedVector2Array(-16, -720, 16, -720, 16, 720, -16, 720)
+color = Color(0.118, 0.133, 0.137, 1)
+
+[node name="InnerEdge" type="Polygon2D" parent="World/RoomBounds/LeftWall"]
+polygon = PackedVector2Array(10, -720, 16, -720, 16, 720, 10, 720)
+color = Color(0.25, 0.267, 0.251, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RoomBounds/LeftWall"]
+shape = SubResource("RectangleShape2D_vertical_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="World/RoomBounds"]
+position = Vector2(2560, 720)
+
+[node name="Visual" type="Polygon2D" parent="World/RoomBounds/RightWall"]
+polygon = PackedVector2Array(-16, -720, 16, -720, 16, 720, -16, 720)
+color = Color(0.088, 0.098, 0.106, 1)
+
+[node name="InnerEdge" type="Polygon2D" parent="World/RoomBounds/RightWall"]
+polygon = PackedVector2Array(-16, -720, -10, -720, -10, 720, -16, 720)
+color = Color(0.174, 0.188, 0.184, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RoomBounds/RightWall"]
+shape = SubResource("RectangleShape2D_vertical_wall")
+
+[node name="TopWall" type="StaticBody2D" parent="World/RoomBounds"]
+position = Vector2(1280, 0)
+
+[node name="Visual" type="Polygon2D" parent="World/RoomBounds/TopWall"]
+polygon = PackedVector2Array(-1280, -16, 1280, -16, 1280, 16, -1280, 16)
+color = Color(0.118, 0.133, 0.137, 1)
+
+[node name="InnerEdge" type="Polygon2D" parent="World/RoomBounds/TopWall"]
+polygon = PackedVector2Array(-1280, 10, 1280, 10, 1280, 16, -1280, 16)
+color = Color(0.25, 0.267, 0.251, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RoomBounds/TopWall"]
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="BottomWall" type="StaticBody2D" parent="World/RoomBounds"]
+position = Vector2(1280, 1440)
+
+[node name="Visual" type="Polygon2D" parent="World/RoomBounds/BottomWall"]
+polygon = PackedVector2Array(-1280, -16, 1280, -16, 1280, 16, -1280, 16)
+color = Color(0.088, 0.098, 0.106, 1)
+
+[node name="InnerEdge" type="Polygon2D" parent="World/RoomBounds/BottomWall"]
+polygon = PackedVector2Array(-1280, -16, 1280, -16, 1280, -10, -1280, -10)
+color = Color(0.174, 0.188, 0.184, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RoomBounds/BottomWall"]
+shape = SubResource("RectangleShape2D_horizontal_wall")
+
+[node name="Obstacles" type="Node2D" parent="World"]
+y_sort_enabled = true
+
+[node name="StoneBlockLeft" type="StaticBody2D" parent="World/Obstacles"]
+position = Vector2(800, 656)
+y_sort_origin = 64
+
+[node name="Shadow" type="Polygon2D" parent="World/Obstacles/StoneBlockLeft"]
+polygon = PackedVector2Array(-104, -52, 96, -52, 104, 60, 88, 72, -104, 72)
+color = Color(0.018, 0.031, 0.035, 0.72)
+
+[node name="SouthFace" type="Polygon2D" parent="World/Obstacles/StoneBlockLeft"]
+polygon = PackedVector2Array(-96, 40, 96, 40, 96, 64, -96, 64)
+color = Color(0.102, 0.11, 0.118, 1)
+
+[node name="Top" type="Polygon2D" parent="World/Obstacles/StoneBlockLeft"]
+polygon = PackedVector2Array(-96, -64, 80, -64, 96, -48, 96, 40, 80, 48, -80, 48, -96, 32)
+color = Color(0.19, 0.2, 0.196, 1)
+
+[node name="Highlight" type="Line2D" parent="World/Obstacles/StoneBlockLeft"]
+points = PackedVector2Array(-80, 32, -80, -48, 72, -48)
+width = 6.0
+default_color = Color(0.31, 0.318, 0.286, 1)
+antialiased = false
+
+[node name="Crack" type="Line2D" parent="World/Obstacles/StoneBlockLeft"]
+points = PackedVector2Array(8, -48, -8, -16, 16, 0, 0, 32)
+width = 4.0
+default_color = Color(0.075, 0.086, 0.094, 1)
+antialiased = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StoneBlockLeft"]
+shape = SubResource("RectangleShape2D_stone_block")
+
+[node name="StoneBlockRight" type="StaticBody2D" parent="World/Obstacles"]
+position = Vector2(1760, 784)
+y_sort_origin = 64
+
+[node name="Shadow" type="Polygon2D" parent="World/Obstacles/StoneBlockRight"]
+polygon = PackedVector2Array(-104, -52, 96, -52, 104, 60, 88, 72, -104, 72)
+color = Color(0.018, 0.031, 0.035, 0.72)
+
+[node name="SouthFace" type="Polygon2D" parent="World/Obstacles/StoneBlockRight"]
+polygon = PackedVector2Array(-96, 40, 96, 40, 96, 64, -96, 64)
+color = Color(0.09, 0.098, 0.106, 1)
+
+[node name="Top" type="Polygon2D" parent="World/Obstacles/StoneBlockRight"]
+polygon = PackedVector2Array(-96, -64, 80, -64, 96, -48, 96, 40, 80, 48, -80, 48, -96, 32)
+color = Color(0.168, 0.18, 0.18, 1)
+
+[node name="Highlight" type="Line2D" parent="World/Obstacles/StoneBlockRight"]
+points = PackedVector2Array(-80, 32, -80, -48, 72, -48)
+width = 6.0
+default_color = Color(0.275, 0.286, 0.267, 1)
+antialiased = false
+
+[node name="Crack" type="Line2D" parent="World/Obstacles/StoneBlockRight"]
+points = PackedVector2Array(-48, -24, -24, -8, -40, 24, -16, 40)
+width = 4.0
+default_color = Color(0.067, 0.078, 0.086, 1)
+antialiased = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StoneBlockRight"]
+shape = SubResource("RectangleShape2D_stone_block")
+
+[node name="HeroSpawn" type="Marker2D" parent="World"]
+position = Vector2(1280, 720)
+
+[node name="GuideCompanion" parent="World" instance=ExtResource("3_guide")]
+position = Vector2(1440, 720)
+
+[node name="HeroCharacter" parent="World" instance=ExtResource("2_hero")]
+position = Vector2(1280, 720)
+
+[node name="InterfaceLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="DevelopmentHint" type="Label" parent="InterfaceLayer"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 690.0
+offset_bottom = 174.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9, 0.88, 0.77, 1)
+theme_override_colors/font_outline_color = Color(0.018, 0.025, 0.029, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_development_hint")
+text = "HELDENRAUM · PROTOTYP\nWASD / Pfeile: laufen · Feststelltaste: gehen\nDoppel-Tap: rennen · Shift halten: sprinten\nStrg: schleichen · Leertaste: springen\nE / A: interagieren · Esc / B: Hauptmenü"
+
+[node name="InteractionPrompt" type="Label" parent="InterfaceLayer"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -218.0
+offset_top = -132.0
+offset_right = 218.0
+offset_bottom = -78.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.94, 0.89, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0.018, 0.025, 0.029, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_interaction_prompt")
+text = "E / A: Ratgeber ansprechen"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DialoguePanel" type="Panel" parent="InterfaceLayer"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -500.0
+offset_top = -280.0
+offset_right = 500.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue")
+
+[node name="Speaker" type="Label" parent="InterfaceLayer/DialoguePanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 20.0
+offset_right = 972.0
+offset_bottom = 54.0
+theme_override_colors/font_color = Color(0.91, 0.7, 0.31, 1)
+theme_override_colors/font_outline_color = Color(0.018, 0.025, 0.029, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 24
+text = "Ratgeber"
+
+[node name="Divider" type="ColorRect" parent="InterfaceLayer/DialoguePanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 62.0
+offset_right = 972.0
+offset_bottom = 65.0
+mouse_filter = 2
+color = Color(0.36, 0.3, 0.2, 1)
+
+[node name="Message" type="Label" parent="InterfaceLayer/DialoguePanel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 82.0
+offset_right = 972.0
+offset_bottom = 178.0
+theme_override_colors/font_color = Color(0.88, 0.87, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0.018, 0.025, 0.029, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 22
+text = "Du bist wach. Beweg dich erst einmal.\nWir müssen einen Ausgang aus diesem Raum finden."
+vertical_alignment = 1
