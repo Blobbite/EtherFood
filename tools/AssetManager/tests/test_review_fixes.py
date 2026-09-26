@@ -4,6 +4,7 @@ import pytest
 
 from etherfood_studio.application.issue_service import Finding, IssueService
 from etherfood_studio.application.commands import Commands
+from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.project_service import ProjectService
 from etherfood_studio.application.status_service import StatusService
 from etherfood_studio.domain.models import StudioError
@@ -88,4 +89,22 @@ def test_duplicate_retarget_is_rejected_without_losing_edge(project):
     before = project.catalog.export_snapshot()
     with pytest.raises(StudioError, match="existiert"):
         project.relink(edges[0]["id"], ids["one"], edges[1]["target_id"])
+    assert project.catalog.export_snapshot() == before
+
+
+def test_document_rename_keeps_body_and_rejects_duplicate_conflict_and_report(project):
+    service = DocumentService(project)
+    owner = project.project().id
+    first = service.create(owner, "Notiz 1", "Nicht verlieren")
+    second = service.create(owner, "Notiz 2")
+    report = service.create(owner, "Bericht", generated=True)
+    updated = service.rename(first.id, "Umbenannt", first.revision_no)
+    assert updated.id == first.id and updated.data == first.data
+    before = project.catalog.export_snapshot()
+    with pytest.raises(StudioError, match="existiert"):
+        service.rename(first.id, second.title, updated.revision_no)
+    with pytest.raises(StudioError, match="Neuere"):
+        service.rename(first.id, "Veraltet", first.revision_no)
+    with pytest.raises(StudioError, match="schreibgeschützt"):
+        service.rename(report.id, "Manipuliert", report.revision_no)
     assert project.catalog.export_snapshot() == before

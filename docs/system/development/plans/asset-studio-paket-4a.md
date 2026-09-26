@@ -33,7 +33,7 @@ Die bereits offenen Control-Änderungen gehören nicht in die 4a-Commits.
   als Unterissues von Phase B (#3).
 - [x] Aufgaben-/Issue-Details und Bearbeitung einschließlich Konfliktschutz (#56).
 - [x] Canvas-Bedienung und kollisionsfreie Beschriftung (#57).
-- [ ] Kontextaktionen, Baum-Inhalte und Typicons.
+- [x] Kontextaktionen, Baum-Inhalte und Typicons (#58).
 - [ ] Verständlicher Status und gemeinsame Verwendungen.
 - [ ] Regressionstests, echte Qt-Ereignisse, Pipeline- und Standardcheck.
 - [ ] Prüfanleitung und Übergabe zum nächsten Briefing.
@@ -75,6 +75,12 @@ die zugehörige Verbindung. Synthetischen Canvas-Screenshot geprüft.
 Der Qt-Testabbau gibt native Widgets jetzt explizit vor QApplication frei;
 die anschließenden Gesamtläufe beenden sich regulär. 43 Quelldateien/Testdateien
 ohne Stilbefund geprüft.
+
+Abschnitt 4a.3: 68 Studio-Tests bestanden; echte Kontextmenüs über Qt-Ereignisschleife,
+Notizanlage, direktes Öffnen aus dem Baum, Umbenennen ohne Inhaltsverlust und
+Abbruch bei ungespeichertem Text geprüft. Dokument-Umbenennung schützt gegen
+Namenskonflikte, veraltete Revisionen und Änderungen generierter Berichte.
+Typicons verwenden die vorhandenen nativen Qt-Symbole, zusammen mit Klartext.
 
 ## Wiederholbarkeit und Wiederherstellung
 

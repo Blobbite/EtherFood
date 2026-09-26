@@ -3,9 +3,9 @@
 import pytest
 
 QtWidgets = pytest.importorskip("PySide6.QtWidgets")
-from PySide6.QtCore import QPointF, QSettings, Qt
+from PySide6.QtCore import QPointF, QSettings, Qt, QTimer
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QDialogButtonBox, QInputDialog, QMessageBox
+from PySide6.QtWidgets import QApplication, QDialogButtonBox, QInputDialog, QMessageBox
 
 from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.issue_service import Finding, IssueService
@@ -153,3 +153,89 @@ def test_port_drag_retarget_cancel_and_cycle(window, qt_app, monkeypatch):
     monkeypatch.setattr(QInputDialog, "getItem", lambda *a: ("", False))
     drag(canvas, source.ports["top"].scenePos(), target.scenePos() + QPointF(40, 40), qt_app)
     assert window.project.catalog.export_snapshot() == before
+
+
+def tree_item(window, identifier):
+    return next(item for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
+                if item.data(0, Qt.UserRole) == identifier)
+
+
+def context_action(window, identifier, name):
+    menu = window.navigation.menu(identifier)
+    return next(action for action in menu.actions() if action.objectName() == name)
+
+
+def choose_popup_action(name):
+    def choose():
+        menu = QApplication.activePopupWidget()
+        if menu:
+            try:
+                next(action for action in menu.actions() if action.objectName() == name).trigger()
+            finally:
+                menu.close()
+    QTimer.singleShot(0, choose)
+
+
+def test_context_note_tree_navigation_rename_and_icons(window, qt_app, monkeypatch):
+    ids = window.project.demo()
+    window.refresh()
+    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Kontextnotiz", True))
+    monkeypatch.setattr(QInputDialog, "getItem", lambda *a, **k: ("Freie Notiz", True))
+    # Choose an action from the real popup's event loop.
+    choose_popup_action("context_new_note")
+    position = window.tree.visualItemRect(tree_item(window, ids["one"])).center()
+    window.tree.customContextMenuRequested.emit(position)
+    doc = window.documents.current
+    assert doc.title == "Kontextnotiz" and doc.owner_id == ids["one"]
+    window.documents.editor.setPlainText("Notiz mit Inhalt")
+    window.documents.save()
+    issue = IssueService(window.project).create(ids["two"], "Baum-Issue", "Inhalt sichtbar",
+                                                issue=True)
+    window.refresh()
+    window.tree.setCurrentItem(tree_item(window, issue.id))
+    assert "Inhalt sichtbar" in window.tasks.details.toPlainText()
+    assert window.selected_id == ids["two"] and window.selected_content_id == issue.id
+    window.tree.setCurrentItem(tree_item(window, doc.id))
+    assert window.documents.current.id == doc.id
+    assert window.documents.editor.toPlainText() == "Notiz mit Inhalt"
+    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Neuer Notizname", True))
+    context_action(window, doc.id, "context_rename").trigger()
+    assert "Neuer Notizname" in tree_item(window, doc.id).text(0)
+    assert window.project.catalog.get(doc.id).data["body"] == "Notiz mit Inhalt"
+    assert not tree_item(window, issue.id).icon(0).isNull()
+    assert not tree_item(window, doc.id).icon(0).isNull()
+    for index in range(1, window.tasks.kind.count()):
+        assert not window.tasks.kind.itemIcon(index).isNull()
+    for item in window.canvas.items_by_id.values():
+        assert not item.icon.pixmap().isNull()
+
+
+def test_context_actions_and_tree_cancel_preserve_unsaved_document(window, monkeypatch):
+    ids = window.project.demo()
+    window.refresh()
+    window.select_card(ids["one"])
+    doc = window.documents.create_document("Behalten")
+    task = IssueService(window.project).create(ids["two"], "Andere Aufgabe", "Details")
+    window.refresh()
+    window.documents.editor.setPlainText("Lokaler Entwurf")
+    monkeypatch.setattr(QMessageBox, "question", lambda *a: QMessageBox.Cancel)
+    window.tree.setCurrentItem(tree_item(window, task.id))
+    assert window.selected_id == ids["one"]
+    assert window.tree.currentItem().data(0, Qt.UserRole) == doc.id
+    called = []
+    monkeypatch.setattr(window.tasks, "new_item", lambda issue: called.append(issue))
+    context_action(window, ids["two"], "context_new_task").trigger()
+    assert not called
+    assert window.documents.editor.toPlainText() == "Lokaler Entwurf"
+
+
+def test_canvas_context_menu_and_direct_card_creation(window, qt_app, monkeypatch):
+    ids = arrange_demo(window, qt_app)
+    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Canvas-Asset", True))
+    choose_popup_action("context_card_asset")
+    card = window.canvas.items_by_id[ids["one"]]
+    point = window.canvas.mapFromScene(card.scenePos() + QPointF(30, 40))
+    window.canvas.customContextMenuRequested.emit(point)
+    record = window.project.catalog.get(window.selected_id)
+    assert record.title == "Canvas-Asset" and record.owner_id == ids["one"]
+    assert record.kind == "asset"

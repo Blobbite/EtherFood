@@ -12,6 +12,7 @@ from ...application.issue_service import Finding, IssueService, PRIORITIES, TASK
 from ...application.project_service import ProjectService
 from ...domain.models import StudioError
 from ..common import button, label, show_error
+from ..presentation import KIND_NAMES, kind_icon
 from .editor import TaskEditor
 
 STATE_NAMES = {
@@ -46,6 +47,8 @@ class TasksPanel(QWidget):
         for title, key in (("Alle Inhalte", None), ("Aufgaben", "task"), ("Issues", "issue"),
                            ("Dokumente", "document")):
             self.kind.addItem(title, key)
+            if key:
+                self.kind.setItemIcon(self.kind.count() - 1, kind_icon(key))
         self.asset_type = QComboBox()
         self.asset_type.setObjectName("task_asset_type_filter")
         for title, key in (("Alle Assettypen", None), ("Animiert", "animated"),
@@ -130,7 +133,8 @@ class TasksPanel(QWidget):
                         == self.asset_type.currentData())
         for row in rows:
             state = STATE_NAMES.get(row.data.get("status"), row.data.get("document_type", ""))
-            item = QListWidgetItem(f"{row.title} · {state}")
+            item = QListWidgetItem(kind_icon(row.kind),
+                                   f"{KIND_NAMES[row.kind]} · {row.title} · {state}")
             item.setData(Qt.ItemDataRole.UserRole, row.id)
             item.setData(Qt.ItemDataRole.UserRole + 1, row.owner_id)
             item.setToolTip(self.project.breadcrumb(row.owner_id))

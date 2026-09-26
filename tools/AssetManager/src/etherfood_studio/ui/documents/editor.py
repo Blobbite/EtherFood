@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 from ...application.document_service import DocumentService, TEMPLATES
 from ...domain.models import Record, StudioError
 from ..common import button, label, show_error
+from ..presentation import kind_icon
 
 
 class SafePreview(QTextBrowser):
@@ -121,7 +122,7 @@ class DocumentEditor(QWidget):
         for row in rows:
             generated = row.data["document_type"] == "generated"
             suffix = " [Bericht, schreibgeschützt]" if generated else ""
-            self.documents.addItem(row.title + suffix, row.id)
+            self.documents.addItem(kind_icon("document"), row.title + suffix, row.id)
         index = self.documents.findData(select_id) if select_id else 0
         self.documents.setCurrentIndex(max(0, index) if rows else -1)
         self.documents.blockSignals(False)
@@ -199,6 +200,7 @@ class DocumentEditor(QWidget):
         record = self.service.create(self.owner_id, title, template=template)
         self.refresh_documents(record.id)
         self.editor.setFocus()
+        self.saved.emit()
         return record
 
     def new_document(self) -> None:
@@ -223,6 +225,7 @@ class DocumentEditor(QWidget):
             expected_revision=selected.revision_no if selected else None,
         )
         self.refresh_documents(record.id)
+        self.saved.emit()
         return record
 
     def import_dialog(self) -> None:

@@ -65,6 +65,16 @@ class DocumentService:
         attachments = [*record.data["attachments"], imported]
         return self.catalog.save(record, data=record.data | {"attachments": attachments})
 
+    def rename(self, identifier: str, title: str, expected_revision: int) -> Record:
+        record = self.catalog.get(identifier)
+        self.project._check_revision(record, expected_revision)
+        if record.kind != "document" or record.data.get("document_type") != "manual":
+            raise StudioError("validation", "Generierte Berichte sind hier schreibgeschützt.")
+        if any(row.id != identifier and row.title.casefold() == title.strip().casefold()
+               for row in self.documents(record.owner_id)):
+            raise StudioError("conflict", "Dokumenttitel existiert bereits.")
+        return self.catalog.save(record, title=title)
+
     def attachment_path(self, identifier: str, index: int) -> Path:
         attachment = self.catalog.get(identifier).data["attachments"][index]
         path = self.blobs.path_for(attachment["sha256"])

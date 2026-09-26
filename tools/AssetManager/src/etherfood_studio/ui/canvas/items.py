@@ -5,16 +5,15 @@ from typing import TYPE_CHECKING
 from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QFontMetricsF, QPen
 from PySide6.QtWidgets import (
-    QGraphicsEllipseItem, QGraphicsItem, QGraphicsRectItem, QGraphicsSceneMouseEvent,
+    QGraphicsEllipseItem, QGraphicsItem, QGraphicsPixmapItem, QGraphicsRectItem,
+    QGraphicsSceneMouseEvent,
     QGraphicsSimpleTextItem,
 )
 
+from ..presentation import KIND_NAMES, kind_icon
+
 if TYPE_CHECKING:
     from .view import Canvas
-
-KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
-              "asset": "Asset", "package": "Paket", "note": "Notiz"}
-
 
 class Port(QGraphicsEllipseItem):
     def __init__(self, card: "CardItem", side: str) -> None:
@@ -86,12 +85,15 @@ class CardItem(QGraphicsRectItem):
         self.setBrush(QColor("#e1eee7" if kind == "global" else "#ffffff"))
         self.setPen(QPen(QColor("#658076" if kind == "global" else "#b7c6d4"), 1.5))
         self.setToolTip(title + "\n" + summary)
+        self.icon = QGraphicsPixmapItem(kind_icon(kind).pixmap(16, 16), self)
+        self.icon.setPos(12, 9)
+        self.icon.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self.texts = []
         for text, y, color in ((KIND_NAMES[kind].upper(), 10, "#536d80"),
                                (title, 34, "#152a3d"), (summary, 65, "#765329")):
             child = QGraphicsSimpleTextItem(self)
             child.setBrush(QColor(color))
-            child.setPos(12, y)
+            child.setPos(34 if y == 10 else 12, y)
             child.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
             self.texts.append((child, text))
         self.ports = {side: Port(self, side) for side in ("top", "right", "bottom", "left")}
@@ -102,7 +104,7 @@ class CardItem(QGraphicsRectItem):
         self.setRect(0, 0, width, height)
         for child, text in self.texts:
             child.setText(QFontMetricsF(child.font()).elidedText(
-                text, Qt.TextElideMode.ElideRight, width - 28,
+                text, Qt.TextElideMode.ElideRight, width - child.pos().x() - 16,
             ))
         for side, point in {"top": QPointF(width / 2, 0), "right": QPointF(width, height / 2),
                             "bottom": QPointF(width / 2, height),

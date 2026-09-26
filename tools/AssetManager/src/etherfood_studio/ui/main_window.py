@@ -19,10 +19,13 @@ from ..application.document_service import DocumentService
 from ..application.project_service import ProjectService
 from ..application.status_service import StatusService
 from ..domain.models import StudioError
-from .canvas.view import Canvas, KIND_NAMES
+from ..domain.relations import CARD_KINDS
+from .canvas.view import Canvas
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
 from .project_dialog import ProjectDialog
+from .navigation import Navigation
+from .presentation import KIND_NAMES, kind_icon
 from .tasks.panel import TasksPanel
 
 
@@ -37,8 +40,10 @@ class MainWindow(QMainWindow):
         self.project: ProjectService | None = None
         self.commands: Commands | None = None
         self.selected_id: str | None = None
+        self.selected_content_id: str | None = None
         self._refreshing = False
         self._build_ui()
+        self.navigation = Navigation(self)
         geometry = self.settings.value("geometry")
         if geometry is not None:
             self.restoreGeometry(geometry)
@@ -88,7 +93,7 @@ class MainWindow(QMainWindow):
         for text, name, call in (
             ("+ Akt", "add_act", lambda: self.create_dialog("act")),
             ("+ Kapitel", "add_chapter", lambda: self.create_dialog("chapter")),
-            ("+ Nebenkarte", "add_card", lambda: self.create_dialog("note")),
+            ("+ Nebenkarte", "add_card", lambda: self.create_dialog("side")),
             ("+", "zoom_in", lambda: self.canvas.zoom(1.15)),
             ("−", "zoom_out", lambda: self.canvas.zoom(1 / 1.15)),
             ("Anordnen", "auto_layout", self.auto_layout),
@@ -178,9 +183,40 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Bereit · Projekt wählen")
 
     def open_document(self, identifier: str) -> None:
-        if self.documents.open_document(identifier):
-            self.select_card(self.documents.owner_id)
+        self.open_content(identifier)
+
+    def open_content(self, identifier: str, *, edit: bool = False) -> bool:
+        if not self.project:
+            return False
+        record = self.project.catalog.get(identifier)
+        if record.kind == "document":
+            if not self.documents.open_document(identifier):
+                self._select_tree_item(self.selected_content_id or self.selected_id)
+                return False
+            self.select_card(record.owner_id)
             self.tabs.setCurrentWidget(self.documents)
+        elif record.kind in {"task", "issue"}:
+            if not self.select_card(record.owner_id):
+                return False
+            self.tasks.show_record(identifier)
+            self.tabs.setCurrentWidget(self.tasks)
+            if edit:
+                self.tasks.edit_current()
+        else:
+            return False
+        self.selected_content_id = identifier
+        self._select_tree_item(identifier)
+        return True
+
+    def _select_tree_item(self, identifier: str | None) -> None:
+        self._refreshing = True
+        for item in self.tree.findItems("", Qt.MatchFlag.MatchContains
+                                        | Qt.MatchFlag.MatchRecursive):
+            if item.data(0, Qt.ItemDataRole.UserRole) == identifier:
+                self.tree.setCurrentItem(item)
+                self.tree.scrollToItem(item)
+                break
+        self._refreshing = False
 
     def _action(self, toolbar: QToolBar, text: str, call: Callable,
                 shortcut: str, name: str) -> QAction:
@@ -217,6 +253,7 @@ class MainWindow(QMainWindow):
         self.project = project
         self.commands = Commands(project)
         self.selected_id = None
+        self.selected_content_id = None
         self.documents.bind(DocumentService(project))
         self.tasks.bind(project)
         missing = project.unavailable_roots()
@@ -286,23 +323,37 @@ class MainWindow(QMainWindow):
             text = KIND_NAMES[card.kind] + " · " + card.title + suffix
             item = QTreeWidgetItem([text])
             item.setData(0, Qt.ItemDataRole.UserRole, card.id)
+            item.setData(0, Qt.ItemDataRole.UserRole + 1, card.kind)
+            item.setIcon(0, kind_icon(card.kind))
             items[card.id] = item
         for card in cards:
             if card.owner_id in items:
                 items[card.owner_id].addChild(items[card.id])
             else:
                 self.tree.addTopLevelItem(items[card.id])
+        for record in self.project.catalog.records():
+            if record.kind in {"document", "task", "issue"} and record.owner_id in items:
+                item = QTreeWidgetItem([KIND_NAMES[record.kind] + " · " + record.title])
+                item.setData(0, Qt.ItemDataRole.UserRole, record.id)
+                item.setData(0, Qt.ItemDataRole.UserRole + 1, record.kind)
+                item.setIcon(0, kind_icon(record.kind))
+                item.setToolTip(0, "Inhalt öffnen · Rechtsklick: bearbeiten")
+                items[record.owner_id].addChild(item)
+                items[record.id] = item
         for edge in self.project.catalog.relations():
             if edge["kind"] == "uses" and edge["source_id"] in items:
                 target = self.project.catalog.get(edge["target_id"])
                 item = QTreeWidgetItem(["↪ " + target.title + " (Verweis)"])
                 item.setData(0, Qt.ItemDataRole.UserRole, target.id)
+                item.setData(0, Qt.ItemDataRole.UserRole + 1, "reference")
+                item.setIcon(0, kind_icon(target.kind))
                 item.setToolTip(0, "Herkunft: " + self.project.breadcrumb(target.id))
                 items[edge["source_id"]].addChild(item)
         for card in cards:
             items[card.id].setExpanded(not self.project.catalog.layout(card.id).get("collapsed"))
-        if self.selected_id in items:
-            self.tree.setCurrentItem(items[self.selected_id])
+        selected = self.selected_content_id or self.selected_id
+        if selected in items:
+            self.tree.setCurrentItem(items[selected])
         self.canvas.render(self.project, self.selected_id)
         self._refreshing = False
         self.tasks.refresh_scopes()
@@ -313,22 +364,23 @@ class MainWindow(QMainWindow):
     def _tree_selected(self) -> None:
         item = self.tree.currentItem()
         if item and not self._refreshing:
-            self.select_card(item.data(0, Qt.ItemDataRole.UserRole))
+            identifier = item.data(0, Qt.ItemDataRole.UserRole)
+            if item.data(0, Qt.ItemDataRole.UserRole + 1) in {"document", "task", "issue"}:
+                self.open_content(identifier)
+            elif self.select_card(identifier):
+                self.selected_content_id = None
 
-    def select_card(self, identifier: str) -> None:
-        if not self.project or self._refreshing or identifier == self.selected_id:
-            return
+    def select_card(self, identifier: str) -> bool:
+        if not self.project or self._refreshing:
+            return False
+        if identifier == self.selected_id:
+            return True
         if not self.documents.show_card(identifier):
             self.canvas.focus_card(self.selected_id)
-            self._refreshing = True
-            for item in self.tree.findItems("", Qt.MatchFlag.MatchContains
-                                            | Qt.MatchFlag.MatchRecursive):
-                if item.data(0, Qt.ItemDataRole.UserRole) == self.selected_id:
-                    self.tree.setCurrentItem(item)
-                    break
-            self._refreshing = False
-            return
+            self._select_tree_item(self.selected_content_id or self.selected_id)
+            return False
         self.selected_id = identifier
+        self.selected_content_id = None
         self.tasks.current_card = identifier
         self.breadcrumb.setText(self.project.breadcrumb(identifier))
         current = self.tree.currentItem()
@@ -353,6 +405,7 @@ class MainWindow(QMainWindow):
             self.canvas.render(self.project, identifier)
         self.canvas.focus_card(identifier)
         self._properties()
+        return True
 
     def _properties(self) -> None:
         if not self.project or not self.selected_id:
@@ -417,7 +470,8 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def _tree_collapse(self, item: QTreeWidgetItem, collapsed: bool) -> None:
-        if not self._refreshing and self.project:
+        if not self._refreshing and self.project \
+                and item.data(0, Qt.ItemDataRole.UserRole + 1) in CARD_KINDS:
             identifier = item.data(0, Qt.ItemDataRole.UserRole)
             layout = self.project.catalog.layout(identifier) | {"collapsed": collapsed}
             self.commands.layout(identifier, layout)
@@ -483,11 +537,13 @@ class MainWindow(QMainWindow):
         else:
             if parent.kind == "project":
                 parent = next(card for card in self.project.cards() if card.kind == "global")
-            names = {"Notiz": "note", "Asset": "asset", "Paket": "package"}
-            name, accepted = QInputDialog.getItem(self, "Nebenkarte", "Typ", list(names), 0, False)
-            if not accepted:
-                return
-            kind = names[name]
+            if kind == "side":
+                names = {"Notiz": "note", "Asset": "asset", "Paket": "package"}
+                name, accepted = QInputDialog.getItem(self, "Nebenkarte", "Typ",
+                                                      list(names), 0, False)
+                if not accepted:
+                    return
+                kind = names[name]
         title, accepted = QInputDialog.getText(self, "Karte anlegen", "Name")
         if accepted:
             def create() -> None:
@@ -545,8 +601,9 @@ class MainWindow(QMainWindow):
                 self.refresh()
 
     def _document_saved(self) -> None:
-        self.tasks.refresh()
-        self._properties()
+        if self.documents.current:
+            self.selected_content_id = self.documents.current.id
+        self.refresh()
 
     def _focus_search(self) -> None:
         self.tabs.setCurrentWidget(self.tasks)
