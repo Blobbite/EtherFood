@@ -146,6 +146,7 @@ class EdgeItem(QGraphicsPathItem):
         if self.isSelected():
             pen.setWidthF(3.5)
         painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawPath(self.path())
         end, near = self.path().pointAtPercent(1), self.path().pointAtPercent(0.95)
         angle = atan2(end.y() - near.y(), end.x() - near.x())

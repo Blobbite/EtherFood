@@ -3,6 +3,27 @@
 from ..domain.workflows import StepStatus, resolve
 from .project_service import ProjectService
 
+STATE_NAMES = {
+    "not_started": "Noch nicht begonnen", "waiting_external": "Externe Eingabe fehlt",
+    "ready": "Bereit, noch nicht geprüft", "running": "In Arbeit", "blocked": "Blockiert",
+    "failed": "Fehlgeschlagen", "cancelled": "Abgebrochen", "passed": "Nachweis vorhanden",
+    "stale": "Nachweis veraltet", "not_required": "Nicht erforderlich",
+}
+STEP_NAMES = {
+    "document": "Dokumentation", "source": "Quelldaten", "mask": "Materialmaske",
+    "color": "Farben", "frames": "Frame-Ableitung", "scale": "Grafikstufen",
+    "checks": "Technische Prüfung", "review": "Sichtabnahme", "godot": "Godot-Test",
+    "runtime": "Spielintegration", "dependencies": "Abhängigkeiten",
+}
+
+
+def status_reason(status: StepStatus) -> str:
+    if status.reason.startswith("Voraussetzungen fehlen:"):
+        return "Voraussetzungen fehlen: " + ", ".join(
+            STEP_NAMES.get(key, key) for key in status.predecessors
+        )
+    return status.reason
+
 
 class StatusService:
     def __init__(self, project: ProjectService) -> None:
@@ -32,8 +53,15 @@ class StatusService:
 
     def summary(self, identifier: str) -> str:
         statuses = list(self.status(identifier).values())
-        for state in ("failed", "waiting_external", "not_started", "stale", "blocked", "ready"):
+        dependency = next((row for row in statuses if row.id == "dependencies"), None)
+        if dependency:
+            return "Blockiert · " + dependency.reason
+        for state in ("failed", "cancelled", "stale", "waiting_external", "not_started",
+                      "running", "ready", "blocked"):
             found = next((row for row in statuses if row.state == state), None)
             if found:
-                return f"{found.state}: {found.reason}"
+                summary = f"{STEP_NAMES[found.id]} · {STATE_NAMES[found.state]}"
+                reason = status_reason(found)
+                return summary if reason.rstrip(".") == STATE_NAMES[found.state] \
+                    else summary + ": " + reason
         return "Nicht abgenommen"

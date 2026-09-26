@@ -136,6 +136,27 @@ class ProjectService:
         return [edge for edge in self.catalog.relations()
                 if identifier in (edge["source_id"], edge["target_id"])]
 
+    def usage_description(self, identifier: str) -> str:
+        record = self.catalog.get(identifier)
+        owner = self.breadcrumb(record.owner_id) if record.owner_id else "Projektwurzel"
+        edges = self.catalog.relations()
+        used_by = [self.catalog.get(edge["source_id"]) for edge in edges
+                   if edge["kind"] == "uses" and edge["target_id"] == identifier]
+        uses = [self.catalog.get(edge["target_id"]) for edge in edges
+                if edge["kind"] == "uses" and edge["source_id"] == identifier]
+        lines = ["Eigentümer / Herkunft: " + owner]
+        if record.kind in {"asset", "package"}:
+            lines.append(f"Verwendet in {len(used_by)} Ort(en) · dieselbe ID, keine Kopien:")
+            lines.extend("• " + self.breadcrumb(row.id) + (" [Archiv]" if row.archived else "")
+                         for row in used_by)
+            if not used_by:
+                lines.append("Noch keine zusätzlichen Verweise.")
+            lines.append("Verwaltungskarte: Grafikimport und Vorschau folgen in späteren Paketen.")
+        if uses:
+            lines.append("Verwendet vorhandene Karten:")
+            lines.extend("↪ " + row.title + (" [Archiv]" if row.archived else "") for row in uses)
+        return "\n".join(lines)
+
     def relink(self, identifier: str, source: str, target: str) -> None:
         """Retarget a non-ownership edge atomically without changing its identity."""
         with self.catalog.transaction():

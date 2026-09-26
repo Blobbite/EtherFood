@@ -34,7 +34,7 @@ Die bereits offenen Control-Änderungen gehören nicht in die 4a-Commits.
 - [x] Aufgaben-/Issue-Details und Bearbeitung einschließlich Konfliktschutz (#56).
 - [x] Canvas-Bedienung und kollisionsfreie Beschriftung (#57).
 - [x] Kontextaktionen, Baum-Inhalte und Typicons (#58).
-- [ ] Verständlicher Status und gemeinsame Verwendungen.
+- [x] Verständlicher Status und gemeinsame Verwendungen (#59).
 - [ ] Regressionstests, echte Qt-Ereignisse, Pipeline- und Standardcheck.
 - [ ] Prüfanleitung und Übergabe zum nächsten Briefing.
 
@@ -81,6 +81,12 @@ Notizanlage, direktes Öffnen aus dem Baum, Umbenennen ohne Inhaltsverlust und
 Abbruch bei ungespeichertem Text geprüft. Dokument-Umbenennung schützt gegen
 Namenskonflikte, veraltete Revisionen und Änderungen generierter Berichte.
 Typicons verwenden die vorhandenen nativen Qt-Symbole, zusammen mit Klartext.
+
+Abschnitt 4a.4: 70 Studio-Tests bestanden, 45 Quell-/Testdateien ohne Stilbefund.
+Hervorgehobener deutscher Status mit Grund, Eigentümer und Verwendungsorte;
+vorhandenes Asset in zwei Kapiteln verwenden, dieselbe ID über beide Baumverweise
+öffnen und Abhängigkeit/Undo geprüft. Gemeinsame Dokumente sind auch im jeweiligen
+Kapitel-Suchbereich erreichbar. Synthetische Gesamtansicht und Aufgabenansicht geprüft.
 
 ## Wiederholbarkeit und Wiederherstellung
 

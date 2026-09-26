@@ -239,3 +239,32 @@ def test_canvas_context_menu_and_direct_card_creation(window, qt_app, monkeypatc
     record = window.project.catalog.get(window.selected_id)
     assert record.title == "Canvas-Asset" and record.owner_id == ids["one"]
     assert record.kind == "asset"
+
+
+def test_visible_status_and_using_same_asset_from_two_chapters(window, monkeypatch):
+    ids = window.project.demo()
+    global_id = window.project.catalog.get(ids["hero"]).owner_id
+    shared = window.project.create_card("asset", "Gemeinsam", global_id, {"workflow": "static"})
+    count = len(window.project.cards())
+    monkeypatch.setattr(QInputDialog, "getItem", lambda *a: (
+        next(choice for choice in a[3] if f"[{shared.id[:8]}]" in choice), True,
+    ))
+    for owner in (ids["one"], ids["two"]):
+        context_action(window, owner, "context_use_existing").trigger()
+    assert len(window.project.cards()) == count
+    references = [item for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
+                  if item.data(0, Qt.UserRole) == shared.id and item.text(0).startswith("↪")]
+    assert len(references) == 2
+    for reference in references:
+        window.tree.setCurrentItem(reference)
+        assert window.selected_id == shared.id
+        assert "Externe Eingabe fehlt" in window.workflow_status.text()
+        assert "waiting_external" not in window.details.toPlainText()
+        assert "2 Ort(en)" in window.usage.text() and "Projektweite Inhalte" in window.usage.text()
+        assert shared.id in window.details.toPlainText()
+    window.commands.link(shared.id, ids["two"], "depends_on")
+    window.refresh()
+    assert "Blockiert" in window.workflow_status.text()
+    assert "Kapitel 2" in window.workflow_status.text()
+    window.undo(False)
+    assert "Externe Eingabe fehlt" in window.workflow_status.text()

@@ -58,6 +58,9 @@ class Navigation:
         action("Dokumente / Notiz öffnen", "context_open", "document",
                lambda: self._on_card(identifier, self.open_notes))
         if not record.archived:
+            if record.kind in {"global", "act", "chapter", "package"}:
+                action("Vorhandenes Asset verwenden …", "context_use_existing", "asset",
+                       lambda: self._on_card(identifier, window.use_existing_dialog))
             action("Neue Notiz …", "context_new_note", "note",
                    lambda: self._on_card(identifier, self.new_note))
             for kind, title in (("task", "Neue Aufgabe …"), ("issue", "Neues Issue …")):
@@ -116,7 +119,8 @@ class Navigation:
     def reparent(self) -> None:
         window = self.window
         record = window.project.catalog.get(window.selected_id)
-        choices = {window.project.breadcrumb(card.id): card.id for card in window.project.cards()
+        choices = {f"{window.project.breadcrumb(card.id)} [{card.id[:8]}]": card.id
+                   for card in window.project.cards()
                    if card.kind in PARENTS[record.kind] and card.id != record.id}
         if not choices:
             return

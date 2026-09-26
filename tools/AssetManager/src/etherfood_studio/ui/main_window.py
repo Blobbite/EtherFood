@@ -9,7 +9,7 @@ from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QMainWindow,
-    QMessageBox, QPlainTextEdit, QSpinBox, QSplitter, QTabWidget, QToolBar,
+    QMessageBox, QPlainTextEdit, QScrollArea, QSpinBox, QSplitter, QTabWidget, QToolBar,
     QTreeWidget, QTreeWidgetItem,
     QVBoxLayout, QWidget,
 )
@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from ..application.commands import Commands
 from ..application.document_service import DocumentService
 from ..application.project_service import ProjectService
-from ..application.status_service import StatusService
+from ..application.status_service import STATE_NAMES, STEP_NAMES, StatusService, status_reason
 from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
 from .canvas.view import Canvas
@@ -129,9 +129,20 @@ class MainWindow(QMainWindow):
         properties = QWidget()
         property_layout = QVBoxLayout(properties)
         property_layout.addWidget(label("Karteneigenschaften", "properties_title"))
+        self.workflow_status = label("Status / nächster Schritt: Karte auswählen.",
+                                      "workflow_status")
+        self.workflow_status.setStyleSheet(
+            "QLabel { background: #fff3cf; color: #493811; padding: 8px; "
+            "border: 1px solid #c9a957; border-radius: 4px; font-weight: bold; }"
+        )
+        property_layout.addWidget(self.workflow_status)
+        self.usage = label("Herkunft und gemeinsame Verwendungen", "asset_usage")
+        self.usage.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        property_layout.addWidget(self.usage)
         self.details = QPlainTextEdit()
         self.details.setObjectName("card_properties")
         self.details.setReadOnly(True)
+        self.details.setMinimumHeight(140)
         property_layout.addWidget(self.details, 1)
         size_row = QHBoxLayout()
         self.card_width, self.card_height = QSpinBox(), QSpinBox()
@@ -161,11 +172,18 @@ class MainWindow(QMainWindow):
         property_layout.addWidget(self.relation_kind)
         property_layout.addWidget(self.relation_target)
         property_layout.addWidget(button("Verbindung anlegen", "add_relation", self.link_dialog))
+        self.use_existing = button("Vorhandenes Asset verwenden …", "use_existing_asset",
+                                    self.use_existing_dialog)
+        property_layout.addWidget(self.use_existing)
         self.relations = QComboBox()
         self.relations.setObjectName("existing_relations")
         property_layout.addWidget(self.relations)
         property_layout.addWidget(button("Verbindung lösen", "remove_relation", self.unlink_dialog))
-        self.splitter.addWidget(properties)
+        property_scroll = QScrollArea()
+        property_scroll.setWidgetResizable(True)
+        property_scroll.setWidget(properties)
+        property_scroll.setMinimumWidth(270)
+        self.splitter.addWidget(property_scroll)
         self.splitter.setSizes([250, 880, 290])
         outer.addWidget(self.splitter, 1)
         self.jobs = label("Keine Aufträge. Pipeline- und Godot-Aktionen sind noch nicht verfügbar.",
@@ -416,10 +434,16 @@ class MainWindow(QMainWindow):
         self.card_width.setValue(layout.get("w", 250))
         self.card_height.setValue(layout.get("h", 100))
         states = StatusService(self.project).status(record.id)
+        self.workflow_status.setText("Status / nächster Schritt\n"
+                                     + StatusService(self.project).summary(record.id))
+        self.usage.setText(self.project.usage_description(record.id))
+        self.use_existing.setEnabled(record.kind in {"global", "act", "chapter", "package"}
+                                      and not record.archived)
         self.details.setPlainText(
             f"{record.title}\n{KIND_NAMES[record.kind]} · Revision {record.revision_no}\n"
             f"ID: {record.id}\n\n" + "\n\n".join(
-                f"{value.id}: {value.state}\n{value.reason}" for value in states.values()
+                f"{STEP_NAMES[value.id]}: {STATE_NAMES[value.state]}\n{status_reason(value)}"
+                for value in states.values()
             )
         )
         self.relation_target.clear()
@@ -589,6 +613,28 @@ class MainWindow(QMainWindow):
                                                        self.relation_target.currentData(),
                                                        self.relation_kind.currentData())):
                 self.refresh()
+
+    def use_existing_dialog(self) -> None:
+        if not self.project or not self.selected_id:
+            return
+        used = {edge["target_id"] for edge in self.project.catalog.relations()
+                if edge["source_id"] == self.selected_id and edge["kind"] == "uses"}
+        choices = {f"{self.project.breadcrumb(card.id)} [{card.id[:8]}]": card.id
+                   for card in self.project.cards() if card.kind in {"asset", "package"}
+                   and card.id not in used and card.id != self.selected_id}
+        if not choices:
+            QMessageBox.information(self, "Vorhandenes Asset verwenden",
+                                    "Keine weitere Asset-/Paketkarte vorhanden. "
+                                    "Zuerst eine Karte anlegen; dies importiert noch keine Grafik.")
+            return
+        choice, accepted = QInputDialog.getItem(
+            self, "Gemeinsame Verwendung", "Vorhandene Karte verknüpfen – keine Kopie",
+            list(choices), 0, False,
+        )
+        if accepted and self.perform(lambda: self.commands.link(
+            self.selected_id, choices[choice], "uses",
+        )):
+            self.refresh()
 
     def unlink_dialog(self) -> None:
         identifier = self.relations.currentData()

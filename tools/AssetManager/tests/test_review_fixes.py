@@ -6,7 +6,8 @@ from etherfood_studio.application.issue_service import Finding, IssueService
 from etherfood_studio.application.commands import Commands
 from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.project_service import ProjectService
-from etherfood_studio.application.status_service import StatusService
+from etherfood_studio.application.status_service import STATE_NAMES, StatusService, status_reason
+from etherfood_studio.domain.workflows import STATES
 from etherfood_studio.domain.models import StudioError
 
 
@@ -108,3 +109,27 @@ def test_document_rename_keeps_body_and_rejects_duplicate_conflict_and_report(pr
     with pytest.raises(StudioError, match="schreibgeschützt"):
         service.rename(report.id, "Manipuliert", report.revision_no)
     assert project.catalog.export_snapshot() == before
+
+
+def test_german_status_reason_and_shared_ownership_are_truthful(project):
+    ids = project.demo()
+    service = StatusService(project)
+    assert set(STATE_NAMES) == STATES
+    assert "Externe Eingabe fehlt" in service.summary(ids["hero"])
+    assert "waiting_external" not in service.summary(ids["hero"])
+    assert status_reason(service.status(ids["hero"])["mask"]) == (
+        "Voraussetzungen fehlen: Quelldaten")
+    project.relate(ids["hero"], ids["two"], "depends_on")
+    assert "Blockiert" in service.summary(ids["hero"])
+    assert "Kapitel 2" in service.summary(ids["hero"])
+    usage = project.usage_description(ids["hero"])
+    assert "Projektweite Inhalte" in usage and "2 Ort(en)" in usage
+    assert "Kapitel 1" in usage and "Kapitel 2" in usage and "keine Kopien" in usage
+    assert "Grafikimport und Vorschau folgen" in usage
+    doc = DocumentService(project).create(ids["one"], "Dokumentiert", "Notiert")
+    assert doc.owner_id == ids["one"]
+    assert "Sichtabnahme" in service.summary(ids["one"])
+    assert "noch nicht geprüft" in service.summary(ids["one"])
+    shared_doc = DocumentService(project).create(ids["hero"], "Gemeinsame Notiz", "Herkunft")
+    for chapter in (ids["one"], ids["two"]):
+        assert DocumentService(project).search("Herkunft", scope_id=chapter)[0].id == shared_doc.id
