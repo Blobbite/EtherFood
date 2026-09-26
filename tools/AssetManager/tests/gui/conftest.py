@@ -12,4 +12,9 @@ def qt_app():
     widgets = pytest.importorskip("PySide6.QtWidgets", reason="Qt/GUI-Systembibliotheken fehlen")
     app = widgets.QApplication.instance() or widgets.QApplication([])
     yield app
+    # Release native widgets before QApplication and Python finalize in arbitrary order.
+    from PySide6.QtCore import QCoreApplication, QEvent
+    for widget in app.topLevelWidgets():
+        widget.deleteLater()
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
     app.processEvents()

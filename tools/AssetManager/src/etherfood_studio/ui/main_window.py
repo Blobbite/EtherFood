@@ -100,10 +100,16 @@ class MainWindow(QMainWindow):
         self.canvas.selected.connect(self.select_card)
         self.canvas.moved.connect(self.move_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.toggle_requested.connect(self.toggle_card, Qt.ConnectionType.QueuedConnection)
+        self.canvas.resized.connect(self.resize_canvas_card, Qt.ConnectionType.QueuedConnection)
+        self.canvas.connection_requested.connect(self.connect_cards,
+                                                 Qt.ConnectionType.QueuedConnection)
+        self.canvas.reconnect_requested.connect(self.reconnect_cards,
+                                                Qt.ConnectionType.QueuedConnection)
         canvas_layout.addWidget(self.canvas, 1)
         canvas_layout.addWidget(label(
             "Linien: ─ gehört zu · – – verwendet · · · benötigt. "
-            "Strg+Mausrad: Zoom · Leerfläche ziehen: Ansicht bewegen · Doppelklick: Gruppe klappen."
+            "Kreise ziehen: verbinden · Linie anklicken: umhängen · ◢: Größe · "
+            "Strg+Z: zurück · Strg+Mausrad: Zoom · Doppelklick: Gruppe klappen."
         ))
         self.tabs.addTab(canvas_page, "Projekt-Canvas")
         self.documents = DocumentEditor()
@@ -380,6 +386,34 @@ class MainWindow(QMainWindow):
             self.commands.layout(self.selected_id, layout | {
                 "w": self.card_width.value(), "h": self.card_height.value(),
             })
+            self.refresh()
+
+    def resize_canvas_card(self, identifier: str, width: float, height: float) -> None:
+        if self.project:
+            layout = self.project.catalog.layout(identifier)
+            self.commands.layout(identifier, layout | {"w": width, "h": height})
+            self.refresh()
+
+    def connect_cards(self, source: str, target: str) -> None:
+        if not self.project:
+            return
+        kinds = {"Verwendet vorhandenes Asset/Paket": "uses",
+                 "Benötigt Voraussetzung": "depends_on",
+                 "Gehört zu (Hierarchie umordnen)": "belongs_to"}
+        source_name = self.project.catalog.get(source).title
+        target_name = self.project.catalog.get(target).title
+        choice, accepted = QInputDialog.getItem(
+            self, "Verbindungstyp wählen", f"{source_name} → {target_name}", list(kinds), 0, False,
+        )
+        if accepted:
+            kind = kinds[choice]
+            call = (lambda: self.commands.move(source, target)) if kind == "belongs_to" \
+                else (lambda: self.commands.link(source, target, kind))
+            if self.perform(call):
+                self.refresh()
+
+    def reconnect_cards(self, identifier: str, source: str, target: str) -> None:
+        if self.project and self.perform(lambda: self.commands.relink(identifier, source, target)):
             self.refresh()
 
     def _tree_collapse(self, item: QTreeWidgetItem, collapsed: bool) -> None:

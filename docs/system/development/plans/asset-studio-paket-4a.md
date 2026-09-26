@@ -32,7 +32,7 @@ Die bereits offenen Control-Änderungen gehören nicht in die 4a-Commits.
   [#59](https://github.com/Blobbite/EtherFood/issues/59) Status/Verwendungen;
   als Unterissues von Phase B (#3).
 - [x] Aufgaben-/Issue-Details und Bearbeitung einschließlich Konfliktschutz (#56).
-- [ ] Canvas-Bedienung und kollisionsfreie Beschriftung.
+- [x] Canvas-Bedienung und kollisionsfreie Beschriftung (#57).
 - [ ] Kontextaktionen, Baum-Inhalte und Typicons.
 - [ ] Verständlicher Status und gemeinsame Verwendungen.
 - [ ] Regressionstests, echte Qt-Ereignisse, Pipeline- und Standardcheck.
@@ -65,6 +65,16 @@ Detailauswahl, Speichern, Abbruch, Revisionskonflikte und Dokumentnavigation.
 Der erste Gesamtlauf endete nach 60 erfolgreichen Tests mit einem nativen
 Qt-Prozessfehler beim Beenden; Einzelprüfung und Wiederholung mit Faulthandler
 beendeten sich regulär (Exit 0). Im abschließenden Gesamtlauf erneut prüfen.
+
+Abschnitt 4a.2: 64 Studio-Tests bestanden. Echte Mausereignisse prüfen Größen-Griff,
+Port-Drag, Beschriftungsauswahl, Endpunkt-Drag und Zyklus-/Abbruchschutz; Diensttests
+prüfen Relations-ID, atomare Ablehnung, Hierarchieumordnung und Undo/Redo.
+Beschriftungen werden neben Linien platziert; bei dichter Anordnung werden
+durchlaufende Striche unter der Beschriftung maskiert. Tooltip und Auswahl zeigen
+die zugehörige Verbindung. Synthetischen Canvas-Screenshot geprüft.
+Der Qt-Testabbau gibt native Widgets jetzt explizit vor QApplication frei;
+die anschließenden Gesamtläufe beenden sich regulär. 43 Quelldateien/Testdateien
+ohne Stilbefund geprüft.
 
 ## Wiederholbarkeit und Wiederherstellung
 

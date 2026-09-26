@@ -106,3 +106,20 @@ class Commands:
             self.project.move(identifier, target, current.revision_no)
 
         self.execute(Command("Karte umordnen", lambda: move_to(parent), lambda: move_to(old)))
+
+    def relink(self, identifier: str, source: str, target: str) -> None:
+        edge = next((row for row in self.project.catalog.relations()
+                     if row["id"] == identifier), None)
+        if edge is None:
+            raise StudioError("validation", "Verbindung nicht gefunden.")
+        if (source, target) == (edge["source_id"], edge["target_id"]):
+            return
+        if edge["kind"] == "belongs_to":
+            if source != edge["source_id"]:
+                raise StudioError("validation", "Nur das Eltern-Ziel der Hierarchie umhängen.")
+            self.move(source, target)
+            return
+        self.execute(Command(
+            "Verbindung umhängen", lambda: self.project.relink(identifier, source, target),
+            lambda: self.project.relink(identifier, edge["source_id"], edge["target_id"]),
+        ))

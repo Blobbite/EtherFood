@@ -136,6 +136,22 @@ class ProjectService:
         return [edge for edge in self.catalog.relations()
                 if identifier in (edge["source_id"], edge["target_id"])]
 
+    def relink(self, identifier: str, source: str, target: str) -> None:
+        """Retarget a non-ownership edge atomically without changing its identity."""
+        with self.catalog.transaction():
+            edges = self.catalog.relations()
+            edge = next((row for row in edges if row["id"] == identifier), None)
+            if edge is None or edge["kind"] == "belongs_to":
+                raise StudioError("validation", "Hierarchie ausdrücklich umordnen.")
+            remaining = [row for row in edges if row["id"] != identifier]
+            validate_relation(self.catalog.get(source), self.catalog.get(target),
+                              edge["kind"], remaining)
+            if any(row["source_id"] == source and row["target_id"] == target
+                   and row["kind"] == edge["kind"] for row in remaining):
+                raise StudioError("conflict", "Verbindung existiert bereits.")
+            self.catalog.remove_relation(identifier)
+            self.catalog.add_relation(source, target, edge["kind"], identifier=identifier)
+
     def archive(self, identifier: str, archived: bool, expected_revision: int) -> Record:
         record = self.catalog.get(identifier)
         if record.kind in {"project", "global"}:

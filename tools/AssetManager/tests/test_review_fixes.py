@@ -3,6 +3,7 @@
 import pytest
 
 from etherfood_studio.application.issue_service import Finding, IssueService
+from etherfood_studio.application.commands import Commands
 from etherfood_studio.application.project_service import ProjectService
 from etherfood_studio.application.status_service import StatusService
 from etherfood_studio.domain.models import StudioError
@@ -51,3 +52,40 @@ def test_task_body_limit_and_non_task_rejected(project):
         service.create(owner.id, "Zu groß", "a" * (1024 * 1024 + 1))
     with pytest.raises(StudioError):
         service.update(owner.id, "Kein Task", "Text", owner.revision_no)
+
+
+def test_retarget_atomic_identity_undo_and_cycle_rejection(project):
+    ids = project.demo()
+    commands = Commands(project)
+    edge_id = commands.link(ids["hero"], ids["one"], "depends_on")
+    commands.relink(edge_id, ids["hero"], ids["two"])
+    edge = lambda: next(row for row in project.catalog.relations() if row["id"] == edge_id)
+    assert edge()["target_id"] == ids["two"]
+    commands.undo()
+    assert edge()["target_id"] == ids["one"]
+    commands.redo()
+    assert edge()["target_id"] == ids["two"]
+    commands.link(ids["one"], ids["hero"], "depends_on")
+    before = project.catalog.export_snapshot()
+    stack = list(commands.done)
+    with pytest.raises(StudioError, match="Zyklus"):
+        commands.relink(edge_id, ids["hero"], ids["one"])
+    with pytest.raises(StudioError):
+        commands.relink(edge_id, ids["hero"], ids["hero"])
+    assert project.catalog.export_snapshot() == before and commands.done == stack
+    owner_edge = next(row for row in project.catalog.relations()
+                      if row["source_id"] == ids["temple"] and row["kind"] == "belongs_to")
+    commands.relink(owner_edge["id"], ids["temple"], ids["two"])
+    assert project.catalog.get(ids["temple"]).owner_id == ids["two"]
+    commands.undo()
+    assert owner_edge in project.catalog.relations()
+
+
+def test_duplicate_retarget_is_rejected_without_losing_edge(project):
+    ids = project.demo()
+    edges = [row for row in project.catalog.relations()
+             if row["kind"] == "uses" and row["source_id"] == ids["one"]]
+    before = project.catalog.export_snapshot()
+    with pytest.raises(StudioError, match="existiert"):
+        project.relink(edges[0]["id"], ids["one"], edges[1]["target_id"])
+    assert project.catalog.export_snapshot() == before

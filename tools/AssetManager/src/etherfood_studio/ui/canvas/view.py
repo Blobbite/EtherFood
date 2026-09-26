@@ -1,61 +1,24 @@
 """Lazy-detail card canvas, independent from asset and workflow revisions."""
 
 from PySide6.QtCore import QPointF, Qt, Signal
-from PySide6.QtGui import QColor, QFontMetricsF, QPainter, QPen, QWheelEvent
+from PySide6.QtGui import QColor, QKeyEvent, QPainter, QPen, QWheelEvent
 from PySide6.QtWidgets import (
-    QGraphicsItem, QGraphicsRectItem, QGraphicsScene, QGraphicsSceneMouseEvent,
-    QGraphicsSimpleTextItem, QGraphicsView,
+    QGraphicsPathItem, QGraphicsScene, QGraphicsView,
 )
 
 from ...application.project_service import ProjectService
 from ...application.status_service import StatusService
-from .edges import edge_item
-
-KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
-              "asset": "Asset", "package": "Paket", "note": "Notiz"}
-
-
-class CardItem(QGraphicsRectItem):
-    def __init__(self, identifier: str, title: str, kind: str, summary: str,
-                 view: "Canvas", width: float = 250, height: float = 100) -> None:
-        super().__init__(0, 0, width, height)
-        self.identifier = identifier
-        self.view = view
-        self.before = QPointF()
-        self.setData(0, identifier)
-        self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsMovable
-                      | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
-        self.setBrush(QColor("#e1eee7" if kind == "global" else "#ffffff"))
-        self.setPen(QPen(QColor("#658076" if kind == "global" else "#b7c6d4"), 1.5))
-        self.setToolTip(title + "\n" + summary)
-        for text, y, color in ((KIND_NAMES[kind].upper(), 10, "#536d80"),
-                               (title, 34, "#152a3d"), (summary, 65, "#765329")):
-            child = QGraphicsSimpleTextItem(self)
-            clipped = QFontMetricsF(child.font()).elidedText(
-                text, Qt.TextElideMode.ElideRight, width - 24,
-            )
-            child.setText(clipped)
-            child.setBrush(QColor(color))
-            child.setPos(12, y)
-
-    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        self.before = self.pos()
-        super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        super().mouseReleaseEvent(event)
-        if self.pos() != self.before:
-            self.view.moved.emit(self.identifier, self.pos().x(), self.pos().y())
-
-    def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        self.view.toggle_requested.emit(self.identifier)
-        event.accept()
+from .edges import EdgeItem, curve, place_labels
+from .items import CardItem, KIND_NAMES
 
 
 class Canvas(QGraphicsView):
     selected = Signal(str)
     moved = Signal(str, float, float)
     toggle_requested = Signal(str)
+    resized = Signal(str, float, float)
+    connection_requested = Signal(str, str)
+    reconnect_requested = Signal(str, str, str)
 
     def __init__(self) -> None:
         super().__init__()
@@ -66,11 +29,17 @@ class Canvas(QGraphicsView):
         self.setBackgroundBrush(QColor("#f0f4f7"))
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.items_by_id: dict[str, CardItem] = {}
+        self.edges_by_id: dict[str, EdgeItem] = {}
+        self.label_rects = []
+        self.rendering = False
+        self.connection: tuple | None = None
+        self.preview: QGraphicsPathItem | None = None
         self.scene().selectionChanged.connect(self._selection)
         self.setMinimumWidth(300)
 
     def _selection(self) -> None:
-        selected = self.scene().selectedItems()
+        self.update_edges()
+        selected = [item for item in self.scene().selectedItems() if isinstance(item, CardItem)]
         if selected:
             self.selected.emit(str(selected[0].data(0)))
 
@@ -97,7 +66,10 @@ class Canvas(QGraphicsView):
         return positions
 
     def render(self, project: ProjectService, selected_id: str | None = None) -> None:
+        self.rendering = True
+        self.cancel_connection()
         self.scene().blockSignals(True)
+        self.edges_by_id.clear()
         self.scene().clear()
         self.items_by_id.clear()
         defaults = self.default_positions(project)
@@ -124,11 +96,74 @@ class Canvas(QGraphicsView):
             source = self.items_by_id.get(edge["source_id"])
             target = self.items_by_id.get(edge["target_id"])
             if source is not None and target is not None:
-                start = source.sceneBoundingRect().center()
-                end = target.sceneBoundingRect().center()
-                self.scene().addItem(edge_item(start, end, edge["kind"]))
+                item = EdgeItem(edge, self)
+                self.scene().addItem(item)
+                self.edges_by_id[edge["id"]] = item
+        self.rendering = False
+        self.update_edges()
         self.scene().setSceneRect(self.scene().itemsBoundingRect().adjusted(-60, -60, 100, 100))
         self.scene().blockSignals(False)
+
+    def update_edges(self) -> None:
+        if self.rendering:
+            return
+        for edge in self.edges_by_id.values():
+            edge.update_geometry()
+        self.label_rects = place_labels(list(self.edges_by_id.values()), [
+            item.mapRectToScene(item.rect()).adjusted(-10, -10, 10, 10)
+            for item in self.items_by_id.values()
+        ])
+        self.scene().update()
+
+    def begin_connection(self, fixed_id: str, start: QPointF,
+                         edge_id: str | None = None, moving: str = "target") -> None:
+        self.cancel_connection()
+        self.connection = (fixed_id, start, edge_id, moving)
+        self.preview = QGraphicsPathItem()
+        self.preview.setPen(QPen(QColor("#147fb0"), 2, Qt.PenStyle.DashLine))
+        self.preview.setZValue(20)
+        self.preview.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self.scene().addItem(self.preview)
+        self.update_connection(start)
+
+    def update_connection(self, end: QPointF) -> None:
+        if self.preview and self.connection:
+            self.preview.setPath(curve(self.connection[1], end))
+
+    def card_at(self, point: QPointF) -> CardItem | None:
+        for item in self.scene().items(point):
+            while item and not isinstance(item, CardItem):
+                item = item.parentItem()
+            if isinstance(item, CardItem):
+                return item
+        return None
+
+    def finish_connection(self, point: QPointF) -> None:
+        connection = self.connection
+        card = self.card_at(point)
+        self.cancel_connection()
+        if not connection or not card:
+            return
+        fixed, _, edge_id, moving = connection
+        source, target = ((card.identifier, fixed) if moving == "source"
+                          else (fixed, card.identifier))
+        if edge_id:
+            self.reconnect_requested.emit(edge_id, source, target)
+        else:
+            self.connection_requested.emit(source, target)
+
+    def cancel_connection(self) -> None:
+        if self.preview:
+            self.scene().removeItem(self.preview)
+            self.preview = None
+        self.connection = None
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key.Key_Escape and self.connection:
+            self.cancel_connection()
+            event.accept()
+        else:
+            super().keyPressEvent(event)
 
     def focus_card(self, identifier: str) -> None:
         item = self.items_by_id.get(identifier)
@@ -137,6 +172,7 @@ class Canvas(QGraphicsView):
             self.scene().clearSelection()
             item.setSelected(True)
             self.scene().blockSignals(False)
+            self.update_edges()
             self.centerOn(item)
 
     def zoom(self, factor: float) -> None:
