@@ -127,6 +127,18 @@ class DocumentEditor(QWidget):
         self.documents.blockSignals(False)
         self._load(self.documents.currentData())
 
+    def open_document(self, identifier: str) -> bool:
+        if not self.service:
+            return False
+        if self.current and self.current.id == identifier:
+            return True
+        record = self.service.catalog.get(identifier)
+        if record.kind != "document" or not self.confirm_discard():
+            return False
+        self.owner_id = record.owner_id
+        self.refresh_documents(identifier)
+        return True
+
     def _load(self, identifier: str | None) -> None:
         self._loading = True
         self.current = self.service.catalog.get(identifier) if identifier else None

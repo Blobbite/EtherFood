@@ -33,6 +33,7 @@ class IssueService:
         self.catalog.get(owner_id)
         if priority not in PRIORITIES:
             raise StudioError("validation", "Unbekannte Priorität.")
+        self._validate_body(body)
         location = asdict(finding or Finding())
         for field, kind in (("asset_id", "asset"), ("build_id", "build")):
             if location[field] and self.catalog.get(location[field]).kind != kind:
@@ -49,6 +50,27 @@ class IssueService:
             "body": body, "status": "open", "priority": priority, "assignee": assignee,
             "approval_needed": approval_needed, "approval_confirmed": False, "finding": location,
         })
+
+    @staticmethod
+    def _validate_body(body: str) -> None:
+        if len(body.encode("utf-8")) > 1024 * 1024:
+            raise StudioError("validation", "Beschreibung ist größer als 1 MiB.")
+
+    def update(self, identifier: str, title: str, body: str, expected_revision: int,
+               *, priority: str = "normal", assignee: str = "") -> Record:
+        record = self.catalog.get(identifier)
+        self.project._check_revision(record, expected_revision)
+        if record.kind not in {"task", "issue"} or priority not in PRIORITIES:
+            raise StudioError("validation", "Ungültige Aufgabe oder Priorität.")
+        self._validate_body(body)
+        data = record.data | {"body": body, "priority": priority, "assignee": assignee.strip()}
+        if title.strip() == record.title and data == record.data:
+            return record
+        # An approval covers the reviewed contents, never subsequent edits.
+        data["approval_confirmed"] = False
+        if data["approval_needed"] and data["status"] == "done":
+            data["status"] = "open"
+        return self.catalog.save(record, title=title, data=data)
 
     def set_status(self, identifier: str, status: str, expected_revision: int,
                    *, approval_confirmed: bool = False) -> Record:

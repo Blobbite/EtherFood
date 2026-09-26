@@ -3,7 +3,8 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
-    QLineEdit, QListWidget, QListWidgetItem, QMessageBox, QPlainTextEdit, QVBoxLayout, QWidget,
+    QLineEdit, QListWidget, QListWidgetItem, QMessageBox, QPlainTextEdit, QSplitter,
+    QVBoxLayout, QWidget,
 )
 
 from ...application.document_service import DocumentService
@@ -11,6 +12,7 @@ from ...application.issue_service import Finding, IssueService, PRIORITIES, TASK
 from ...application.project_service import ProjectService
 from ...domain.models import StudioError
 from ..common import button, label, show_error
+from .editor import TaskEditor
 
 STATE_NAMES = {
     "open": "Offen", "in_progress": "In Arbeit", "blocked": "Blockiert", "done": "Erledigt",
@@ -19,6 +21,8 @@ STATE_NAMES = {
 
 class TasksPanel(QWidget):
     focus_requested = Signal(str)
+    document_requested = Signal(str)
+    changed = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -54,12 +58,23 @@ class TasksPanel(QWidget):
         self.results.setObjectName("task_results")
         self.results.itemActivated.connect(self._focus)
         self.results.itemClicked.connect(self._focus)
-        layout.addWidget(self.results, 1)
+        self.results.currentItemChanged.connect(self._show_details)
+        self.results.itemDoubleClicked.connect(lambda item: self.edit_current())
+        self.details = QPlainTextEdit()
+        self.details.setObjectName("task_details")
+        self.details.setReadOnly(True)
+        self.details.setPlaceholderText("Inhalt auswählen: Beschreibung und Fundstelle lesen.")
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(self.results)
+        splitter.addWidget(self.details)
+        layout.addWidget(splitter, 1)
         self.empty = label("Projekt öffnen, um Aufgaben und Dokumente zu sehen.", "task_empty")
         layout.addWidget(self.empty)
         actions = QHBoxLayout()
         actions.addWidget(button("+ Aufgabe", "new_task", lambda: self.new_item(False)))
         actions.addWidget(button("+ Issue", "new_issue", lambda: self.new_item(True)))
+        self.edit_button = button("Bearbeiten / Öffnen", "edit_task", self.edit_current)
+        actions.addWidget(self.edit_button)
         self.new_status = QComboBox()
         self.new_status.setObjectName("task_new_status")
         for key, title in STATE_NAMES.items():
@@ -94,6 +109,9 @@ class TasksPanel(QWidget):
     def refresh(self, *args: object) -> None:
         if not self.project:
             return
+        current = self.results.currentItem()
+        selected = current.data(Qt.ItemDataRole.UserRole) if current else None
+        self.results.blockSignals(True)
         self.results.clear()
         kind = self.kind.currentData()
         rows = []
@@ -117,8 +135,59 @@ class TasksPanel(QWidget):
             item.setData(Qt.ItemDataRole.UserRole + 1, row.owner_id)
             item.setToolTip(self.project.breadcrumb(row.owner_id))
             self.results.addItem(item)
-        self.empty.setText(f"{len(rows)} Treffer · Klick fokussiert die Bezugskarte."
+            if row.id == selected:
+                self.results.setCurrentItem(item)
+        self.results.blockSignals(False)
+        self._show_details(self.results.currentItem())
+        self.empty.setText(f"{len(rows)} Treffer · Klick: Inhalt lesen · Doppelklick: bearbeiten."
                            if rows else "Keine Treffer. Filter ändern oder eine Aufgabe anlegen.")
+
+    def _show_details(self, item: QListWidgetItem | None, previous: object = None) -> None:
+        self.edit_button.setEnabled(item is not None)
+        if item is None or not self.project:
+            self.details.clear()
+            return
+        row = self.project.catalog.get(item.data(Qt.ItemDataRole.UserRole))
+        lines = [row.title, self.project.breadcrumb(row.owner_id),
+                 f"Revision {row.revision_no} · ID {row.id}"]
+        if row.kind in {"task", "issue"}:
+            lines.extend([f"Status: {STATE_NAMES[row.data['status']]}",
+                          f"Priorität: {row.data['priority']}",
+                          f"Zuständig: {row.data.get('assignee') or 'Nicht zugewiesen'}"])
+            if row.data.get("approval_needed"):
+                lines.append("Aufgabenabnahme: " + ("bestätigt" if row.data.get(
+                    "approval_confirmed") else "noch erforderlich"))
+            finding = {key: value for key, value in row.data.get("finding", {}).items()
+                       if value is not None}
+            if finding:
+                lines.append("Fundstelle: " + "; ".join(f"{key}: {value}"
+                                                     for key, value in finding.items()))
+        lines.extend(["", row.data.get("body", "") or "Noch keine Beschreibung."])
+        self.details.setPlainText("\n".join(lines))
+
+    def show_record(self, identifier: str) -> None:
+        # Explicit navigation must reveal the item even when an old filter hides it.
+        self.query.clear()
+        for widget in (self.scope, self.state, self.kind, self.asset_type):
+            widget.setCurrentIndex(0)
+        self.refresh()
+        for index in range(self.results.count()):
+            item = self.results.item(index)
+            if item.data(Qt.ItemDataRole.UserRole) == identifier:
+                self.results.setCurrentItem(item)
+                self.results.scrollToItem(item)
+                break
+
+    def edit_current(self) -> None:
+        item = self.results.currentItem()
+        if not item or not self.project:
+            return
+        record = self.project.catalog.get(item.data(Qt.ItemDataRole.UserRole))
+        if record.kind == "document":
+            self.document_requested.emit(record.id)
+        elif TaskEditor(IssueService(self.project), record, self).exec() == QDialog.Accepted:
+            self.refresh()
+            self.changed.emit()
 
     def _focus(self, item: QListWidgetItem) -> None:
         self.focus_requested.emit(item.data(Qt.ItemDataRole.UserRole + 1))
@@ -132,6 +201,7 @@ class TasksPanel(QWidget):
         title, owner = QLineEdit(), QLineEdit()
         title.setObjectName("new_task_title")
         body = QPlainTextEdit()
+        body.setObjectName("new_task_body")
         priority = QComboBox()
         priority.addItems(list(PRIORITIES))
         priority.setCurrentText("normal")
@@ -162,12 +232,13 @@ class TasksPanel(QWidget):
             card = self.project.catalog.get(self.current_card)
             if card.kind == "asset":
                 fields["asset_id"] = card.id
-            IssueService(self.project).create(
+            record = IssueService(self.project).create(
                 self.current_card, title.text(), body.toPlainText(), issue=issue,
                 priority=priority.currentText(), approval_needed=approval.isChecked(),
                 assignee=owner.text(), finding=Finding(**fields),
             )
-            self.refresh()
+            self.show_record(record.id)
+            self.changed.emit()
         except (StudioError, ValueError) as exc:
             show_error(self, exc)
 
@@ -176,6 +247,8 @@ class TasksPanel(QWidget):
         if not item or not self.project:
             return
         record = self.project.catalog.get(item.data(Qt.ItemDataRole.UserRole))
+        if record.kind not in {"task", "issue"}:
+            return
         status = self.new_status.currentData()
         approved = False
         if record.data.get("approval_needed") and status == "done":
@@ -190,5 +263,6 @@ class TasksPanel(QWidget):
             IssueService(self.project).set_status(record.id, status, record.revision_no,
                                                   approval_confirmed=approved)
             self.refresh()
+            self.changed.emit()
         except StudioError as exc:
             show_error(self, exc)

@@ -111,6 +111,8 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.documents, "Dokumente && Anhänge")
         self.tasks = TasksPanel()
         self.tasks.focus_requested.connect(self.select_card)
+        self.tasks.document_requested.connect(self.open_document)
+        self.tasks.changed.connect(self.refresh)
         self.tabs.addTab(self.tasks, "Aufgaben && Suche")
         self.splitter.addWidget(self.tabs)
         properties = QWidget()
@@ -168,6 +170,11 @@ class MainWindow(QMainWindow):
         search.triggered.connect(self._focus_search)
         self.addAction(search)
         self.statusBar().showMessage("Bereit · Projekt wählen")
+
+    def open_document(self, identifier: str) -> None:
+        if self.documents.open_document(identifier):
+            self.select_card(self.documents.owner_id)
+            self.tabs.setCurrentWidget(self.documents)
 
     def _action(self, toolbar: QToolBar, text: str, call: Callable,
                 shortcut: str, name: str) -> QAction:
