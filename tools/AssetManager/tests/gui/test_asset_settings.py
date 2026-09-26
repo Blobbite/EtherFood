@@ -1,5 +1,9 @@
 """Real widget saves/reopens; definition identity is not its visible name."""
 
+import pytest
+
+pytest.importorskip("PySide6.QtWidgets", reason="Qt/GUI-Systembibliotheken fehlen")
+
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QPushButton

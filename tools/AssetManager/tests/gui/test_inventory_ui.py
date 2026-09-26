@@ -1,14 +1,16 @@
 """Inventory worker, explicit review and cancel using real Qt event processing."""
 
-from pathlib import Path
 from threading import Event
 import time
 
-from PIL import Image
-from PySide6.QtCore import Qt
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QMessageBox, QPushButton
 import pytest
+
+pytest.importorskip("PySide6.QtWidgets", reason="Qt/GUI-Systembibliotheken fehlen")
+
+from PIL import Image
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QDialog, QMessageBox, QPlainTextEdit, QPushButton
 
 from etherfood_studio.application.asset_service import AssetService
 from etherfood_studio.application.project_service import ProjectService
@@ -69,6 +71,7 @@ def test_scan_review_and_explicit_adoption(qt_app, inventory_dialog, tmp_path, m
     wait_for(qt_app, lambda: dialog.worker is None)
     assert "Schon vorhanden: 1" in dialog.status.text()
     assert len(assets.observations(identifier)) == 1
+    assert "1 gespeicherte Beobachtungen" in dialog.registered.toPlainText()
     assert any(r.kind == "document" and r.data["document_type"] == "generated"
                for r in project.catalog.records())
 
@@ -97,3 +100,34 @@ def test_cancel_button_and_close_wait_for_reader(qt_app, inventory_dialog, monke
     wait_for(qt_app, lambda: dialog.worker is None)
     assert not dialog.isVisible()
     assert project.catalog.export_snapshot() == before
+
+
+def test_html_reference_is_read_only_text(qt_app, inventory_dialog, tmp_path):
+    dialog, _, _, _ = inventory_dialog
+    root = tmp_path / "comparison"
+    root.mkdir()
+    page = root / "vergleich.html"
+    html = '<script>window.invalid = true</script><img src="missing.png">'
+    page.write_text(html)
+    dialog.root.setText(str(root))
+    QTest.mouseClick(dialog.scan_button, Qt.MouseButton.LeftButton)
+    wait_for(qt_app, lambda: dialog.worker is None)
+    assert dialog.pages.count() == 1
+    assert "broken" in dialog.reports.toPlainText()
+    visited = []
+
+    def inspect():
+        modal = qt_app.activeModalWidget()
+        try:
+            assert isinstance(modal, QDialog)
+            text = modal.findChild(QPlainTextEdit)
+            assert text.isReadOnly() and text.toPlainText() == html
+            visited.append(True)
+        finally:
+            if modal:
+                modal.accept()
+
+    QTimer.singleShot(20, inspect)
+    QTest.mouseClick(dialog.findChild(QPushButton, "inventory_read_page"),
+                     Qt.MouseButton.LeftButton)
+    assert visited and page.read_text() == html

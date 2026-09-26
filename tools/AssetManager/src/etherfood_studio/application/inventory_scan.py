@@ -53,7 +53,8 @@ def one(values: list, label: str, notes: list[str]):
     return unique[0] if unique else None
 
 
-def propose(path: Path, root: Path, definition: AssetDefinition, info: dict) -> Candidate:
+def propose(path: Path, root: Path, definition: AssetDefinition, info: dict,
+            expected: frozenset[VariantKey]) -> Candidate:
     relative = path.relative_to(root).as_posix()
     # Include selected root ancestors for scans directly inside a profile/frame folder.
     parts = path.parts
@@ -126,7 +127,7 @@ def propose(path: Path, root: Path, definition: AssetDefinition, info: dict) -> 
     key = VariantKey(pose.id if pose else None, direction, graphic, frame_count) \
         if graphic and (static or pose) else None
     state = "needs_review" if notes or key is None else "proposal"
-    if state == "proposal" and key not in definition.expected():
+    if state == "proposal" and key not in expected:
         state = "not_required"
         notes.append("Diese Kombination wird von den Asset-Anforderungen nicht verlangt.")
     notes.append("Herkunft unbekannt; Dateiname beweist weder Original noch Ableitung.")
@@ -144,6 +145,7 @@ def scan_inventory(root: Path, definition: AssetDefinition, *, limits: ScanLimit
     if not root.is_dir():
         raise StudioError("path", "Bestandswurzel muss ein Ordner sein.")
     candidates, problems, reports, pages = [], [], [], []
+    expected = frozenset(definition.expected())
     skipped, seen = 0, 0
     pending = [(root, 0)]
     while pending:
@@ -172,7 +174,7 @@ def scan_inventory(root: Path, definition: AssetDefinition, *, limits: ScanLimit
                         try:
                             if path.suffix.lower() == ".png":
                                 info = inspect_png(path, limits, cancel)
-                                candidates.append(propose(path, root, definition, info))
+                                candidates.append(propose(path, root, definition, info, expected))
                             elif entry.name in {
                                 "build-info.json", "pruefung.json", "color-build.json",
                             }:

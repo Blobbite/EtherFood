@@ -27,6 +27,11 @@ verschoben, repariert oder verarbeitet. Es entsteht keine Freigabe.
    oder geänderten Anforderungen folgt keine teilweise Übernahme. Der
    schreibgeschützte Bericht erscheint bei der Asset-Karte unter Dokumente.
 
+Der Reiter **Gespeicherte Verweise** bleibt auch nach erneutem Öffnen des
+Projekts verfügbar. Er zeigt übernommene Pfade, Hashes und Herkunft sowie
+Inhaltskonflikte. Diese historischen Beobachtungen sind ohne neuen Scan
+ausdrücklich keine aktuelle Verfügbarkeitsprüfung.
+
 Wiederholung derselben Auswahl erzeugt keine doppelten Quellen/Reports.
 Vorhandene Originalverweise werden nie durch Ableitungen ersetzt. Neue
 Inhalte zur gleichen Variante bleiben als getrennte Beobachtungen erhalten.

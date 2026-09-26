@@ -1,15 +1,16 @@
 """T014 safety and review with synthetic assets; originals must remain byte-identical."""
 
-from dataclasses import replace
 import hashlib
 import json
-from pathlib import Path
+import struct
 from threading import Event
+import zlib
 
 from PIL import Image
 import pytest
 
 from etherfood_studio.application.asset_service import AssetService
+from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.inventory_scan import scan_inventory
 from etherfood_studio.application.inventory_service import InventoryService, prepare_adoption
 from etherfood_studio.application.project_service import ProjectService
@@ -217,3 +218,109 @@ def test_schema_two_upgrade_keeps_data_and_excludes_local_roots(tmp_path):
         assert str(tmp_path) not in catalog.export_snapshot()
     finally:
         catalog.close()
+
+
+def test_original_eight_survives_derived_inventory(configured, tmp_path):
+    _, assets, identifier = configured
+    root = tmp_path / "originals"
+    sheet(root)
+    scan = scan_inventory(root, assets.definition(identifier))
+    service = InventoryService(assets)
+    prepared = prepare_adoption(scan, [scan.candidates[0].path], provenance={"kind": "original"})
+    service.adopt(identifier, 2, prepared)
+    original = assets.observations(identifier)[0]
+    derived_root = tmp_path / "derived"
+    derived = sheet(derived_root)
+    Image.new("RGBA", (16, 8), (100, 0, 0)).save(derived)
+    scan = scan_inventory(derived_root, assets.definition(identifier))
+    prepared = prepare_adoption(scan, [scan.candidates[0].path],
+                                provenance={"kind": "derived", "source_sha256": "f" * 64})
+    service.adopt(identifier, assets.asset(identifier).revision_no, prepared)
+    assert assets.observations(identifier)[0] == original
+    assert len(assets.observations(identifier)) == 2
+    assert "conflict" in assets.matrix(identifier).values()
+
+
+def test_transaction_rollback_when_report_fails_or_final_cancel(configured, tmp_path, monkeypatch):
+    project, assets, identifier = configured
+    root = tmp_path / "source"
+    sheet(root)
+    scan = scan_inventory(root, assets.definition(identifier))
+    prepared = prepare_adoption(scan, [scan.candidates[0].path])
+    before = project.catalog.export_snapshot()
+    original_create = DocumentService.create
+
+    def fail_report(*args, **kwargs):
+        raise StudioError("storage", "Test: Bericht kann nicht gespeichert werden")
+
+    monkeypatch.setattr(DocumentService, "create", fail_report)
+    with pytest.raises(StudioError, match="Test: Bericht"):
+        InventoryService(assets).adopt(identifier, 2, prepared)
+    assert project.catalog.export_snapshot() == before
+    assert project.catalog.db.execute("SELECT count(*) FROM inventory_roots").fetchone()[0] == 0
+    cancel = Event()
+
+    def cancel_after_report(*args, **kwargs):
+        result = original_create(*args, **kwargs)
+        cancel.set()
+        return result
+
+    monkeypatch.setattr(DocumentService, "create", cancel_after_report)
+    with pytest.raises(StudioError, match="abgebrochen"):
+        InventoryService(assets).adopt(identifier, 2, prepared, cancel=cancel)
+    assert project.catalog.export_snapshot() == before
+    assert project.catalog.db.execute("SELECT count(*) FROM inventory_roots").fetchone()[0] == 0
+
+
+def test_crc_header_and_metadata_conflicts(tmp_path):
+    from PIL.PngImagePlugin import PngInfo
+    path = sheet(tmp_path)
+    raw = bytearray(path.read_bytes())
+    raw[24] = 3  # invalid bit depth for RGBA; checksum remains valid after recomputing
+    raw[29:33] = struct.pack(">I", zlib.crc32(raw[12:29]) & 0xffffffff)
+    path.write_bytes(raw)
+    result = scan_inventory(tmp_path, default_definition())
+    assert not result.candidates and any("Headerformat" in p for p in result.problems)
+    raw[25] = 2  # deliberately corrupt IHDR CRC
+    path.write_bytes(raw)
+    result = scan_inventory(tmp_path, default_definition())
+    assert any("Prüfsumme" in p for p in result.problems)
+    meta = PngInfo()
+    meta.add_text("etherfood_variant", json.dumps({"direction": "SO"}))
+    Image.new("RGBA", (16, 8)).save(path, pnginfo=meta)
+    result = scan_inventory(tmp_path, default_definition())
+    assert result.candidates[0].state == "needs_review"
+    assert any("Richtungen" in n for n in result.candidates[0].notes)
+
+
+def test_bound_report_cannot_survive_changed_unselected_source(configured, tmp_path):
+    _, assets, identifier = configured
+    root = tmp_path / "source"
+    selected = sheet(root)
+    unselected = sheet(root, direction="SO")
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    report = {"files": [{"source": unselected.relative_to(root).as_posix(),
+                         "source_sha256": digest(unselected), "outputs": [{
+                             "png": selected.relative_to(root).as_posix(),
+                             "sha256": digest(selected)}]}]}
+    (root / "build-info.json").write_text(json.dumps(report))
+    scan = scan_inventory(root, assets.definition(identifier))
+    assert scan.reports[0]["state"] == "historical_bound"
+    prepared = prepare_adoption(scan, [selected.relative_to(root).as_posix()])
+    assert prepared.selected[0].path == selected.relative_to(root).as_posix()
+    Image.new("RGBA", (16, 8), (255, 0, 0)).save(unselected)
+    with pytest.raises(StudioError, match="veraltet"):
+        prepare_adoption(scan, [selected.relative_to(root).as_posix()])
+
+
+def test_report_reference_outside_root_and_report_limits(tmp_path):
+    root = tmp_path / "root"
+    path = sheet(root)
+    report = {"files": [{"source": "../../secret", "source_sha256": "a" * 64,
+                         "outputs": [{"png": path.relative_to(root).as_posix()}]}]}
+    (root / "pruefung.json").write_text(json.dumps(report))
+    result = scan_inventory(root, default_definition())
+    assert result.reports[0]["sources"][0]["state"] == "unavailable"
+    assert "außerhalb" in result.reports[0]["sources"][0]["reason"]
+    result = scan_inventory(root, default_definition(), limits=ScanLimits(max_report_bytes=2))
+    assert not result.reports and any("zu groß" in p for p in result.problems)

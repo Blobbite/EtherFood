@@ -37,10 +37,12 @@ class AssetService:
     def matrix(self, identifier: str) -> dict[VariantKey, str]:
         # Presence describes an inventory observation, not current validity or approval.
         observations = self.observations(identifier)
-        keys = {VariantKey(**row["variant"]) for row in observations}
-        matrix = self.definition(identifier).matrix(keys)
-        for key in keys:
-            hashes = {row["sha256"] for row in observations if row["variant"] == key.to_data()}
+        hashes_by_key = {}
+        for row in observations:
+            key = VariantKey(**row["variant"])
+            hashes_by_key.setdefault(key, set()).add(row["sha256"])
+        matrix = self.definition(identifier).matrix(set(hashes_by_key))
+        for key, hashes in hashes_by_key.items():
             if len(hashes) > 1 and matrix[key] == "found":
                 matrix[key] = "conflict"
         return matrix

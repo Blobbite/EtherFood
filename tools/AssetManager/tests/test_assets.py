@@ -108,3 +108,13 @@ def test_versioned_json_schema():
     validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
     for kind in ("character", "effect", "texture", "prop"):
         validator.validate(default_definition(kind).to_data())
+
+
+def test_unknown_asset_version_is_rejected_on_project_open(asset_project):
+    project, service, identifier = asset_project
+    record = service.asset(identifier)
+    data = default_definition().to_data()
+    data["schema_version"] = 999
+    project.catalog.save(record, data={**record.data, "asset_definition": data})
+    with pytest.raises(StudioError, match="Modellversion"):
+        ProjectService.open(project.catalog.path.parent)

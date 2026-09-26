@@ -78,6 +78,12 @@ def inspect_png(path: Path, limits: ScanLimits, cancel: Event) -> dict:
             if width or length != 13:
                 raise StudioError("validation", "Doppelter/ungültiger PNG-Header.")
             width, height = struct.unpack_from(">II", chunk)
+            bit_depth, color, compression, filtering, interlace = chunk[8:13]
+            depths = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8),
+                      4: (8, 16), 6: (8, 16)}
+            if bit_depth not in depths.get(color, ()) or compression or filtering \
+                    or interlace not in (0, 1):
+                raise StudioError("validation", "Ungültiges PNG-Headerformat.")
             if not width or not height or width * height > limits.max_pixels:
                 raise StudioError("limit", "PNG-Abmessungen sind ungültig oder zu groß.")
         elif kind == b"IDAT":

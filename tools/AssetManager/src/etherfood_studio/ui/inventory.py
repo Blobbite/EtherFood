@@ -4,6 +4,7 @@ from collections import Counter
 import hashlib
 import json
 from pathlib import Path
+import sqlite3
 from threading import Event
 from typing import Callable
 
@@ -81,13 +82,19 @@ class InventoryDialog(QDialog):
             "Wahl", "Befund", "Relativer Quellpfad", "Pose", "Richtung", "Grafik",
             "Frames", "Herkunft",
         ])
-        self.table.setColumnWidth(1, 200)
-        self.table.setColumnWidth(2, 390)
+        for col, width in enumerate((45, 170, 345, 65, 70, 95, 60, 105)):
+            self.table.setColumnWidth(col, width)
+        self.table.horizontalHeader().setStretchLastSection(True)
         self.table.itemSelectionChanged.connect(self.details)
         self.tabs.addTab(self.table, "Vorschläge")
         self.matrix = QPlainTextEdit()
         self.matrix.setReadOnly(True)
         self.tabs.addTab(self.matrix, "Erwartete Varianten")
+        self.registered = QPlainTextEdit()
+        self.registered.setReadOnly(True)
+        self.registered.setObjectName("inventory_registered")
+        self.tabs.addTab(self.registered, "Gespeicherte Verweise")
+        self.refresh_registered()
         reports_page = QWidget()
         report_layout = QVBoxLayout(reports_page)
         self.reports = QPlainTextEdit()
@@ -171,12 +178,13 @@ class InventoryDialog(QDialog):
                 )
                 self.changed = self.changed or summary["adopted"] > 0
                 self.revision = self.assets.asset(self.identifier).revision_no
+                self.refresh_registered()
                 self.status.setText(
                     f"Übernommen: {summary['adopted']} · Schon vorhanden: "
                     f"{summary['already_present']} · Nicht gewählt: {summary['not_selected']} · "
                     "Originale unverändert. Keine Freigabe. Bericht unter Dokumente."
                 )
-            except (StudioError, OSError) as error:
+            except (StudioError, OSError, sqlite3.Error) as error:
                 self.failed(error)
 
     def finished_work(self) -> None:
@@ -207,6 +215,7 @@ class InventoryDialog(QDialog):
                       str(key.frames) if key and key.frames else "—", "Unbekannt"]
             for col, value in enumerate(values):
                 item = QTableWidgetItem(value)
+                item.setToolTip(value)
                 item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
                 if col == 0 and candidate.state in {"proposal", "duplicate"}:
                     item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
@@ -228,6 +237,17 @@ class InventoryDialog(QDialog):
             "Lesende Vergleichsverweise": scan.pages}, ensure_ascii=False, indent=2))
         for page in scan.pages:
             self.pages.addItem(page["path"], page)
+
+    def refresh_registered(self) -> None:
+        observations = self.assets.observations(self.identifier)
+        matrix = self.assets.matrix(self.identifier)
+        counts = Counter(matrix.values())
+        text = (f"{len(observations)} gespeicherte Beobachtungen · "
+                f"{counts['missing']} Varianten ohne Verweis · "
+                f"{counts['conflict']} Inhaltskonflikte\n"
+                "Historischer Bestand, nicht erneut auf Dateiverfügbarkeit geprüft. "
+                "Kein verwalteter Quellimport und keine Freigabe.\n\n")
+        self.registered.setPlainText(text + json.dumps(observations, ensure_ascii=False, indent=2))
 
     def details(self) -> None:
         row = self.table.currentRow()

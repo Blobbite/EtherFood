@@ -31,7 +31,7 @@ und werden nicht in Paket-5-Commits aufgenommen.
 - [x] T013: Modelle, Schema, Dienste und kleine Konfigurationsoberfläche testen.
 - [x] T014: lesenden Scanner und externe Nachweis-/Linkprüfung testen.
 - [x] T014: Übernahmeprüfung, explizite Katalogübernahme und GUI-Ablauf testen.
-- [ ] Wiederholung, Abbruch, Revisionsschutz und tatsächlichen Bestand lesend prüfen.
+- [x] Wiederholung, Abbruch, Revisionsschutz und tatsächlichen Bestand lesend prüfen.
 - [ ] Studio-/Pipeline- und Repository-Prüfungen mit tatsächlichen Ergebnissen.
 - [ ] Ergebnisberichte, Commit/Push, Issues und nächstes Benutzerbriefing.
 
@@ -77,3 +77,11 @@ bei laufendem Leser. Migration 3 speichert lokale Wurzeln getrennt von
 portablen Snapshot-Daten. Fremdberichte sind nie aktuelle Prüfungen; HTML
 wird ausschließlich als sicherer Text gelesen. Scanner und Dialog heißen
 `inventory_scan.py`, `inventory_service.py` und `ui/inventory.py`.
+
+Vertiefung: 107 Studio-Tests bestanden, zusätzlich Rollback bei Reportfehler
+und spätem Abbruch, unabhängiges 8-Frame-Original gegen neue Ableitung,
+PNG-Header/CRC und veränderte Berichtquellen. Echter Walk-Bestand: 200 PNGs
+als 200 Varianten erkannt, 200 `.import` ausgelassen; alle 400 Datei-SHA256
+vorher/nachher identisch. Keine Quellenübernahme in einen produktiven Katalog.
+Qt-Oberflächen zusätzlich als temporäre Screenshots geprüft; Spaltenbreiten
+angepasst. Das ersetzt nicht die persönliche Sichtabnahme auf dem Zielrechner.
