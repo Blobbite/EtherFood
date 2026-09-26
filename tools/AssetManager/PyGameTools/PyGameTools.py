@@ -16,11 +16,21 @@ import venv
 SOURCE = Path(__file__).resolve().parent
 COMMANDS = {
     "PyPiplineStart-SourceColor": "Pipline/SourceColor-Pipline/PyPiplineStart-SourceColor.py",
-    "PyPiplineStart-SpritesheetColor": "Pipline/SpritesheetColor-Pipline/PyPiplineStart-SpritesheetColor.py",
-    "PyPiplineStart-SpritesheetResolution": "Pipline/SpritesheetResolution-Pipline/PyPiplineStart-SpritesheetResolution.py",
-    "PyPiplineStart-SpritesheetFram16": "Pipline/SpritesheetFram16-Pipline/PyPiplineStart-SpritesheetFram16.py",
-    "PyPiplineStart-SpritesheetFram8": "Pipline/SpritesheetFram8-Pipline/PyPiplineStart-SpritesheetFram8.py",
-    "PyPiplineStart-SpritesheetFramReduce": "Pipline/SpritesheetFramReduce-Pipline/PyPiplineStart-SpritesheetFramReduce.py",
+    "PyPiplineStart-SpritesheetColor":
+        "Pipline/3-SpritesheetColor-Pipline/PyPiplineStart-SpritesheetColor.py",
+    "PyPiplineStart-SpritesheetResolution":
+        "Pipline/2-SpritesheetResolution-Pipline/PyPiplineStart-SpritesheetResolution.py",
+    "PyPiplineStart-SpritesheetFram16":
+        "Pipline/0-SpritesheetFram16-Pipline/PyPiplineStart-SpritesheetFram16.py",
+    "PyPiplineStart-SpritesheetFram8":
+        "Pipline/0-SpritesheetFram8-Pipline/PyPiplineStart-SpritesheetFram8.py",
+    "PyPiplineStart-SpritesheetFramReduce":
+        "Pipline/1-SpritesheetFramReduce-Pipline/PyPiplineStart-SpritesheetFramReduce.py",
+}
+LEGACY_PATHS = {
+    relative.replace("Pipline/0-", "Pipline/").replace("Pipline/1-", "Pipline/")
+        .replace("Pipline/2-", "Pipline/").replace("Pipline/3-", "Pipline/"): command
+    for command, relative in COMMANDS.items() if "Pipline/SourceColor-" not in relative
 }
 LEGACY_COMMANDS = {
     "PyPiplineStart-SpritsheetAll": (
@@ -37,7 +47,7 @@ INTERNAL_FILES = (
     "Pipline/PiplineToos/PySpritesheetPipeline.py",
     "Pipline/PiplineToos/PyImgFrameSelect.py",
     "Pipline/PiplineToos/PyPipelineOutputs.py",
-    *(f"Pipline/SpritesheetResolution-Pipline/{name}.py" for name in
+    *(f"Pipline/2-SpritesheetResolution-Pipline/{name}.py" for name in
       ("SComicMid", "SComicLow", "SPixelHigh", "SPixelLow", "PyGraphicsCompare", "PyGraphicsPoseCompare")),
 )
 FILES = (*COMMANDS.values(), *INTERNAL_FILES)
@@ -138,7 +148,8 @@ def prepare(install_dir: Path):
         current = install_dir / "app"
         # --update hat möglicherweise keine Schreibrechte auf /usr/local/bin.
         # Bisherige Wrapper können deshalb zunächst ihren alten Skriptpfad behalten.
-        for old_relative, replacement in LEGACY_COMMANDS.values():
+        compatibility = [*LEGACY_COMMANDS.values(), *LEGACY_PATHS.items()]
+        for old_relative, replacement in compatibility:
             if (current / old_relative).is_file():
                 destination = app / old_relative
                 destination.parent.mkdir(parents=True, exist_ok=True)

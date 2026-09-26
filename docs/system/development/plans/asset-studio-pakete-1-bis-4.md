@@ -18,7 +18,7 @@ Sitzungsspeicher.
 ## Fortschritt
 
 - [x] Paket 1: T001/T002 – Bestand, Schreibgrenzen, Architektur und Verträge.
-- [ ] Paket 2: T003–T005 – Paket/CLI, Katalog, sichere Dateiablage.
+- [x] Paket 2: T003–T005 – Paket/CLI, Katalog, sichere Dateiablage.
 - [ ] Paket 3: T006–T008 – Struktur, Dokumente/Aufgaben, Statusregeln.
 - [ ] Paket 4: T009–T012 – Desktop, Canvas, Undo/Redo, Dokumenteditor.
 - [ ] Abschluss: vier Pushes, Testnachweise und Anleitung zur Sichtprüfung.
@@ -33,6 +33,13 @@ Sitzungsspeicher.
   verdeckt. Neue Dateien werden separat geprüft.
 
 ## Befunde und Prüfstrategie
+
+Paket 1 wurde als `779e60a` gepusht. Paket 2: 26 Studio-Tests, 170
+Bestandstests und nach Ergänzung 9 Installer-Tests bestanden. Der nummerierte
+Pipelinebestand erforderte korrigierte Installer-/Testverweise; bestehende
+Wrapper-Ziele bleiben über Weiterleitungen benutzbar. Keine Bildalgorithmen
+geändert. Qt-Systembibliotheken fehlen im Container und wurden isoliert
+temporär aus Debian-Paketen bereitgestellt; Qt-Offscreen-Start erfolgreich.
 
 Baseline `python tools/control.py check` über die vorhandene `.venv`:
 201 bestanden, 37 übersprungen, 2 fehlgeschlagen (fehlende Spielentscheidungs-

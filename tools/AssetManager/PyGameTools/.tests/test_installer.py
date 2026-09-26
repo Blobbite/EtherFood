@@ -134,6 +134,21 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(list(self.bin.iterdir()), [conflict])
         self.assertEqual(conflict.read_text(), "fremder Befehl")
 
+    def test_numbered_directory_update_keeps_existing_wrappers(self):
+        self.prepared()
+        self.bin.mkdir()
+        for relative, command in installer.LEGACY_PATHS.items():
+            old_script = self.install / "app" / relative
+            old_script.parent.mkdir(parents=True, exist_ok=True)
+            old_script.write_text("raise SystemExit('old path')\n")
+            wrapper = self.bin / command
+            wrapper.write_text(installer.wrapper_content(self.install, relative))
+            wrapper.chmod(0o755)
+        with patch.object(installer.subprocess, "run"):
+            installer.prepare(self.install)
+        for command in installer.LEGACY_PATHS.values():
+            self.assertIn("usage:", self.wrapper(command, "--help").stdout)
+
     def test_resolution_update_keeps_old_wrapper_working_until_wrapper_migration(self):
         self.prepared()
         old_name = "PyPiplineStart-SpritsheetAll"

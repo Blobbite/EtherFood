@@ -30,7 +30,8 @@ class PipelineChecks:
 
     @property
     def starter(self):
-        return ROOT / f"Pipline/SpritesheetFram{self.count}-Pipline/PyPiplineStart-SpritesheetFram{self.count}.py"
+        return ROOT / (f"Pipline/0-SpritesheetFram{self.count}-Pipline/"
+                       f"PyPiplineStart-SpritesheetFram{self.count}.py")
 
     @property
     def output_stem(self):

@@ -13,10 +13,10 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 STARTERS = {
-    "Fram8": "SpritesheetFram8-Pipline/PyPiplineStart-SpritesheetFram8.py",
-    "Fram16": "SpritesheetFram16-Pipline/PyPiplineStart-SpritesheetFram16.py",
-    "Reduce": "SpritesheetFramReduce-Pipline/PyPiplineStart-SpritesheetFramReduce.py",
-    "Resolution": "SpritesheetResolution-Pipline/PyPiplineStart-SpritesheetResolution.py",
+    "Fram8": "0-SpritesheetFram8-Pipline/PyPiplineStart-SpritesheetFram8.py",
+    "Fram16": "0-SpritesheetFram16-Pipline/PyPiplineStart-SpritesheetFram16.py",
+    "Reduce": "1-SpritesheetFramReduce-Pipline/PyPiplineStart-SpritesheetFramReduce.py",
+    "Resolution": "2-SpritesheetResolution-Pipline/PyPiplineStart-SpritesheetResolution.py",
 }
 
 

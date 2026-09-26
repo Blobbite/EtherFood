@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "Pipline/PiplineToos"))
 import PyImgColorMatch as color
 
-STARTER = ROOT / "Pipline/SpritesheetColor-Pipline/PyPiplineStart-SpritesheetColor.py"
+STARTER = ROOT / "Pipline/3-SpritesheetColor-Pipline/PyPiplineStart-SpritesheetColor.py"
 spec = importlib.util.spec_from_file_location("color_pipeline", STARTER)
 pipeline = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = pipeline
@@ -199,7 +199,10 @@ class ColorPipelineTests(unittest.TestCase):
         high.mkdir(parents=True)
         for name, fill in (("hero_N", (74, 121, 45, 255)), ("hero_S", (96, 75, 52, 255))):
             Image.new("RGBA", (32, 32), fill).save(high / (name+".png"))
-        result = subprocess.run([sys.executable, str(ROOT / "Pipline/SpritesheetResolution-Pipline/PyPiplineStart-SpritesheetResolution.py"),
+        starter = ROOT / (
+            "Pipline/2-SpritesheetResolution-Pipline/PyPiplineStart-SpritesheetResolution.py"
+        )
+        result = subprocess.run([sys.executable, str(starter),
                                  str(pose), "--variants", "pixel_high", "pixel_low", "--no-gif",
                                  "--palette-profile", str(profile_path)], text=True, capture_output=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

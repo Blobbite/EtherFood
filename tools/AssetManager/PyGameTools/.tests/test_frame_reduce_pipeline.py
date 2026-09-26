@@ -18,7 +18,9 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
-STARTER = ROOT / "Pipline/SpritesheetFramReduce-Pipline/PyPiplineStart-SpritesheetFramReduce.py"
+STARTER = ROOT / (
+    "Pipline/1-SpritesheetFramReduce-Pipline/PyPiplineStart-SpritesheetFramReduce.py"
+)
 spec = importlib.util.spec_from_file_location("frame_reduce_pipeline", STARTER)
 pipeline = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = pipeline

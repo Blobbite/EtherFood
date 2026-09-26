@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / "Pipline/PiplineToos"))
 import PyImgColorMatch as color
 import PyImgFixedColors as fixed
 
-STARTER = ROOT / "Pipline/SpritesheetColor-Pipline/PyPiplineStart-SpritesheetColor.py"
+STARTER = ROOT / "Pipline/3-SpritesheetColor-Pipline/PyPiplineStart-SpritesheetColor.py"
 GRID = (16, 1)
 MATERIALS = [
     {"id": 1, "name": "Haare", "colors": [[15, 30, 50], [100, 150, 210]]},

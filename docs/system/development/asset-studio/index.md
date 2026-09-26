@@ -6,6 +6,7 @@ erst in späteren, gesondert freizugebenden Paketen.
 
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)
+- [Entwicklung, Tests und lokale Ablage](DEVELOPMENT.md)
 - [Pfadkarte](PATH_MAP.json)
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)
 - [Arbeitsplan](../plans/asset-studio-pakete-1-bis-4.md)

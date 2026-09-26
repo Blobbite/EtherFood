@@ -103,7 +103,11 @@
         }
       },
       "if": {"properties": {"status": {"const": "passed"}}},
-      "then": {"properties": {"outputs": {"minItems": 1}}}
+      "then": {"properties": {"outputs": {
+        "minItems": 1, "items": {"properties": {
+          "checks": {"minItems": 1, "items": {"const": "passed"}}
+        }}
+      }}}
     },
     "Vector2": {
       "type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number"}
