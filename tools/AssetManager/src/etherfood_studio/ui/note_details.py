@@ -11,6 +11,8 @@ from PySide6.QtWidgets import (
 from ..domain.models import StudioError
 from ..domain.notes import NOTE_COLORS, NOTE_WORD_LIMIT, note_word_count
 from .common import label, show_error
+from .appearance import appearance
+from .theme import color as theme_color, content_color
 
 
 class NoteDetails(QFrame):
@@ -68,6 +70,7 @@ class NoteDetails(QFrame):
         self.pinned.toggled.connect(self._changed)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(lambda point: self.show_context(self, point))
+        appearance().changed.connect(self._style)
         self._style()
 
     def eventFilter(self, watched, event) -> bool:
@@ -101,13 +104,15 @@ class NoteDetails(QFrame):
             self.load(self.service.catalog.get(identifier) if identifier else None)
 
     def _style(self) -> None:
-        color = NOTE_COLORS[self.color.currentData() or "yellow"][1]
+        color = content_color(NOTE_COLORS[self.color.currentData() or "yellow"][1])
         self.setStyleSheet(
-            f"QFrame#note_card {{ background: {color}; border: 1px solid #aa9868; "
-            "border-radius: 9px; }"
-            f"QLineEdit, QPlainTextEdit {{ background: {color}; color: #263238; "
-            "border: none; selection-background-color: #b3d6f5; }"
-            "QLineEdit { font-weight: bold; } QLabel { color: #52606a; background: transparent; }"
+            f"QFrame#note_card {{ background: {color}; "
+            f"border: 1px solid {theme_color('note_border')}; border-radius: 9px; }}"
+            f"QLineEdit, QPlainTextEdit {{ background: {color}; color: {theme_color('note_text')}; "
+            f"border: none; selection-background-color: {theme_color('selection')}; "
+            f"selection-color: {theme_color('selection_text')}; }}"
+            "QLineEdit { font-weight: bold; }"
+            f"QLabel {{ color: {theme_color('note_muted')}; background: transparent; }}"
         )
         # Native Qt themes may still paint the text viewport with their Base brush.
         palette = self.editor.palette()

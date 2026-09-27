@@ -11,6 +11,7 @@ from ..common import button, label
 
 class ChecklistEditor(QWidget):
     changed = Signal()
+    edit_requested = Signal()
 
     def __init__(self, items=None, parent=None, *, editable=True) -> None:
         super().__init__(parent)
@@ -24,6 +25,9 @@ class ChecklistEditor(QWidget):
         self.items.setObjectName("checklist_items")
         self.items.setMaximumHeight(155)
         layout.addWidget(self.items)
+        self.empty_button = button("To-dos hinzufügen …", "empty_checklist_edit",
+                                   self.edit_requested.emit)
+        layout.addWidget(self.empty_button)
         if editable:
             actions = QHBoxLayout()
             self.text = QLineEdit()
@@ -35,6 +39,8 @@ class ChecklistEditor(QWidget):
             actions.addWidget(button("+ Punkt", "checklist_add", self.add))
             actions.addWidget(button("Entfernen", "checklist_remove", self.remove))
             layout.addLayout(actions)
+        else:
+            layout.addStretch(1)
         self.fill(items or [])
         self.items.itemChanged.connect(self.notify)
 
@@ -67,7 +73,9 @@ class ChecklistEditor(QWidget):
         values = self.value()
         done = sum(item["done"] for item in values)
         self.summary.setText(f"To-dos: {done}/{len(values)} erledigt" if values else
-            "Noch keine To-dos. Punkte beim Anlegen oder Bearbeiten ergänzen.")
+                             "Noch keine To-dos.")
+        self.empty_button.setVisible(not self.editable and not values)
+        self.items.setVisible(self.editable or bool(values))
 
     def notify(self, *args) -> None:
         self.caption()

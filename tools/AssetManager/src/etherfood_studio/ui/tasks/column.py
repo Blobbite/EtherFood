@@ -5,6 +5,7 @@ from PySide6.QtGui import QDrag
 from PySide6.QtWidgets import QAbstractItemView, QToolButton, QTreeWidget, QTreeWidgetItem
 
 from ...application.kanban_service import TaskGroup
+from ..appearance import appearance
 from ..presentation import KIND_NAMES, kind_icon, record_icon, status_icon
 
 TASK_ROLE = Qt.ItemDataRole.UserRole
@@ -57,10 +58,21 @@ class KanbanColumn(QTreeWidget):
         self.setStyleSheet(
             "QTreeWidget { border: 1px solid palette(mid); border-radius: 6px; }"
             "QTreeWidget::item { padding: 5px 2px; margin: 2px; border-radius: 4px; }"
-            "QTreeWidget::item:selected { background: #dbeafe; color: #172c47; }"
+            "QTreeWidget::item:selected { background: palette(highlight); "
+            "color: palette(highlighted-text); }"
         )
         self.itemSelectionChanged.connect(lambda: board.select_item(self))
         self.itemDoubleClicked.connect(self._open)
+        appearance().changed.connect(self.refresh_icons)
+
+    def refresh_icons(self) -> None:
+        for identifier, item in self.items_by_id.items():
+            record = self.board.records.get(identifier)
+            if record:
+                item.setIcon(0, record_icon(record))
+        for key, item in self.groups.items():
+            if key[-1].startswith("kind:"):
+                item.setIcon(0, status_icon(self.status, issue=key[-1] == "kind:issue"))
 
     def keyPressEvent(self, event) -> None:
         item = self.currentItem()

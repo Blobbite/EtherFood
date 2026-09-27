@@ -9,9 +9,8 @@ from PySide6.QtCore import QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QMainWindow,
-    QMessageBox, QPlainTextEdit, QScrollArea, QSpinBox, QSplitter, QTabWidget, QToolBar,
-    QTreeWidgetItem,
-    QVBoxLayout, QWidget,
+    QMessageBox, QPlainTextEdit, QScrollArea, QSizePolicy, QSpinBox, QSplitter, QTabWidget,
+    QToolBar, QTreeWidgetItem, QTreeWidgetItemIterator, QVBoxLayout, QWidget,
 )
 
 from ..application.commands import Commands
@@ -38,6 +37,9 @@ from .tasks.panel import TasksPanel
 from .tasks.kanban import KanbanPanel
 from .jobs import JobsDialog
 from .build_plan import BuildPlanDialog
+from .appearance import AppearanceDialog, BUTTON_STYLES, appearance
+from .action_icons import action_icon
+from .theme import color
 
 
 class MainWindow(QMainWindow):
@@ -48,6 +50,7 @@ class MainWindow(QMainWindow):
         self.resize(1440, 900)
         self.setMinimumSize(1050, 640)
         self.settings = settings or QSettings("EtherFood", "AssetStudio")
+        appearance().configure(self.settings)
         self.project: ProjectService | None = None
         self.commands: Commands | None = None
         self.selected_id: str | None = None
@@ -57,6 +60,8 @@ class MainWindow(QMainWindow):
         self.build_dialog = None
         self._close_after_jobs = False
         self._build_ui()
+        appearance().changed.connect(self.apply_appearance)
+        self.apply_appearance()
         self.navigation = Navigation(self)
         geometry = self.settings.value("geometry")
         if geometry is not None:
@@ -66,7 +71,9 @@ class MainWindow(QMainWindow):
     def _build_ui(self) -> None:
         toolbar = QToolBar("Projekt")
         toolbar.setObjectName("project_toolbar")
-        self.addToolBar(toolbar)
+        toolbar.setMovable(False)
+        toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.project_toolbar = toolbar
         self._action(toolbar, "Neues Projekt", self.new_dialog, "Ctrl+N", "new_project")
         self._action(toolbar, "Öffnen …", self.open_dialog, "Ctrl+O", "open_project")
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
@@ -82,10 +89,17 @@ class MainWindow(QMainWindow):
         self._action(toolbar, "Buildplan …", self.show_build_plan, "", "show_build_plan")
         for text in ("Bildpipeline (später)", "Godot bereitstellen (später)"):
             action = toolbar.addAction(text)
+            action.setObjectName("image_pipeline" if text.startswith("Bild") else "godot_export")
             action.setEnabled(False)
             action.setToolTip("Produktive Bildverarbeitung/Godot folgen in späteren Issues.")
         center = QWidget()
         outer = QVBoxLayout(center)
+        tools_row = QHBoxLayout()
+        tools_row.addWidget(toolbar, 1)
+        self.settings_button = button("Einstellungen", "appearance_settings_button",
+                                      self.show_appearance_settings)
+        tools_row.addWidget(self.settings_button)
+        outer.addLayout(tools_row)
         self.breadcrumb = label(
             "Projekt öffnen oder ein neues Projekt in einem leeren Ordner anlegen.", "breadcrumb",
         )
@@ -168,10 +182,6 @@ class MainWindow(QMainWindow):
         property_layout.addWidget(label("Karteneigenschaften", "properties_title"))
         self.workflow_status = label("Status / nächster Schritt: Karte auswählen.",
                                       "workflow_status")
-        self.workflow_status.setStyleSheet(
-            "QLabel { background: #fff3cf; color: #493811; padding: 8px; "
-            "border: 1px solid #c9a957; border-radius: 4px; font-weight: bold; }"
-        )
         property_layout.addWidget(self.workflow_status)
         self.usage = label("Herkunft und gemeinsame Verwendungen", "asset_usage")
         self.usage.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -240,6 +250,30 @@ class MainWindow(QMainWindow):
         search.triggered.connect(self._focus_search)
         self.addAction(search)
         self.statusBar().showMessage("Bereit · Projekt wählen")
+
+    def apply_appearance(self) -> None:
+        self.project_toolbar.setToolButtonStyle(BUTTON_STYLES[appearance().buttons])
+        for action in self.project_toolbar.actions():
+            if action.objectName():
+                action.setIcon(action_icon(action.objectName()))
+        self.workflow_status.setStyleSheet(
+            f"QLabel {{ background: {color('warning')}; color: {color('warning_text')}; "
+            f"padding: 8px; border: 1px solid {color('border')}; "
+            "border-radius: 4px; font-weight: bold; }")
+        if self.project:
+            records = {record.id: record for record in self.project.catalog.records()}
+            iterator = QTreeWidgetItemIterator(self.tree)
+            while iterator.value():
+                item = iterator.value()
+                record = records.get(item.data(0, Qt.UserRole))
+                if record and record.kind in {"task", "issue"}:
+                    item.setIcon(0, record_icon(record))
+                iterator += 1
+
+    def show_appearance_settings(self) -> None:
+        dialog = AppearanceDialog(self)
+        dialog.exec()
+        dialog.deleteLater()
 
     def open_document(self, identifier: str) -> None:
         self.open_content(identifier)

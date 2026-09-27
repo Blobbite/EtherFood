@@ -4,6 +4,8 @@ from PySide6.QtCore import QEvent, QPoint, QSize, Qt, Signal
 from PySide6.QtWidgets import QApplication, QListView, QListWidget
 
 from ..domain.notes import NOTE_POSITION_LIMIT
+from .appearance import appearance
+from .theme import color
 
 POSITION_ROLE = Qt.UserRole + 2
 BOARD_COLOR = "#c5b493"
@@ -28,11 +30,15 @@ class NoteBoard(QListWidget):
         self.setWrapping(not stacked)
         self.setGridSize(QSize(334, 284))
         self.setSpacing(4)
-        self.setStyleSheet(f"QListWidget#notes_board {{ background: {BOARD_COLOR}; "
-                           "border: 1px solid #aa9878; border-radius: 8px; }"
-                           "QListWidget::item:selected { background: transparent; }")
+        appearance().changed.connect(self.apply_appearance)
+        self.apply_appearance()
         self.setHorizontalScrollMode(QListView.ScrollPerPixel)
         self.setVerticalScrollMode(QListView.ScrollPerPixel)
+
+    def apply_appearance(self) -> None:
+        self.setStyleSheet(f"QListWidget#notes_board {{ background: {color('board')}; "
+                           f"border: 1px solid {color('board_border')}; border-radius: 8px; }}"
+                           "QListWidget::item:selected { background: transparent; }")
 
     def attach_handle(self, item, handle) -> None:
         handle.setVisible(self.free)

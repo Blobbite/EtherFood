@@ -42,6 +42,7 @@ class TaskPanel(QWidget):
         detail_layout.addWidget(self.detail_title)
         self.checklist = ChecklistEditor(editable=False)
         self.checklist.changed.connect(self.save_checklist)
+        self.checklist.edit_requested.connect(lambda: self.edit_current(focus_todos=True))
         detail_layout.addWidget(self.checklist, 1)
         detail_layout.addWidget(label("Zusatzinformationen", "task_information_heading"))
         self.details.setMaximumHeight(185)
@@ -84,6 +85,7 @@ class TaskPanel(QWidget):
         self.status_button.setEnabled(is_task)
         self.checklist.fill([])
         self.checklist.setEnabled(False)
+        self.checklist.setVisible(is_task)
         if row is None or not self.project:
             self.details.clear()
             return
@@ -124,15 +126,18 @@ class TaskPanel(QWidget):
     def show_record(self, identifier: str) -> None:
         raise NotImplementedError
 
-    def edit_current(self) -> None:
+    def edit_current(self, *, focus_todos: bool = False) -> None:
         if not self.selected_record or not self.project:
             return
         record = self.project.catalog.get(self.selected_record.id)
         if record.kind == "document":
             self.document_requested.emit(record.id)
-        elif TaskEditor(IssueService(self.project), record, self).exec() == QDialog.Accepted:
-            self.refresh()
-            self.changed.emit()
+        else:
+            dialog = TaskEditor(IssueService(self.project), record, self, focus_todos=focus_todos)
+            if dialog.exec() == QDialog.Accepted:
+                self.refresh()
+                self.changed.emit()
+            dialog.deleteLater()
 
     def new_item(self, issue: bool) -> None:
         if not self.project or not self.current_card:

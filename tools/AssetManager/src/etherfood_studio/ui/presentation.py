@@ -3,6 +3,7 @@
 from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap, QPolygonF
 from PySide6.QtWidgets import QApplication, QStyle
+from .theme import is_dark
 
 KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
               "asset": "Asset", "package": "Paket", "note": "Notiz", "document": "Dokument",
@@ -46,6 +47,8 @@ def status_icon(status: str, *, issue: bool = False) -> QIcon:
         colors = {"open": "#65778b", "in_progress": "#2878c8",
                   "blocked": "#b43a46", "done": "#21844a"}
         color = QColor(colors.get(status, colors["open"]))
+        if is_dark():
+            color = color.lighter(150)
         painter.setPen(QPen(color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         if status == "done":
             painter.setPen(QPen(color, 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))

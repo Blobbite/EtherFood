@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..presentation import KIND_NAMES, kind_icon, status_icon
+from ..theme import color as theme_color, content_color
 
 if TYPE_CHECKING:
     from .view import Canvas
@@ -80,6 +81,7 @@ class CardItem(QGraphicsRectItem):
                  view: "Canvas", width: float = 250, height: float = 100) -> None:
         super().__init__(0, 0, width, height)
         self.identifier, self.view = identifier, view
+        self.kind = kind
         self.before = QPointF()
         self.drag_origins = {}
         self.setData(0, identifier)
@@ -102,7 +104,28 @@ class CardItem(QGraphicsRectItem):
             self.texts.append((child, text))
         self.ports = {side: Port(self, side) for side in ("top", "right", "bottom", "left")}
         self.grip = SizeGrip(self)
+        self.apply_appearance()
         self.resize(width, height)
+
+    def apply_appearance(self) -> None:
+        fill = theme_color("global_card" if self.kind == "global" else "base")
+        if hasattr(self, "content_color"):
+            fill = content_color(self.content_color)
+        self.setBrush(QColor(fill))
+        self.setPen(QPen(QColor(theme_color(
+            "global_border" if self.kind == "global" else "border")), 1.5))
+        for (child, text), name in zip(self.texts, ("muted", "text", "warning_text")):
+            child.setBrush(QColor(theme_color(name)))
+        for port in self.ports.values():
+            port.setBrush(QColor(theme_color("port")))
+            port.setPen(QPen(QColor(theme_color("port_border")), 1.5))
+        self.grip.setBrush(QColor(theme_color("alternate")))
+        self.grip.setPen(QPen(QColor(theme_color("border"))))
+        for mark in self.grip.childItems():
+            mark.setBrush(QColor(theme_color("text")))
+        if hasattr(self, "status") and self.kind in {"task", "issue"}:
+            self.icon.setPixmap(status_icon(self.status, issue=self.kind == "issue").pixmap(
+                52 if self.kind == "issue" else 26, 26))
 
     def shape(self) -> QPainterPath:
         path = QPainterPath()
@@ -114,7 +137,7 @@ class CardItem(QGraphicsRectItem):
         painter.save()
         pen = QPen(self.pen())
         if self.isSelected():
-            pen.setColor(QColor("#147fb0"))
+            pen.setColor(QColor(theme_color("accent")))
         painter.setPen(pen)
         painter.setBrush(self.brush())
         painter.drawPath(self.shape())
@@ -167,6 +190,8 @@ class IconCardItem(CardItem):
                  view: "Canvas", color: str = "#e3effb", status: str = "open") -> None:
         super().__init__(identifier, title, kind, summary, view, 144, 62)
         self.kind = kind
+        self.content_color = color
+        self.status = status
         self.grip.hide()
         self.setBrush(QColor(color))
         icon = status_icon(status, issue=kind == "issue") if kind in {"task", "issue"} \
@@ -177,6 +202,7 @@ class IconCardItem(CardItem):
         self.texts[1][0].setPos(69 if kind == "issue" else 45, 30)
         self.texts[2][0].hide()
         self.resize(144, 62)
+        self.apply_appearance()
         self.setToolTip(title + "\n" + summary + "\nDoppelklick: öffnen · Port ziehen: zuordnen")
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:

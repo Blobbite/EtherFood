@@ -7,10 +7,13 @@ from PySide6.QtCore import QEvent, QSignalBlocker, Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QFontDatabase, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QFrame, QHBoxLayout, QInputDialog, QMenu, QPlainTextEdit,
-    QPushButton, QScrollArea, QStackedLayout, QVBoxLayout, QWidget,
+    QScrollArea, QStackedLayout, QVBoxLayout, QWidget,
 )
 
+from ..appearance import ActionButton, appearance
+from .markdown_source import MarkdownTable
 from .preview import HEADING_SIZES, SafePreview
+from .table_editor import MarkdownTableEditor
 
 MAX_BLOCK_WIDGETS = 200
 
@@ -57,7 +60,10 @@ class MarkdownBlock(QWidget):
         self.focus_timer.timeout.connect(lambda: self.host.finish_if_unfocused(self))
         self.stack.addWidget(self.view)
         self.stack.addWidget(self.source)
+        self.table_editor = None
         self.view.activated.connect(lambda: host.activate(self))
+        self.view.checkbox_toggled.connect(self.toggle_checkbox)
+        self.view.set_checkbox_read_only(host.isReadOnly())
         self.source.textChanged.connect(self.changed)
         for widget in (self.view, self.source):
             widget.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -67,11 +73,38 @@ class MarkdownBlock(QWidget):
 
     def render(self) -> None:
         try:
-            self.view.preview(self.source.toPlainText() + "\n\n" + self.references)
+            self.view.preview(self.host.toPlainText()[self.start:self.end]
+                              + "\n\n" + self.references)
         except (RuntimeError, ValueError):
             self.view.setPlainText("Vorschau nicht verfügbar; anklicken und Quelltext bearbeiten.")
         self.stack.setCurrentWidget(self.view)
+        model = MarkdownTable.parse(self.host.toPlainText()[self.start:self.end])
+        if self.table_editor:
+            self.stack.removeWidget(self.table_editor)
+            self.table_editor.deleteLater()
+            self.table_editor = None
+        if model is not None:
+            self.table_editor = MarkdownTableEditor(model, self.host.isReadOnly(),
+                                                     references=self.references)
+            self.table_editor.source_changed.connect(self.edit_structured)
+            self.table_editor.undo_requested.connect(self.host.undo)
+            self.table_editor.redo_requested.connect(self.host.redo)
+            self.stack.addWidget(self.table_editor)
+            self.stack.setCurrentWidget(self.table_editor)
         self.fit()
+
+    def edit_structured(self, value: str) -> None:
+        if self.host.isReadOnly():
+            return
+        with QSignalBlocker(self.source):
+            self.source.setPlainText(value)
+        self.host.replace_block(self, value)
+        self.fit()
+
+    def toggle_checkbox(self, offset: int, checked: bool) -> None:
+        value = self.host.toPlainText()[self.start:self.end]
+        if not self.host.isReadOnly() and 0 <= offset < len(value):
+            self.edit_structured(value[:offset] + ("x" if checked else " ") + value[offset + 1:])
 
     def changed(self) -> None:
         self.host.replace_block(self, self.source.toPlainText())
@@ -89,12 +122,20 @@ class MarkdownBlock(QWidget):
     def fit(self) -> None:
         width = max(80, self.width() - 14)
         self.view.document().setTextWidth(width)
+        if self.table_editor and self.stack.currentWidget() is self.table_editor:
+            self.setFixedHeight(self.table_editor.sizeHint().height())
+            return
         if self.stack.currentWidget() is self.source:
-            lines = self.source.document().size().height()
+            document = self.source.document()
+            last = max(len(self.source.toPlainText().rstrip().splitlines()) - 1,
+                       self.source.textCursor().blockNumber(), 0)
+            lines = sum(max(1, document.findBlockByNumber(i).layout().lineCount())
+                        for i in range(last + 1))
             height = lines * self.source.fontMetrics().lineSpacing()
         else:
             height = self.view.document().size().height()
         self.setFixedHeight(max(48, min(1200, int(height + 18))))
+        self.view.position_checkboxes()
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
@@ -133,8 +174,7 @@ class LiveMarkdownEditor(QWidget):
         self.mode_buttons = QButtonGroup(self)
         for title, mode, hint in (("MD", "md", "Gerendertes Markdown; Blöcke direkt bearbeiten"),
                                   ("Code", "code", "Vollständigen Markdown-Quelltext bearbeiten")):
-            button = QPushButton(title)
-            button.setObjectName("markdown_mode_" + mode)
+            button = ActionButton(title, "markdown_mode_" + mode)
             button.setAccessibleName(hint)
             button.setToolTip(hint)
             button.setCheckable(True)
@@ -143,9 +183,22 @@ class LiveMarkdownEditor(QWidget):
             self.mode_buttons.addButton(button)
             modes.addWidget(button)
         modes.addStretch(1)
+        self.alignment_buttons = QButtonGroup(self)
+        for title, key in (("Links", "left"), ("Mittig", "center"), ("Rechts", "right"),
+                           ("Volle Breite", "full")):
+            button = ActionButton(title, "document_align_" + key)
+            button.setCheckable(True)
+            button.setToolTip("Dokumentationsfläche: " + title)
+            button.clicked.connect(lambda checked=False, value=key: self.set_alignment(value))
+            self.alignment_buttons.addButton(button)
+            modes.addWidget(button)
         layout.addLayout(modes)
-        self.surface = QStackedLayout()
-        layout.addLayout(self.surface, 1)
+        self.surface_row = QHBoxLayout()
+        self.surface_widget = QWidget()
+        self.surface = QStackedLayout(self.surface_widget)
+        self.surface.setContentsMargins(0, 0, 0, 0)
+        self.surface_row.addWidget(self.surface_widget)
+        layout.addLayout(self.surface_row, 1)
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.page = QWidget()
@@ -166,7 +219,24 @@ class LiveMarkdownEditor(QWidget):
         self.surface.addWidget(self.code_source)
         self.scroll.setContextMenuPolicy(Qt.CustomContextMenu)
         self.scroll.customContextMenuRequested.connect(self.show_context)
+        settings = appearance().settings
+        self.set_alignment(str(settings.value("appearance/document_alignment", "full"))
+                           if settings is not None else "full", persist=False)
         self.rebuild()
+
+    def set_alignment(self, alignment: str, *, persist: bool = True) -> None:
+        self.alignment = alignment if alignment in {"left", "center", "right", "full"} else "full"
+        self.surface_widget.setMaximumWidth(16777215 if self.alignment == "full" else 820)
+        self.surface_row.setAlignment(self.surface_widget, {
+            "left": Qt.AlignLeft, "center": Qt.AlignHCenter, "right": Qt.AlignRight,
+            "full": Qt.AlignmentFlag(0),
+        }[self.alignment])
+        for button in self.alignment_buttons.buttons():
+            button.setChecked(button.objectName() == "document_align_" + self.alignment)
+        settings = appearance().settings
+        if persist and settings is not None:
+            settings.setValue("appearance/document_alignment", self.alignment)
+            settings.sync()
 
     def toPlainText(self) -> str:
         return self._text
@@ -183,6 +253,9 @@ class LiveMarkdownEditor(QWidget):
         self.code_source.setReadOnly(value)
         for block in self.blocks:
             block.source.setReadOnly(value)
+            block.view.set_checkbox_read_only(value)
+            if block.table_editor:
+                block.table_editor.set_read_only(value)
         if value and self.active:
             self.active.render()
             self.active = None
@@ -289,6 +362,10 @@ class LiveMarkdownEditor(QWidget):
             return
         if self.active and self.active is not block:
             self.active.render()
+        if block.table_editor:
+            block.stack.setCurrentWidget(block.table_editor)
+            block.table_editor.table.setFocus()
+            return
         self.active = block
         block.style_source()
         block.stack.setCurrentWidget(block.source)
@@ -298,6 +375,13 @@ class LiveMarkdownEditor(QWidget):
     def finish_if_unfocused(self, block: MarkdownBlock) -> None:
         if (not self._rebuilding and self.active is block and not block.source.hasFocus()
                 and QApplication.activePopupWidget() is None):
+            focus = QApplication.focusWidget()
+            if focus and any(other is not block and other.isAncestorOf(focus)
+                             for other in self.blocks):
+                # Do not destroy the table cell/checkbox which just received focus.
+                self.active = None
+                block.render()
+                return
             self.rebuild()
 
     def replace_block(self, block: MarkdownBlock, value: str) -> None:
@@ -336,8 +420,8 @@ class LiveMarkdownEditor(QWidget):
             self.textChanged.emit()
 
     def hasFocus(self) -> bool:
-        return (super().hasFocus() or self.code_source.hasFocus()
-                or bool(self.active and self.active.source.hasFocus()))
+        focus = QApplication.focusWidget()
+        return super().hasFocus() or bool(focus and self.isAncestorOf(focus))
 
     def setFocus(self, reason=Qt.OtherFocusReason) -> None:
         if self.mode == "code":
@@ -348,11 +432,23 @@ class LiveMarkdownEditor(QWidget):
             super().setFocus(reason)
 
     def keyPressEvent(self, event) -> None:
-        if self.mode == "code":
+        if event.matches(QKeySequence.Undo):
+            self.undo()
+            event.accept()
+        elif event.matches(QKeySequence.Redo):
+            self.redo()
+            event.accept()
+        elif self.mode == "code":
             self.code_source.keyPressEvent(event)
             event.accept()
         elif not self._read_only:
-            self.activate(self.active or self.blocks[0])
+            focus = QApplication.focusWidget()
+            block = next((block for block in self.blocks
+                          if focus and block.isAncestorOf(focus)), self.active or self.blocks[0])
+            if block.table_editor or (focus and focus.objectName() == "markdown_checkbox"):
+                super().keyPressEvent(event)
+                return
+            self.activate(block)
             # Calling sendEvent here would propagate ignored modifier keys back
             # through this parent and recurse indefinitely.
             self.active.source.keyPressEvent(event)

@@ -37,6 +37,8 @@ def test_live_qprocess_keeps_gui_responsive_and_cancels(qt_app, tmp_path):
     wait_for(lambda: log.exists() and b"child-ready" in log.read_bytes())
     assert window.select_card(ids["two"])
     window.tabs.setCurrentWidget(window.notes)
+    # Process readiness may arrive before three timer intervals on a fast machine.
+    wait_for(lambda: len(ticks) > 2)
     assert window.tabs.currentWidget() is window.notes and len(ticks) > 2
     assert not window.open_project(root)  # Never close a live worker's catalog.
     dialog.runner.cancel(request.job_id)

@@ -1,5 +1,6 @@
 """Revision-safe task editor that keeps local text on conflicts or cancelled closes."""
 
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QComboBox, QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox, QPlainTextEdit,
     QWidget,
@@ -12,9 +13,11 @@ from .checklist import ChecklistEditor
 
 
 class TaskEditor(QDialog):
-    def __init__(self, service: IssueService, record: Record, parent: QWidget) -> None:
+    def __init__(self, service: IssueService, record: Record, parent: QWidget,
+                 *, focus_todos: bool = False) -> None:
         super().__init__(parent)
         self.service, self.record = service, record
+        self.focus_todos_on_open = focus_todos
         self.setObjectName("task_editor")
         self.setWindowTitle("Issue bearbeiten" if record.kind == "issue" else "Aufgabe bearbeiten")
         self.resize(680, 680)
@@ -39,6 +42,18 @@ class TaskEditor(QDialog):
         self.buttons.accepted.connect(self.save)
         self.buttons.rejected.connect(self.reject)
         layout.addRow(self.buttons)
+        if focus_todos:
+            self.checklist.text.setFocus(Qt.OtherFocusReason)
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        if self.focus_todos_on_open:
+            QTimer.singleShot(0, self.focus_todos)
+
+    def focus_todos(self) -> None:
+        if self.isVisible():
+            self.activateWindow()
+            self.checklist.text.setFocus(Qt.OtherFocusReason)
 
     def dirty(self) -> bool:
         return (self.title.text() != self.record.title

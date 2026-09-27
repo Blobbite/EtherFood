@@ -16,6 +16,7 @@ from etherfood_studio.application.issue_service import IssueService
 from etherfood_studio.domain.models import new_id
 from etherfood_studio.ui.main_window import MainWindow
 from etherfood_studio.ui.tasks.column import MIME_TYPE
+from etherfood_studio.ui.tasks.editor import TaskEditor
 
 
 @pytest.fixture
@@ -43,6 +44,36 @@ def seed(window):
             for key in ("root", "act", "one", "two", "hero")}
     window.refresh()
     return ids, rows
+
+
+@pytest.mark.parametrize("issue", [False, True])
+def test_empty_todo_button_opens_editor_focused_on_new_item(window, qt_app, issue):
+    service = IssueService(window.project)
+    record = service.create(window.project.project().id, "Leere Aufgabe", "Text", issue=issue)
+    board = window.tasks
+    board.refresh()
+    board.show_record(record.id)
+    entry = board.checklist.empty_button
+    assert entry.isVisible() and not board.checklist.items.isVisible()
+    observed = []
+
+    def fill():
+        popup = QApplication.activeModalWidget()
+        assert isinstance(popup, TaskEditor)
+        # A scheduled test click can run before native activation when widgets are created.
+        QTest.qWait(10)
+        observed.append(popup.checklist.text.hasFocus())
+        QTest.keyClicks(popup.checklist.text, "Erster Testpunkt")
+        assert popup.save()
+
+    QTimer.singleShot(20, fill)
+    QTest.mouseClick(entry, Qt.LeftButton)
+    qt_app.processEvents()
+    saved = window.project.catalog.get(record.id)
+    assert observed == [True]
+    assert saved.data["checklist"][0]["text"] == "Erster Testpunkt"
+    assert saved.revision_no == record.revision_no + 1
+    assert not board.checklist.empty_button.isVisible() and board.checklist.items.isVisible()
 
 
 def send_drop(board, target, mime, qt_app):

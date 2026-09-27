@@ -26,6 +26,9 @@ To-dos im festen rechten Detailbereich und darunter Beschreibung/Fundstelle
 in einem kleinen Informationsfeld, ohne den Bereich zu wechseln.
 **Zum Bezug** navigiert ausdrücklich zur Eigentümerkarte. Doppelklick oder
 Eingabetaste öffnet den vorhandenen Bearbeitungsdialog genau einmal.
+Wenn noch keine To-dos vorhanden sind, führt **To-dos hinzufügen …** direkt
+zur To-do-Eingabe desselben Dialogs. Das gilt auch für Issues und für die
+kompakte Aufgabenansicht im Asset-Menü; ein Abbruch erzeugt keinen Unterpunkt.
 
 ## Spalten, Filter und Speicherung
 

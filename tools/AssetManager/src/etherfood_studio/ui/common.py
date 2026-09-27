@@ -5,11 +5,11 @@ from typing import Callable
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QMessageBox, QPushButton, QWidget
 
+from .appearance import ActionButton
+
 
 def button(text: str, name: str, callback: Callable, parent: QWidget | None = None) -> QPushButton:
-    widget = QPushButton(text, parent)
-    widget.setObjectName(name)
-    widget.setAccessibleName(text)
+    widget = ActionButton(text, name, parent)
     widget.clicked.connect(callback)
     return widget
 

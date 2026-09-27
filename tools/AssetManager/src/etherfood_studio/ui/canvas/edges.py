@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QGraphicsEllipseItem, QGraphicsItem, QGraphicsPathItem, QGraphicsRectItem,
     QGraphicsSceneMouseEvent, QGraphicsSimpleTextItem, QStyleOptionGraphicsItem, QWidget,
 )
+from ..theme import color as theme_color
 
 if TYPE_CHECKING:
     from .view import Canvas
@@ -86,6 +87,20 @@ class EdgeItem(QGraphicsPathItem):
         self.handles = {end: Endpoint(self, end) for end in ("source", "target")}
         for handle in self.handles.values():
             view.scene().addItem(handle)
+        self.apply_appearance()
+
+    def apply_appearance(self) -> None:
+        color = QColor(theme_color("edge_" + self.kind))
+        pen = QPen(self.pen())
+        pen.setColor(color)
+        self.setPen(pen)
+        self.caption.setBrush(QColor(theme_color("handle" if self.isSelected() else "base")))
+        self.caption.setPen(QPen(color, 0.6))
+        for text in self.caption.childItems():
+            text.setBrush(color)
+        for handle in self.handles.values():
+            handle.setBrush(QColor(theme_color("handle")))
+            handle.setPen(QPen(QColor(theme_color("handle_border")), 2))
 
     def set_edge_tooltip(self) -> str:
         source = self.view.items_by_id[self.source].toolTip().split("\n")[0]
@@ -101,7 +116,7 @@ class EdgeItem(QGraphicsPathItem):
         self.setPath(curve(start, end))
         self.handles["source"].setPos(self.anchor(start_rect, end_rect.center(), 18))
         self.handles["target"].setPos(self.anchor(end_rect, start_rect.center(), 18))
-        self.caption.setBrush(QColor("#fff1be" if self.isSelected() else "#ffffff"))
+        self.caption.setBrush(QColor(theme_color("handle" if self.isSelected() else "base")))
         for side, handle in self.handles.items():
             handle.setVisible(self.isSelected() and not (
                 self.kind == "belongs_to" and side == "source"))

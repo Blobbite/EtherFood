@@ -8,7 +8,8 @@ from PySide6.QtWidgets import (
 from ...application.document_service import DocumentService
 from ...application.issue_service import IssueService
 from ..common import label
-from ..presentation import KIND_NAMES, kind_icon, record_icon
+from ..appearance import appearance
+from ..presentation import KIND_NAMES, kind_icon, record_icon, status_icon
 from .base import STATE_NAMES, TaskPanel
 
 
@@ -71,6 +72,14 @@ class TasksPanel(TaskPanel):
         self.query.textChanged.connect(self.refresh)
         for widget in (self.scope, self.state, self.kind, self.asset_type):
             widget.currentIndexChanged.connect(self.refresh)
+        appearance().changed.connect(self.refresh_icons)
+
+    def refresh_icons(self) -> None:
+        for index in range(self.results.count()):
+            item = self.results.item(index)
+            data = item.data(Qt.UserRole + 2)
+            if data and data[0] in {"task", "issue"}:
+                item.setIcon(status_icon(data[1], issue=data[0] == "issue"))
 
     def refresh_scopes(self) -> None:
         if not self.project:
@@ -114,6 +123,7 @@ class TasksPanel(TaskPanel):
                                    f"{KIND_NAMES[row.kind]} · {row.title} · {state}")
             item.setData(Qt.ItemDataRole.UserRole, row.id)
             item.setData(Qt.ItemDataRole.UserRole + 1, row.owner_id)
+            item.setData(Qt.ItemDataRole.UserRole + 2, (row.kind, row.data.get("status", "open")))
             item.setToolTip(self.project.breadcrumb(row.owner_id))
             self.results.addItem(item)
             if row.id == selected:

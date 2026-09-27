@@ -12,6 +12,8 @@ from ...application.project_service import ProjectService
 from ...application.status_service import StatusService
 from ...domain.notes import NOTE_COLORS, is_note
 from ..presentation import DOCUMENT_COLOR
+from ..appearance import appearance
+from ..theme import color as theme_color
 from .edges import EdgeItem, curve, place_labels
 from .items import CardItem, IconCardItem, KIND_NAMES
 
@@ -35,7 +37,7 @@ class Canvas(QGraphicsView):
         self.setAccessibleName("Projektkarten; Doppelklick klappt Gruppen ein oder aus")
         self.setScene(QGraphicsScene(self))
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self.setBackgroundBrush(QColor("#f0f4f7"))
+        self.setBackgroundBrush(QColor(theme_color("canvas")))
         self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
         self.setToolTip("Strg+Klick oder Auswahlrahmen: mehrere Karten · "
                         "Mittlere Maustaste: verschieben · Strg+Mausrad: zoomen")
@@ -50,6 +52,17 @@ class Canvas(QGraphicsView):
         self.preview: QGraphicsPathItem | None = None
         self.scene().selectionChanged.connect(self._selection)
         self.setMinimumWidth(300)
+        appearance().changed.connect(self.apply_appearance)
+
+    def apply_appearance(self) -> None:
+        self.setBackgroundBrush(QColor(theme_color("canvas")))
+        for item in self.items_by_id.values():
+            item.apply_appearance()
+        for edge in self.edges_by_id.values():
+            edge.apply_appearance()
+        if self.preview:
+            self.preview.setPen(QPen(QColor(theme_color("accent")), 2, Qt.DashLine))
+        self.viewport().update()
 
     def _selection(self) -> None:
         self.update_edges()
@@ -234,7 +247,7 @@ class Canvas(QGraphicsView):
         self.cancel_connection()
         self.connection = (fixed_id, start, edge_id, moving)
         self.preview = QGraphicsPathItem()
-        self.preview.setPen(QPen(QColor("#147fb0"), 2, Qt.PenStyle.DashLine))
+        self.preview.setPen(QPen(QColor(theme_color("accent")), 2, Qt.PenStyle.DashLine))
         self.preview.setZValue(20)
         self.preview.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self.scene().addItem(self.preview)
@@ -309,9 +322,12 @@ class Canvas(QGraphicsView):
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.MiddleButton:
+            self.setFocus(Qt.MouseFocusReason)
             self._pan_anchor = event.position()
             self._pan_cursor = self.viewport().cursor()
             self.viewport().setCursor(Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+        elif self._pan_anchor is not None or event.button() in {Qt.BackButton, Qt.ForwardButton}:
             event.accept()
         else:
             super().mousePressEvent(event)
@@ -333,6 +349,8 @@ class Canvas(QGraphicsView):
         if event.button() == Qt.MouseButton.MiddleButton and self._pan_anchor is not None:
             self._stop_panning()
             event.accept()
+        elif self._pan_anchor is not None or event.button() in {Qt.BackButton, Qt.ForwardButton}:
+            event.accept()
         else:
             super().mouseReleaseEvent(event)
 
@@ -346,8 +364,13 @@ class Canvas(QGraphicsView):
         super().focusOutEvent(event)
 
     def wheelEvent(self, event: QWheelEvent) -> None:
-        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            self.zoom(1.15 if event.angleDelta().y() > 0 else 1 / 1.15)
+        vertical = event.pixelDelta().y() or event.angleDelta().y()
+        if (self._pan_anchor is not None or event.buttons() & Qt.MiddleButton
+                or not vertical):
+            # Tilt wheels often emit horizontal scrolling or side buttons while pressed.
+            event.accept()
+        elif event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self.zoom(1.15 if vertical > 0 else 1 / 1.15)
             event.accept()
         else:
             super().wheelEvent(event)

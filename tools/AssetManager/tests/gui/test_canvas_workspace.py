@@ -7,9 +7,9 @@ import pytest
 pytest.importorskip("PySide6.QtWidgets", reason="GUI-Abhängigkeiten fehlen")
 
 from PySide6.QtCore import QPoint, QPointF, Qt
-from PySide6.QtGui import QImage, QPainter
+from PySide6.QtGui import QImage, QPainter, QWheelEvent
 from PySide6.QtTest import QSignalSpy, QTest
-from PySide6.QtWidgets import QStyleOptionGraphicsItem
+from PySide6.QtWidgets import QApplication, QStyleOptionGraphicsItem
 
 from etherfood_studio.ui.canvas.items import CardItem
 from etherfood_studio.ui.canvas.view import Canvas
@@ -35,6 +35,38 @@ def canvas(qt_app):
 
 def visible_rect(canvas):
     return canvas.mapToScene(canvas.viewport().rect()).boundingRect()
+
+
+@pytest.mark.parametrize("delta", [QPoint(120, 0), QPoint(-120, 0), QPoint(0, 120)])
+def test_wheel_tilt_and_side_buttons_cannot_jump_during_middle_pan(canvas, qt_app, delta):
+    viewport = canvas.viewport()
+    point = viewport.rect().center()
+    card_position = canvas.items_by_id["card"].pos()
+    QTest.mousePress(viewport, Qt.MiddleButton, pos=point)
+    before, scale = visible_rect(canvas), canvas.transform().m11()
+    for side in (Qt.BackButton, Qt.ForwardButton):
+        QTest.mousePress(viewport, side, pos=point)
+        QTest.mouseRelease(viewport, side, pos=point)
+    wheel = QWheelEvent(QPointF(point), QPointF(viewport.mapToGlobal(point)), QPoint(), delta,
+                        Qt.MiddleButton, Qt.ControlModifier, Qt.ScrollUpdate, False)
+    QApplication.sendEvent(viewport, wheel)
+    assert visible_rect(canvas) == before and canvas.transform().m11() == scale
+    QTest.mouseMove(viewport, point + QPoint(30, 20))
+    QTest.mouseRelease(viewport, Qt.MiddleButton, pos=point + QPoint(30, 20))
+    assert visible_rect(canvas) != before
+    assert canvas._pan_anchor is None
+    assert canvas.items_by_id["card"].pos() == card_position
+
+
+def test_horizontal_wheel_does_not_zoom_but_vertical_ctrl_wheel_still_does(canvas):
+    viewport = canvas.viewport()
+    point = QPointF(viewport.rect().center())
+    scale = canvas.transform().m11()
+    for delta in (QPoint(120, 0), QPoint(0, 120)):
+        wheel = QWheelEvent(point, point, QPoint(), delta, Qt.NoButton,
+                            Qt.ControlModifier, Qt.NoScrollPhase, False)
+        QApplication.sendEvent(viewport, wheel)
+        assert canvas.transform().m11() == pytest.approx(scale if delta.x() else scale * 1.15)
 
 
 def assert_edge_limits(canvas):
