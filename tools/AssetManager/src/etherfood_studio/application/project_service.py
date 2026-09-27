@@ -151,7 +151,7 @@ class ProjectService:
                          for row in used_by)
             if not used_by:
                 lines.append("Noch keine zusätzlichen Verweise.")
-            lines.append("Verwaltungskarte: Grafikimport und Vorschau folgen in späteren Paketen.")
+            lines.append("Quellenimport über das Asset-Menü; Varianten-Erzeugung folgt später.")
             if record.kind == "asset" and record.data.get("asset_definition"):
                 count = len(record.data.get("inventory_sources", []))
                 lines.append(f"{count} externe Bestandsverweise · keine Freigabe. "
@@ -217,6 +217,10 @@ class ProjectService:
             if card.kind == "asset" and "asset_definition" in card.data:
                 from ..domain.assets import AssetDefinition
                 AssetDefinition.from_data(card.data["asset_definition"])
+                if card.data.get("active_sources"):
+                    from .asset_service import AssetService
+                    from .source_import import SourceImportService
+                    SourceImportService(AssetService(self)).active(card.id)
             self.catalog.layout(card.id)
             self.breadcrumb(card.id)
             parents = [e for e in edges

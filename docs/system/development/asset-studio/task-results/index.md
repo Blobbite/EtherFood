@@ -1,4 +1,4 @@
-# Ergebnisberichte: Pakete 1–5
+# Ergebnisberichte: Pakete 1–6
 
 Die technischen Kriterien von T001–T014 sind umgesetzt. Pakete 1–4 samt 4a
 sind vom Benutzer abgenommen; die [Sichtprüfung für Paket 5](../SICHTPRUEFUNG_5.md)
@@ -12,6 +12,7 @@ auf dem Zielrechner bleibt offen. Der ursprüngliche Aufgabenplan unter
 | 3 | Projektstruktur, Dokumente, Status | [T006](T006.md), [T007](T007.md), [T008](T008.md) |
 | 4 | Desktop, Canvas, Undo/Redo, Editor | [T009](T009.md), [T010](T010.md), [T011](T011.md), [T012](T012.md) |
 | 5 | Asset-Anforderungen, lesender Bestand | [T013](T013.md), [T014](T014.md) |
+| 6 (in Arbeit) | Quellenimport, danach Asset-Anlage | [T015](T015.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien

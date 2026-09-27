@@ -36,7 +36,8 @@ und keine optionalen PyGameTools-/Archiv-/Godot-Wurzeln erforderlich.
 Rückmeldung genügt als `✅ Nachtest 1–3` oder `❗ Nachtest 1: …` mit kurzen
 Schritten und gegebenenfalls Screenshot. Die bisherigen Anforderungen,
 Grafikstufen, Rundungen und Bestandsimporte müssen nicht erneut durchlaufen
-werden. Die manuelle Bestätigung der Fehlerkorrektur steht noch aus.
+werden. Der Benutzer hat am 27.09.2026 auch diese drei Nachtests vollständig
+bestätigt. Die Canvas-Fehlerkorrektur ist damit persönlich abgenommen.
 
 ## Bereits bestätigte Punkte als Referenz
 

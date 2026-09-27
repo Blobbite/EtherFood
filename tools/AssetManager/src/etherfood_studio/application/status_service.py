@@ -1,8 +1,10 @@
 """Read-only status projection for the dashboard; no editable success flag."""
 
 from ..domain.assets import AssetDefinition
-from ..domain.workflows import StepStatus, resolve
+from ..domain.workflows import Evidence, StepStatus, resolve
+from .asset_service import AssetService
 from .project_service import ProjectService
+from .source_import import SourceImportService
 
 STATE_NAMES = {
     "not_started": "Noch nicht begonnen", "waiting_external": "Externe Eingabe fehlt",
@@ -42,12 +44,29 @@ class StatusService:
                 f"{row.id}:{row.revision_no}" for row in documents
             )
         materials = True
+        source_rows = None
         if record.data.get("asset_definition"):
             definition = AssetDefinition.from_data(record.data["asset_definition"])
             kind = definition.workflow
             materials = "supports_materials" in definition.capabilities
-        result = resolve(kind, inputs, supports_materials=materials)
-        # Real pipeline/import evidence is integrated in later packages, never invented.
+            sources = SourceImportService(AssetService(self.project))
+            source_rows = sources.matrix(identifier)
+            fingerprint = sources.fingerprint(identifier)
+            if fingerprint:
+                inputs["source"] = fingerprint
+        evidence = {key: Evidence(**value)
+                    for key, value in record.data.get("evidence", {}).items()}
+        result = resolve(kind, inputs, evidence, supports_materials=materials,
+                         current_build_id=record.data.get("current_build_id"))
+        if source_rows is not None and not inputs.get("source"):
+            required = [row for row in source_rows if row["required"]]
+            missing = [row for row in required if row["state"] != "imported"]
+            poses = {p.id: p.display_name for p in definition.poses}
+            detail = ", ".join(f"{poses.get(r['key'].pose_id, 'Bild')} "
+                               f"{r['key'].direction or 'ohne Richtung'}" for r in missing[:8])
+            result["source"] = StepStatus("source", "waiting_external",
+                f"{len(required) - len(missing)}/{len(required)} benötigte Quellen importiert. "
+                f"Externe Lieferung fehlt oder ist ungeprüft: {detail}.")
         blockers = [edge["target_id"] for edge in self.project.catalog.relations()
                     if edge["kind"] == "depends_on" and edge["source_id"] == identifier]
         if blockers:
