@@ -1,8 +1,7 @@
-"""Shared labels and platform-native type icons; no extra image dependencies."""
+"""Shared labels and contrast-aware type icons; no extra image dependencies."""
 
 from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap, QPolygonF
-from PySide6.QtWidgets import QApplication, QStyle
 from .theme import is_dark
 
 KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
@@ -16,11 +15,9 @@ def kind_icon(kind: str) -> QIcon:
         return status_icon("open", issue=kind == "issue")
     if kind in {"asset", "note", "document", "task"}:
         return drawn_icon(kind)
-    names = {"project": "SP_ComputerIcon", "global": "SP_DriveNetIcon", "act": "SP_DirIcon",
-             "chapter": "SP_DirOpenIcon", "package": "SP_DriveHDIcon",
-             "issue": "SP_MessageBoxWarning"}
-    icon = getattr(QStyle.StandardPixmap, names.get(kind, "SP_FileIcon"))
-    return QApplication.style().standardIcon(icon)
+    from .action_icons import action_icon
+    return action_icon({"project": "computer", "global": "globe", "act": "folder",
+                        "chapter": "folder", "package": "package"}.get(kind, "file"))
 
 
 def record_icon(record) -> QIcon:
@@ -40,7 +37,8 @@ def status_icon(status: str, *, issue: bool = False) -> QIcon:
         painter.setRenderHint(QPainter.Antialiasing)
         painter.scale(size / 32, size / 32)
         if issue:
-            painter.setPen(QPen(QColor("#b47709"), 5, Qt.SolidLine, Qt.RoundCap))
+            painter.setPen(QPen(QColor("#ecc461" if is_dark() else "#8a5c06"), 5,
+                                Qt.SolidLine, Qt.RoundCap))
             painter.drawLine(16, 5, 16, 18)
             painter.drawPoint(16, 26)
             painter.translate(32, 0)
@@ -71,7 +69,7 @@ def status_icon(status: str, *, issue: bool = False) -> QIcon:
 
 
 def drawn_icon(kind: str) -> QIcon:
-    """Code-native type symbols, crisp and theme-independent at common display scales."""
+    """Keep semantic colors while reversing fill/ink contrast for each theme."""
     result = QIcon()
     for size in (16, 24, 32, 48, 64):
         pixmap = QPixmap(size, size)
@@ -79,14 +77,14 @@ def drawn_icon(kind: str) -> QIcon:
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.scale(size / 32, size / 32)
-        painter.setPen(QPen(QColor("#294b65"), 1.5))
+        painter.setPen(QPen(QColor("#b8e8f2" if is_dark() else "#173b4e"), 1.8))
         if kind == "asset":
             for color, points in (
                 ("#80d0e5", [(4, 9), (16, 3), (28, 9), (16, 16)]),
                 ("#529ebc", [(4, 9), (16, 16), (16, 29), (4, 22)]),
                 ("#347594", [(16, 16), (28, 9), (28, 22), (16, 29)]),
             ):
-                painter.setBrush(QColor(color))
+                painter.setBrush(QColor(color) if is_dark() else QColor(color).darker(200))
                 painter.drawPolygon(QPolygonF([QPointF(x, y) for x, y in points]))
         elif kind == "task":
             painter.setPen(QPen(QColor("#21844a"), 5, Qt.PenStyle.SolidLine,
@@ -96,8 +94,8 @@ def drawn_icon(kind: str) -> QIcon:
             check.lineTo(27, 7)
             painter.drawPath(check)
         elif kind == "document":
-            painter.setPen(QPen(QColor("#745398"), 1.8))
-            painter.setBrush(QColor(DOCUMENT_COLOR))
+            painter.setPen(QPen(QColor("#4d2c64" if is_dark() else "#fff4ff"), 1.8))
+            painter.setBrush(QColor("#d5b9eb" if is_dark() else "#70508e"))
             painter.drawPolygon(QPolygonF([QPointF(x, y) for x, y in (
                 (6, 3), (20, 3), (27, 10), (27, 29), (6, 29),
             )]))
@@ -106,12 +104,12 @@ def drawn_icon(kind: str) -> QIcon:
             painter.drawLine(10, 20, 22, 20)
             painter.drawLine(10, 25, 18, 25)
         else:
-            painter.setPen(QPen(QColor("#a4852a"), 1.5))
-            painter.setBrush(QColor("#ffe58a"))
+            painter.setPen(QPen(QColor("#674b0c" if is_dark() else "#fff1ad"), 1.8))
+            painter.setBrush(QColor("#ffe58a" if is_dark() else "#8c6909"))
             painter.drawRoundedRect(4, 4, 24, 24, 2, 2)
             painter.drawLine(9, 12, 23, 12)
             painter.drawLine(9, 17, 20, 17)
-            painter.setBrush(QColor("#fff7d5"))
+            painter.setBrush(QColor("#fff7d5" if is_dark() else "#6a4b05"))
             painter.drawPolygon(QPolygonF([QPointF(21, 28), QPointF(28, 21), QPointF(21, 21)]))
         painter.end()
         result.addPixmap(pixmap)

@@ -12,6 +12,7 @@ from ...application.document_service import DocumentService, TEMPLATES
 from ...domain.models import Record, StudioError
 from ...domain.notes import NOTE_TEMPLATES, is_note
 from ..common import button, label, show_error
+from ..appearance import appearance
 from ..presentation import kind_icon
 from .preview import SafePreview
 from .live_markdown import LiveMarkdownEditor
@@ -57,6 +58,12 @@ class DocumentEditor(QWidget):
         self.attachments.setMaximumHeight(90)
         layout.addWidget(self.attachments)
         self.setEnabled(False)
+        appearance().changed.connect(self.refresh_icons)
+
+    def refresh_icons(self) -> None:
+        icon = kind_icon("note" if self.notes_only else "document")
+        for index in range(self.documents.count()):
+            self.documents.setItemIcon(index, icon)
 
     def bind(self, service: DocumentService) -> None:
         self.service = service

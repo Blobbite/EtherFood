@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 from ...application.kanban_service import KanbanService
 from ...domain.models import new_id
 from ..common import button, label
+from ..appearance import appearance
 from ..presentation import kind_icon
 from .base import STATE_NAMES, TaskPanel
 from .column import KanbanColumn, StatusHeader, TASK_ROLE
@@ -110,6 +111,12 @@ class KanbanPanel(TaskPanel):
         layout.addLayout(self.actions)
         self.query.textChanged.connect(self.refresh)
         self.kind.currentIndexChanged.connect(self.refresh)
+        appearance().changed.connect(self.refresh_icons)
+
+    def refresh_icons(self) -> None:
+        for index in range(self.kind.count()):
+            if kind := self.kind.itemData(index):
+                self.kind.setItemIcon(index, kind_icon(kind))
 
     def bind(self, project) -> None:
         self.current_card = self.fixed_owner or project.project().id

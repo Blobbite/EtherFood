@@ -73,6 +73,8 @@ class KanbanColumn(QTreeWidget):
         for key, item in self.groups.items():
             if key[-1].startswith("kind:"):
                 item.setIcon(0, status_icon(self.status, issue=key[-1] == "kind:issue"))
+            elif item.data(0, Qt.UserRole + 2):
+                item.setIcon(0, kind_icon(item.data(0, Qt.UserRole + 2)))
 
     def keyPressEvent(self, event) -> None:
         item = self.currentItem()
@@ -110,6 +112,7 @@ class KanbanColumn(QTreeWidget):
                              else KIND_NAMES[group.kind] + " · " + group.title)
                     item = QTreeWidgetItem(parent, [title])
                     item.setData(0, GROUP_ROLE, key)
+                    item.setData(0, Qt.UserRole + 2, group.kind)
                     item.setIcon(0, status_icon(self.status, issue=group.kind == "issue")
                                  if group.id.startswith("kind:") else kind_icon(group.kind))
                     item.setToolTip(0, title)

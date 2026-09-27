@@ -126,6 +126,9 @@ class CardItem(QGraphicsRectItem):
         if hasattr(self, "status") and self.kind in {"task", "issue"}:
             self.icon.setPixmap(status_icon(self.status, issue=self.kind == "issue").pixmap(
                 52 if self.kind == "issue" else 26, 26))
+        elif hasattr(self, "icon"):
+            size = 26 if hasattr(self, "content_color") else 16
+            self.icon.setPixmap(kind_icon(self.kind).pixmap(size, size))
 
     def shape(self) -> QPainterPath:
         path = QPainterPath()

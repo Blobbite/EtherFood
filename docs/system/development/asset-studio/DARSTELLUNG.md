@@ -1,78 +1,68 @@
-# Darstellung und Markdown: Bedienbriefing
+# Darstellung und Markdown: aktuelles Bedienbriefing
 
 [Asset Studio](index.md) · [Markdown-Bedienung](DOKUMENTATION.md) ·
-[Arbeitsplan](../plans/asset-studio-darstellung-und-markdown.md)
+[Arbeitsplan](../plans/asset-studio-markdown-feinschliff.md)
 
 Die App vollständig schließen und neu starten. Das bestehende Testprojekt kann
-weiterverwendet werden; für Löschversuche am besten eine Testdokumentation anlegen.
-Es gibt keine neue Abhängigkeit und keine Datenmigration.
+weiterverwendet werden; für Löschversuche eine Testdokumentation anlegen.
+Keine neue Abhängigkeit und keine Datenmigration.
 
 ## Was sich geändert hat
 
-- **Einstellungen** bleibt rechts oben erreichbar, auch bei schmalem Fenster.
-  **Hell · Tag / Dunkel · Nacht** gilt für Hauptfenster, Canvas, Notizen, Kanban,
-  Dokumentation und Dialoge. Eine Qt-Fusion-Darstellung sorgt für einheitliche
-  Farben unabhängig vom Betriebssystem-Thema.
-- **Text + Icons / Nur Icons / Nur Text** gilt für Aktionsbuttons und Bereichsreiter,
-  auch im Asset-Menü. Nur-Icon-Schalter behalten Tooltips. Inhaltsbeschriftungen,
-  Statusgruppen und Formularfelder verschwinden dadurch nicht.
-- Darstellungseinstellungen bleiben lokal nach Neustart erhalten. Ansichtswechsel
-  schreiben keine Projektinhalte oder Revisionen und verwerfen keine Entwürfe.
-- Leere To-do-Bereiche von Aufgaben/Issues haben **To-dos hinzufügen …**. Der
-  bestehende Aufgabeneditor öffnet direkt bei der Eingabe. Speichern/Abbrechen
-  und der bisherige Revisionsschutz bleiben bestehen.
-- Beim Canvas-Verschieben zählt die gehaltene mittlere Maustaste. Seitliches
-  Mausradkippen, zusätzliche Seitentasten und Radimpulse verursachen währenddessen
-  keine Sprünge. Außerhalb der Geste bleiben vertikales Scrollen und Strg+Rad-Zoom.
-- Markdown besitzt Tabellenwerkzeuge, anklickbare Checkboxen, kompakte
-  Überschriftbearbeitung und vier Schalter für die Inhaltsbreite/-ausrichtung.
+- **Nur Icons** verwendet 16-Pixel-Symbole und kompakte 28-Pixel-Aktionsbuttons.
+  Das doppelte Issue-Symbol bleibt breiter. Tooltips und zugängliche Namen bleiben
+  erhalten; Text + Icons und Nur Text lassen sich jederzeit wiederherstellen.
+- Symbole wechseln passend zu Hell/Dunkel ihre Konturen und Farbhelligkeit.
+  Projektbaum, Canvas, Suche, Filter, Dokumentauswahl und neue Dialoge verwenden
+  dieselben kontrastabhängigen Icons, unabhängig vom Betriebssystem-Icon-Thema.
+- Markdown-Tabellen zeigen keine Zeilen-/Spaltennummern oder dauerhafte
+  Löschleiste. Kleine Griffe und Pluszeichen erscheinen bei Hover oder Fokus.
+  Die Tabelle nutzt die Breite; Zelltext bricht mit passender Zeilenhöhe um.
+- Die Dokumentationsfläche bleibt **immer voll breit**. Links/Mittig/Rechts
+  richten gerenderte Inhalte darin aus. Kein zusätzlicher Vollbreite-Schalter
+  und keine schmale 820-Pixel-Fläche mehr.
+- Umschalten ändert weder Markdown-Quelle noch Revisionen oder offene Entwürfe.
+  Code bleibt links, Tabellen behalten ihre eigenen Spaltenausrichtungen.
 
-## Bitte diese acht Punkte testen
+## Bitte diese sechs Punkte testen
 
-1. **Leere Aufgabe und leeres Issue:** auswählen, **To-dos hinzufügen …** drücken.
-   Direkt einen Punkt tippen und speichern. Punkt rechts sichtbar, leerer
-   Hinzufügen-Button verschwunden. Dasselbe einmal abbrechen: keine Änderung.
-2. **Hell/Dunkel:** umschalten, danach Canvas, Aufgaben, Notizen, Dokumentation
-   und Asset-Menü ansehen. Keine weißen Kanban-Flächen im Dunkelmodus, alle
-   Beschriftungen lesbar. Ein offener Textentwurf muss erhalten bleiben.
-3. **Drei Button-Modi:** alle drei Einstellungen durchschalten. Auch Bereichsreiter
-   wechseln mit. Bei Nur Icons über Symbole fahren: Namen als Tooltip. App
-   neu starten: Farbschema und Button-Modus bleiben erhalten.
-4. **Mausrad:** mittlere Taste halten und Canvas verschieben; dabei das Rad
-   nach links/rechts kippen. Kein Sprung/Zoom und keine verschobene Karte.
-   Mittlere Taste loslassen: normale Bedienung; Strg+Rad muss weiterhin zoomen.
-5. **Tabelle:** Zelle doppelt anklicken und ändern. Obere/seitliche Leiste ziehen,
-   `+` oben/rechts/links/unten testen. Eine ganze Spalte/Zeile auswählen und
-   entfernen, Strg+Z testen. Speichern und Dokument neu öffnen.
-6. **Überschrift und Checkbox:** Überschrift anklicken, ohne großen Höhensprung
-   ändern. Markdown-To-do anklicken: Häkchen umschaltbar; Code-Modus zeigt
-   `[ ]` bzw. `[x]`. Speichern/Neuladen und eine verschachtelte Liste testen.
-7. **Vier Ansichten:** Links/Mittig/Rechts/Volle Breite bei breitem Fenster
-   durchschalten. Inhaltsfläche wandert/ändert ihre Breite, Text bleibt gleich.
-   Keine Absatzformatierung und kein Betriebssystem-Vollbildwechsel erwartet.
-8. **Asset-Menü und Bericht:** dieselbe Dokumentation dort bearbeiten. Tabellen,
-   Checkboxen und Schalter funktionieren identisch; ein generierter Bericht
-   bleibt überall schreibgeschützt.
+1. **Kompakte Buttons:** Einstellungen → Nur Text → Nur Icons → Text + Icons.
+   Nur Icons muss kompakter sein, Namen erscheinen als Tooltip. Auch im
+   Asset-Menü und bei Speichern/Abbrechen prüfen.
+2. **Kontrast:** Hell und Dunkel durchschalten. Symbole in Toolbar, Projektbaum,
+   Canvas, Reitern, Suche und Dokumentauswahl bleiben gut sichtbar. Eine
+   ungespeicherte Textänderung darf dabei nicht verloren gehen.
+3. **Ruhige Tabelle:** Dokument öffnen, außerhalb der Tabelle klicken und Maus
+   wegbewegen: keine Nummern, Griffe oder Löschbuttons. Darüberfahren oder per
+   Tab hineingehen: kleine Griffe und `+` erscheinen ohne Positionssprung.
+   Fenster schmaler/breiter ziehen: lange Zellen bleiben lesbar.
+4. **Tabellen bearbeiten:** Zelle doppelklicken; am oberen/seitlichen Griff
+   Spalte/Zeile verschieben. `+` an Griffen und rechts/unten ausprobieren.
+   Ganze Spalte/Zeile am Griff markieren und mit Entf oder Rechtsklick entfernen.
+   Strg+Z stellt sie wieder her. Kopfzeile/letzte Spalte bleiben geschützt.
+5. **Drei Ausrichtungen:** Links/Mittig/Rechts bei breitem Fenster durchschalten.
+   Die Fläche bleibt gleich breit, Überschrift/Text/Listen bewegen sich darin.
+   Checkbox weiterhin anklickbar; Code und Tabellenspalten bleiben unverändert.
+   Der Code-Modus zeigt keine durch Ausrichtung hinzugefügten Zeichen.
+6. **Speichern und Asset-Menü:** Testdokument speichern, erneut öffnen; dieselben
+   Funktionen im Asset-Menü prüfen. App-Neustart erhält Farbschema, Button-Modus
+   und Inhaltsausrichtung. Generierte Berichte bleiben schreibgeschützt.
 
-Bereits bestätigte Spritesheet-, Masken-, Varianten-, Import- und Pinnwand-
-Positionierungstests können diesmal übersprungen werden. Godot-Export und
+Bestätigte Spritesheet-, Masken-, Varianten-, Import-, Pinnwand-, Aufgaben-Popup-
+und Canvas-Mausradtests können diesmal übersprungen werden. Godot-Export und
 Szeneneditor gehören nicht zu diesem Paket. T017/T018 werden dadurch nicht
 automatisch abgenommen oder geschlossen.
 
-Rückmeldung bitte wieder als `1 ✅` bis `8 ✅` oder mit der konkreten Abweichung.
+Rückmeldung bitte als `1 ✅` bis `6 ✅` oder mit der konkreten Abweichung.
 
 ## Technischer Prüfstand
 
-- **401 Studio-Tests bestanden**, einschließlich realer Qt-Ereignisse im
-  Offscreen-Modus. Abgedeckt sind unter anderem Theme-/Moduspersistenz,
-  Entwurfserhalt, Seitentasten während Canvas-Pan, Aufgaben-Popup-Fokus,
-  Quelltexttreue bei CRLF/Emoji, Tabellenoperationen, Checkboxen und Undo/Redo
-  ohne unbeabsichtigtes Zurücksetzen von Canvas-Positionen.
-- **130 Studio-Quelltext-/Testdateien ohne Stilbefund**, `pip check` und
-  `git diff --check` bestanden. Keine neue Abhängigkeit.
-- Synthetisches Projekt in Hell/Dunkel geprüft: Notizen, Markdown, Kanban,
-  Canvas und Nur-Icon-Navigation. Dies ersetzt nicht die persönliche Abnahme.
-- Repository-Gesamtcheck weiterhin nicht grün: Godot fehlt im Container;
-  1.907 bestehende Stilbefunde außerhalb des Studio-Quellcodes. Die Toolsuite
-  meldet 258 bestanden, 37 übersprungen und drei bestehende Fehler beim
-  Godot-Fenstervertrag bzw. den fehlenden Game-Entscheidungsdokumenten/Links.
+- **413 Studio-Tests bestanden**, einschließlich echter Qt-Ereignisse und zwölf
+  neuer Regressionen für diesen Feinschliff. 133 Studio-Quelltext-/Testdateien
+  ohne Stilbefund; `pip check` und `git diff --check` bestanden.
+- Hell/Dunkel, Hover-Tabellen, Inhaltsausrichtung und Nur-Icons wurden mit einem
+  synthetischen Projekt visuell geprüft. Die Desktop-Abnahme bleibt separat.
+- Gesamtcheck weiterhin nicht grün: Godot fehlt; 1.907 bestehende Stilbefunde
+  außerhalb des Studio-Quellcodes. Toolsuite: 258 bestanden, 37 übersprungen,
+  drei bekannte Fehler beim Godot-Fenstervertrag und fehlenden
+  Game-Entscheidungsdokumenten/Links. Details im verlinkten Arbeitsplan.

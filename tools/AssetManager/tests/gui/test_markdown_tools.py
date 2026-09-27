@@ -59,12 +59,16 @@ def test_native_cell_edit_and_structural_operations_share_source_history(editor,
     assert table.columnCount() == 3 and widget.model.rows[0][-1] == " "
     QTest.mouseClick(widget.add_row, Qt.LeftButton)
     assert table.rowCount() == 4
-    table.selectColumn(1)
-    assert widget.delete_columns.isEnabled()
-    QTest.mouseClick(widget.delete_columns, Qt.LeftButton)
+    header = table.horizontalHeader()
+    QTest.mouseClick(header.viewport(), Qt.LeftButton,
+                     pos=QPoint(header.sectionViewportPosition(1) + 30, 10))
+    assert widget.removal_allowed("column")
+    QTest.keyClick(table, Qt.Key_Delete)
     assert table.columnCount() == 2
-    table.selectRow(1)
-    QTest.mouseClick(widget.delete_rows, Qt.LeftButton)
+    header = table.verticalHeader()
+    QTest.mouseClick(header.viewport(), Qt.LeftButton,
+                     pos=QPoint(5, header.sectionViewportPosition(1) + 12))
+    QTest.keyClick(table, Qt.Key_Backspace)
     assert table.rowCount() == 3
     changed = editor.toPlainText()
     editor.set_mode("code")
@@ -84,6 +88,8 @@ def test_header_plus_controls_and_readonly_table(editor, qt_app):
     widget = table_block(editor).table_editor
     table = widget.table
     header = table.horizontalHeader()
+    table.setFocus()
+    qt_app.processEvents()
     point = QPoint(header.sectionViewportPosition(0) + header.sectionSize(0) - 11,
                    header.height() // 2)
     QTest.mouseClick(header.viewport(), Qt.LeftButton, pos=point)
@@ -138,22 +144,20 @@ def test_heading_activation_does_not_expand_blank_separator_lines(editor, qt_app
     assert editor.toPlainText() == SOURCE
 
 
-def test_alignment_positions_surface_without_changing_source_or_history(editor, qt_app):
-    for alignment in ("left", "center", "right", "full"):
+def test_alignment_keeps_full_surface_and_only_moves_rendered_content(editor, qt_app):
+    assert len(editor.alignment_buttons.buttons()) == 3
+    for alignment in ("left", "center", "right"):
         button = next(button for button in editor.alignment_buttons.buttons()
                       if button.objectName() == "document_align_" + alignment)
         QTest.mouseClick(button, Qt.LeftButton)
         qt_app.processEvents()
         assert button.isChecked()
         rect = editor.surface_widget.geometry()
-        if alignment == "left":
-            assert rect.left() < 5 and rect.width() <= 820
-        elif alignment == "right":
-            assert abs(rect.right() - editor.width()) < 5
-        elif alignment == "center":
-            assert abs(rect.center().x() - editor.width() / 2) < 5
-        else:
-            assert rect.width() > 1100
+        assert rect.left() < 5 and rect.width() > 1100
+        expected = {"left": Qt.AlignLeft, "center": Qt.AlignHCenter,
+                    "right": Qt.AlignRight}[alignment]
+        assert editor.blocks[0].view.document().begin().blockFormat().alignment() == expected
+        assert table_block(editor).table_editor.model.separators == [" :--- ", " ---: "]
         assert editor.toPlainText() == SOURCE and not editor._undo
 
 

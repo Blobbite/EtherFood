@@ -1,6 +1,6 @@
 # Dokumentation direkt im Markdown-Bereich
 
-[Asset Studio](index.md) · [Aktuelles Bedienbriefing](SICHTPRUEFUNG_INHALTE.md)
+[Asset Studio](index.md) · [Aktuelles Bedienbriefing](DARSTELLUNG.md)
 
 Dokumentation zeigt eine Inhaltsfläche mit zwei Schaltern darüber:
 
@@ -36,13 +36,21 @@ Im **MD**-Modus sind Tabellen ohne Wechsel zum gesamten Quelltext bearbeitbar:
 
 - Zelle doppelt anklicken oder auswählen und tippen. Zellinhalt darf Markdown
   wie `**fett**` oder einen Link enthalten; außerhalb der Eingabe wird er gerendert.
-- Obere Spaltenleiste bzw. linke Zeilenleiste anklicken: ganze Spalte/Zeile
-  auswählen. Leiste ziehen: komplette Spalte/Zeile umordnen. Die Kopfzeile
+- Kleine Griffe und `+` erscheinen beim Darüberfahren oder Tastaturfokus in der
+  Tabelle. Ohne Fokus/Hover bleibt der Rand ruhig, ohne Nummern oder zusätzliche
+  Beschriftungen. Die Tabelle verschiebt sich beim Einblenden nicht.
+- Oberen Spaltengriff bzw. linken Zeilengriff anklicken: ganze Spalte/Zeile
+  auswählen. Griff ziehen: komplette Spalte/Zeile umordnen. Die Kopfzeile
   bleibt oben; die Links-/Mitte-/Rechtsausrichtung einer Spalte wandert mit.
-- `+` an jeder Leiste fügt danach eine Spalte/Zeile ein. Rechts ergänzt `+`
-  eine letzte Spalte, unten **+ Zeile** eine letzte Datenzeile.
-- **Spalten entfernen / Zeilen entfernen** löscht die vollständige Auswahl.
+- `+` an jedem Griff fügt danach eine Spalte/Zeile ein. Rechts ergänzt `+`
+  eine letzte Spalte, unten `+` eine letzte Datenzeile.
+- Nach Auswahl am Griff löscht **Entf/Rücktaste** die ganze Spalte/Zeile.
+  Alternativ am Rand rechtsklicken und im Kontextmenü entfernen. Es gibt keine
+  dauerhaften Löschbuttons. Eine nur ausgewählte Zelle löscht keine Struktur.
   Kopfzeile und letzte Spalte sind geschützt. Mehrfachauswahl ist mit Strg möglich.
+- Spalten teilen sich die verfügbare Breite; lange Inhalte brechen um und
+  vergrößern die Zeilenhöhe. Viele Spalten bleiben horizontal scrollbar, anstatt
+  unter 120 logische Pixel pro Spalte zusammengeschoben zu werden.
 - Strg+Z und Wiederholen gelten nach abgeschlossener Zelleingabe auch für
   Strukturänderungen; MD und Code teilen sich denselben Entwurf und Verlauf.
 
@@ -56,16 +64,18 @@ Bei Überschriften bleibt die Schriftgröße beim Anklicken erhalten. Die leeren
 Trennzeilen im Quelltext erzeugen dabei keine zusätzlichen leeren Editorzeilen
 unter der Überschrift; der Originaltext wird nicht abgeschnitten.
 
-## Breite und Ausrichtung der Dokumentationsfläche
+## Volle Breite und Inhaltsausrichtung
 
-Vier Schalter über dem Dokument wählen **Links**, **Mittig**, **Rechts** oder
-**Volle Breite**. Die ersten drei verwenden eine Lesebreite von höchstens 820
-logischen Pixeln, begrenzt durch den verfügbaren Platz. Volle Breite nutzt den
-gesamten Dokumentationsbereich; kein Betriebssystem-Vollbildmodus.
+Die Dokumentationsfläche nutzt immer die gesamte verfügbare Breite. Der frühere
+Schalter **Volle Breite** und die Begrenzung auf 820 logische Pixel entfallen.
+Drei Schalter wählen **Links**, **Mittig** oder **Rechts** für die gerenderten
+Überschriften, Absätze und Listen innerhalb dieser vollen Fläche.
 
-Dies richtet die Inhaltsfläche aus, nicht einzelne Markdown-Absätze. Die Wahl
-wird lokal für den nächsten Editor/Neustart gespeichert, schreibt keine
-Dokumentrevision und gilt ebenso für den Code-Modus und das Asset-Menü.
+Dies ist eine lokale Anzeigeeinstellung, keine Markdown-Formatänderung. Code
+bleibt links ausgerichtet; Tabellen behalten ihre eigenen Spaltenausrichtungen
+aus der Quelle. Die Wahl wird für den nächsten Editor/Neustart gespeichert,
+schreibt keine Dokumentrevision und gilt ebenso im Asset-Menü. Die alte lokale
+Einstellung `full` wird als links interpretiert. MD und Code bleiben voll breit.
 
 ## Unterstützte Formen und bewusste Grenzen
 

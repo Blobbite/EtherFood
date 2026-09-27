@@ -4,7 +4,7 @@ from PySide6.QtCore import QEvent, QObject, QSettings, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QPalette
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QLabel, QPushButton,
-    QTabWidget,
+    QSizePolicy, QTabWidget,
 )
 
 from .action_icons import action_icon
@@ -89,6 +89,13 @@ class Appearance(QObject):
             button.setText("" if self.buttons == "icons" else title)
             button.setIcon(QIcon() if self.buttons == "text" else action_icon(
                 names.get(box.standardButton(button), "dialog_action")))
+            button.setIconSize(QSize(16, 16))
+            bounds = button.property("studio_button_widths")
+            if bounds is None:
+                bounds = [button.minimumWidth(), button.maximumWidth()]
+                button.setProperty("studio_button_widths", bounds)
+            button.setMinimumWidth(28 if self.buttons == "icons" else bounds[0])
+            button.setMaximumWidth(28 if self.buttons == "icons" else bounds[1])
 
     def eventFilter(self, watched, event) -> bool:
         if event.type() == QEvent.Show:
@@ -99,6 +106,7 @@ class Appearance(QObject):
         return super().eventFilter(watched, event)
 
     def _style_tabs(self, tabs: QTabWidget) -> None:
+        tabs.setIconSize(QSize(16, 16))
         for index in range(tabs.count()):
             page = tabs.widget(index)
             title = page.property("studio_tab_title") or tabs.tabText(index)
@@ -128,7 +136,7 @@ class ActionButton(QPushButton):
         self.setObjectName(name)
         self.setAccessibleName(text)
         self.setToolTip(text)
-        self.setIconSize(QSize(18, 18))
+        self.setIconSize(QSize(32 if name == "new_issue" else 16, 16))
         appearance().changed.connect(self.refresh_appearance)
         self.refresh_appearance()
 
@@ -143,6 +151,17 @@ class ActionButton(QPushButton):
         super().setText("" if mode == "icons" else self._title)
         self.setIcon(QIcon() if mode == "text" or (self._title == "+" and mode != "icons")
                      else action_icon(self.objectName()))
+        self.setSizePolicy(QSizePolicy.Fixed if mode == "icons" else QSizePolicy.Minimum,
+                           QSizePolicy.Fixed)
+        self.updateGeometry()
+
+    def sizeHint(self) -> QSize:
+        if appearance().buttons == "icons":
+            return QSize(self.iconSize().width() + 12, 26)
+        return super().sizeHint()
+
+    def minimumSizeHint(self) -> QSize:
+        return self.sizeHint()
 
 
 class AppearanceDialog(QDialog):

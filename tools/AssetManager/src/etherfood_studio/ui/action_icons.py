@@ -1,10 +1,9 @@
-"""Small code-native action glyphs and Qt fallbacks, with no image dependencies."""
+"""Small contrast-aware action glyphs, independent of platform icon themes."""
 
 from math import cos, pi, sin
 
 from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap
-from PySide6.QtWidgets import QApplication, QStyle
 
 from .theme import color
 
@@ -32,24 +31,18 @@ def action_icon(name: str) -> QIcon:
         glyph = "minus"
     elif any(word in name for word in ("run", "jobs", "build")):
         glyph = "play"
-    elif name in {"canvas", "search"}:
+    elif name in {"canvas", "search", "folder", "package", "computer", "globe", "file"}:
         glyph = name
     else:
         choices = (
-            (("save", "apply"), QStyle.SP_DialogSaveButton),
-            (("undo", "restore"), QStyle.SP_ArrowBack),
-            (("redo",), QStyle.SP_ArrowForward),
-            (("import", "open", "inventory", "sources"), QStyle.SP_DialogOpenButton),
-            (("close", "cancel"), QStyle.SP_DialogCloseButton),
-            (("edit", "rename"), QStyle.SP_FileDialogDetailedView),
-            (("run", "jobs", "build"), QStyle.SP_MediaPlay),
-            (("check", "test", "status"), QStyle.SP_DialogApplyButton),
-            (("project", "owner", "home"), QStyle.SP_DirHomeIcon),
-            (("export",), QStyle.SP_ArrowUp),
+            (("save", "apply"), "save"), (("undo", "restore"), "undo"),
+            (("redo",), "redo"), (("import", "open", "inventory", "sources"), "folder"),
+            (("close", "cancel"), "close"), (("edit", "rename"), "edit"),
+            (("check", "test", "status"), "check"),
+            (("project", "owner", "home"), "home"), (("export",), "export"),
         )
-        standard = next((icon for words, icon in choices if any(word in name for word in words)),
-                        QStyle.SP_FileDialogContentsView)
-        return QApplication.style().standardIcon(standard)
+        glyph = next((icon for words, icon in choices if any(word in name for word in words)),
+                     "file")
     icon = QIcon()
     for size in (16, 24, 32, 48, 64):
         pixmap = QPixmap(size, size)
@@ -100,6 +93,58 @@ def action_icon(name: str) -> QIcon:
         elif glyph == "search":
             painter.drawEllipse(QRectF(4, 4, 17, 17))
             painter.drawLine(20, 20, 28, 28)
+        elif glyph == "save":
+            painter.drawRoundedRect(QRectF(5, 4, 22, 24), 2, 2)
+            painter.drawRect(10, 4, 11, 8)
+            painter.drawRect(10, 19, 12, 9)
+        elif glyph in {"undo", "redo", "export"}:
+            if glyph == "redo":
+                painter.translate(32, 0)
+                painter.scale(-1, 1)
+            elif glyph == "export":
+                painter.translate(32, 0)
+                painter.rotate(90)
+            painter.drawLine(6, 16, 26, 16)
+            painter.drawLine(6, 16, 14, 8)
+            painter.drawLine(6, 16, 14, 24)
+        elif glyph == "close":
+            painter.drawLine(7, 7, 25, 25)
+            painter.drawLine(25, 7, 7, 25)
+        elif glyph == "check":
+            painter.drawLine(5, 17, 12, 24)
+            painter.drawLine(12, 24, 27, 7)
+        elif glyph == "edit":
+            path = QPainterPath(QPointF(6, 26))
+            for x, y in ((7, 19), (22, 4), (28, 10), (13, 25), (6, 26)):
+                path.lineTo(x, y)
+            painter.drawPath(path)
+            painter.drawLine(19, 7, 25, 13)
+        elif glyph == "folder":
+            path = QPainterPath(QPointF(3, 8))
+            for x, y in ((12, 8), (15, 12), (29, 12), (27, 26), (3, 26), (3, 8)):
+                path.lineTo(x, y)
+            painter.drawPath(path)
+        elif glyph == "computer":
+            painter.drawRoundedRect(QRectF(3, 4, 26, 19), 2, 2)
+            painter.drawLine(16, 23, 16, 28)
+            painter.drawLine(9, 28, 23, 28)
+        elif glyph == "globe":
+            painter.drawEllipse(QRectF(4, 4, 24, 24))
+            painter.drawEllipse(QRectF(10, 4, 12, 24))
+            painter.drawLine(5, 16, 27, 16)
+        elif glyph == "home":
+            path = QPainterPath(QPointF(3, 15))
+            for x, y in ((16, 4), (29, 15), (25, 15), (25, 28), (7, 28), (7, 15)):
+                path.lineTo(x, y)
+            painter.drawPath(path)
+        elif glyph == "package":
+            painter.drawRect(5, 5, 22, 23)
+            painter.drawLine(5, 13, 27, 13)
+            painter.drawLine(16, 5, 16, 13)
+        elif glyph == "file":
+            painter.drawRoundedRect(QRectF(6, 3, 20, 26), 2, 2)
+            for y in (10, 16, 22):
+                painter.drawLine(11, y, 21, y)
         else:
             painter.drawLine(6, 16, 26, 16)
             if glyph == "add":

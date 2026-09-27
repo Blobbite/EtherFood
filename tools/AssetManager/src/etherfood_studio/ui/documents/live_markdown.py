@@ -75,6 +75,7 @@ class MarkdownBlock(QWidget):
         try:
             self.view.preview(self.host.toPlainText()[self.start:self.end]
                               + "\n\n" + self.references)
+            self.view.set_content_alignment(self.host.alignment)
         except (RuntimeError, ValueError):
             self.view.setPlainText("Vorschau nicht verfügbar; anklicken und Quelltext bearbeiten.")
         self.stack.setCurrentWidget(self.view)
@@ -87,6 +88,7 @@ class MarkdownBlock(QWidget):
             self.table_editor = MarkdownTableEditor(model, self.host.isReadOnly(),
                                                      references=self.references)
             self.table_editor.source_changed.connect(self.edit_structured)
+            self.table_editor.geometry_changed.connect(self.fit)
             self.table_editor.undo_requested.connect(self.host.undo)
             self.table_editor.redo_requested.connect(self.host.redo)
             self.stack.addWidget(self.table_editor)
@@ -167,6 +169,7 @@ class LiveMarkdownEditor(QWidget):
         self.active = None
         self._rebuilding = False
         self.mode = "md"
+        self.alignment = "left"
         self.setFocusPolicy(Qt.StrongFocus)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -184,11 +187,10 @@ class LiveMarkdownEditor(QWidget):
             modes.addWidget(button)
         modes.addStretch(1)
         self.alignment_buttons = QButtonGroup(self)
-        for title, key in (("Links", "left"), ("Mittig", "center"), ("Rechts", "right"),
-                           ("Volle Breite", "full")):
+        for title, key in (("Links", "left"), ("Mittig", "center"), ("Rechts", "right")):
             button = ActionButton(title, "document_align_" + key)
             button.setCheckable(True)
-            button.setToolTip("Dokumentationsfläche: " + title)
+            button.setToolTip("Inhalt bei voller Dokumentbreite: " + title)
             button.clicked.connect(lambda checked=False, value=key: self.set_alignment(value))
             self.alignment_buttons.addButton(button)
             modes.addWidget(button)
@@ -220,17 +222,15 @@ class LiveMarkdownEditor(QWidget):
         self.scroll.setContextMenuPolicy(Qt.CustomContextMenu)
         self.scroll.customContextMenuRequested.connect(self.show_context)
         settings = appearance().settings
-        self.set_alignment(str(settings.value("appearance/document_alignment", "full"))
-                           if settings is not None else "full", persist=False)
+        self.set_alignment(str(settings.value("appearance/document_alignment", "left"))
+                           if settings is not None else "left", persist=False)
         self.rebuild()
 
     def set_alignment(self, alignment: str, *, persist: bool = True) -> None:
-        self.alignment = alignment if alignment in {"left", "center", "right", "full"} else "full"
-        self.surface_widget.setMaximumWidth(16777215 if self.alignment == "full" else 820)
-        self.surface_row.setAlignment(self.surface_widget, {
-            "left": Qt.AlignLeft, "center": Qt.AlignHCenter, "right": Qt.AlignRight,
-            "full": Qt.AlignmentFlag(0),
-        }[self.alignment])
+        self.alignment = alignment if alignment in {"left", "center", "right"} else "left"
+        for block in self.blocks:
+            block.view.set_content_alignment(self.alignment)
+            block.fit()
         for button in self.alignment_buttons.buttons():
             button.setChecked(button.objectName() == "document_align_" + self.alignment)
         settings = appearance().settings

@@ -14,6 +14,7 @@ from etherfood_studio.domain.assets import default_definition
 from etherfood_studio.ui.appearance import AppearanceDialog, appearance
 from etherfood_studio.ui.asset_workspace import AssetWorkspace
 from etherfood_studio.ui.main_window import MainWindow
+from etherfood_studio.ui.presentation import kind_icon
 from etherfood_studio.ui.theme import color
 
 
@@ -150,3 +151,27 @@ def test_main_window_undo_from_table_never_undoes_canvas_layout(window, qt_app):
     assert editor.toPlainText() == source
     assert window.project.catalog.layout(owner) == before
     assert len(window.commands.done) == 1
+
+
+def test_theme_refreshes_existing_document_and_filter_icons_without_reloading_drafts(window):
+    document = window.documents.create_document("Darstellung")
+    window.documents.editor.setPlainText("# Ungespeicherter Entwurf")
+    window.search.refresh()
+    snapshot = window.project.catalog.export_snapshot()
+    for theme in ("dark", "light"):
+        appearance().set_preferences(theme, "icons")
+        expected = kind_icon("document").pixmap(16, 16).toImage()
+        assert window.documents.documents.currentData() == document.id
+        assert window.documents.documents.itemIcon(0).pixmap(16, 16).toImage() == expected
+        results = window.search.results
+        found = next(results.item(index) for index in range(results.count())
+                     if results.item(index).data(Qt.UserRole) == document.id)
+        assert found.icon().pixmap(16, 16).toImage() == expected
+        for panel in (window.tasks, window.search):
+            for index in range(panel.kind.count()):
+                if kind := panel.kind.itemData(index):
+                    assert panel.kind.itemIcon(index).pixmap(16, 16).toImage() \
+                        == kind_icon(kind).pixmap(16, 16).toImage()
+        assert window.documents.dirty
+        assert window.documents.editor.toPlainText() == "# Ungespeicherter Entwurf"
+        assert window.project.catalog.export_snapshot() == snapshot

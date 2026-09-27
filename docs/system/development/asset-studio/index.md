@@ -13,6 +13,7 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Markdown-Dokumentation direkt bearbeiten](DOKUMENTATION.md)
 - [Aktuelles Bedienbriefing: Darstellung, To-dos und Markdown-Werkzeuge](DARSTELLUNG.md)
 - [Arbeitsplan: Darstellung und Markdown-Werkzeuge](../plans/asset-studio-darstellung-und-markdown.md)
+- [Aktueller Feinschliff: Icons und Markdown](../plans/asset-studio-markdown-feinschliff.md)
 - [Vorheriges UI-Briefing: Notizen, Markdown, Aufgaben und Canvas](SICHTPRUEFUNG_INHALTE.md)
 - [Arbeitsplan: direkte Inhaltsoberflächen](../plans/asset-studio-inhaltsoberflaechen.md)
 - [Asset-Anforderungen und lesende Bestandserfassung](INVENTORY.md)

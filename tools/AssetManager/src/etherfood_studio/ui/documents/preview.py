@@ -3,7 +3,7 @@
 from PySide6.QtCore import QByteArray, QPointF, QRectF, Qt, QUrl, Signal
 from PySide6.QtGui import (
     QColor, QDesktopServices, QPainter, QPen, QPolygonF, QTextBlockFormat, QTextCharFormat,
-    QTextCursor, QTextDocument,
+    QTextCursor, QTextDocument, QTextFormat,
 )
 from PySide6.QtWidgets import QCheckBox, QMessageBox, QTextBrowser
 
@@ -98,6 +98,19 @@ class SafePreview(QTextBrowser):
         self.checkbox_read_only = value
         for checkbox, _ in self.checkboxes:
             checkbox.setEnabled(not value)
+
+    def set_content_alignment(self, value: str) -> None:
+        alignment = {"left": Qt.AlignLeft, "center": Qt.AlignHCenter,
+                     "right": Qt.AlignRight}.get(value, Qt.AlignLeft)
+        block = self.document().begin()
+        while block.isValid():
+            cursor = QTextCursor(block)
+            format_ = block.blockFormat()
+            if not cursor.currentTable() and not format_.hasProperty(QTextFormat.BlockCodeLanguage):
+                format_.setAlignment(alignment)
+                cursor.setBlockFormat(format_)
+            block = block.next()
+        self.position_checkboxes()
 
     def position_checkboxes(self, *args: object) -> None:
         for checkbox, position in self.checkboxes:

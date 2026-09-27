@@ -134,6 +134,7 @@ class MainWindow(QMainWindow):
             ("Manuell", "restore_layout", self.restore_layout),
         ):
             actions.addWidget(button(text, name, call))
+        actions.addStretch(1)
         canvas_layout.addLayout(actions)
         self.canvas = Canvas()
         # Saving a dirty note can rebuild the scene; finish the pointer event first.
@@ -252,6 +253,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Bereit · Projekt wählen")
 
     def apply_appearance(self) -> None:
+        self.project_toolbar.setIconSize(QSize(16, 16))
         self.project_toolbar.setToolButtonStyle(BUTTON_STYLES[appearance().buttons])
         for action in self.project_toolbar.actions():
             if action.objectName():
@@ -266,7 +268,7 @@ class MainWindow(QMainWindow):
             while iterator.value():
                 item = iterator.value()
                 record = records.get(item.data(0, Qt.UserRole))
-                if record and record.kind in {"task", "issue"}:
+                if record:
                     item.setIcon(0, record_icon(record))
                 iterator += 1
 

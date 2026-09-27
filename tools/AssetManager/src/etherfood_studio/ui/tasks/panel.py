@@ -9,7 +9,7 @@ from ...application.document_service import DocumentService
 from ...application.issue_service import IssueService
 from ..common import label
 from ..appearance import appearance
-from ..presentation import KIND_NAMES, kind_icon, record_icon, status_icon
+from ..presentation import KIND_NAMES, kind_icon, record_icon
 from .base import STATE_NAMES, TaskPanel
 
 
@@ -75,11 +75,13 @@ class TasksPanel(TaskPanel):
         appearance().changed.connect(self.refresh_icons)
 
     def refresh_icons(self) -> None:
+        for index in range(self.kind.count()):
+            if kind := self.kind.itemData(index):
+                self.kind.setItemIcon(index, kind_icon(kind))
         for index in range(self.results.count()):
             item = self.results.item(index)
-            data = item.data(Qt.UserRole + 2)
-            if data and data[0] in {"task", "issue"}:
-                item.setIcon(status_icon(data[1], issue=data[0] == "issue"))
+            if self.project:
+                item.setIcon(record_icon(self.project.catalog.get(item.data(Qt.UserRole))))
 
     def refresh_scopes(self) -> None:
         if not self.project:
