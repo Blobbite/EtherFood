@@ -85,6 +85,8 @@ class JobsDialog(QDialog):
             if row["id"] == selected:
                 self.list.setCurrentItem(item)
         self.list.blockSignals(False)
+        for index in (0, 1, 2):
+            self.list.resizeColumnToContents(index)
         self.show_details()
         self.changed.emit()
 
@@ -96,15 +98,15 @@ class JobsDialog(QDialog):
         row = self.service.store.get(identifier)
         parts = ["Auftrag: " + identifier, "Status: " + STATUS[row["status"]],
                  "Arbeitsraum: " + str(self.service.workspace(identifier)),
-                 "Argumente: " + repr(row["request"]["argv"]),
-                 "Werkzeug-Hashes: " + repr(row["request"]["tool_hashes"]),
-                 "Ereignisse: " + repr(self.service.store.events(identifier))]
+                 "Argumente: " + repr(row["request"]["argv"])]
         for name in ("stdout.log", "stderr.log", "host-stderr.log"):
             path = self.service.workspace(identifier) / "logs" / name
             if path.is_file():
                 with path.open("rb") as stream:
                     stream.seek(max(0, path.stat().st_size - 65536))
                     parts += [name + " (letzte 64 KiB)", stream.read().decode("utf-8", "replace")]
+        parts += ["Werkzeug-Hashes: " + repr(row["request"]["tool_hashes"]),
+                  "Ereignisse: " + repr(self.service.store.events(identifier))]
         self.details.setPlainText("\n\n".join(parts))
 
     def cancel_selected(self):

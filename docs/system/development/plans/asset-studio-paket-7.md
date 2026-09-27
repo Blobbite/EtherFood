@@ -31,11 +31,11 @@ Originalablage. Bereits vorhandene Game-/Control-Änderungen bleiben unberührt.
 3. [x] Notiz-Regressionen prüfen, dokumentieren, committen und pushen (`8c3a561`).
 4. [x] T017: Jobverträge, Ablage und Adapter implementieren.
 5. [x] T017: Core-/Qt-Prozesssteuerung, Abbruch und Recovery implementieren.
-6. [ ] T017: GUI/CLI einbinden, testen, dokumentieren, committen und pushen.
-7. [ ] T018: Graph, Fingerprints und verifizierten Cache implementieren.
-8. [ ] T018: Asset-Dry-run und Plan-/Ausführungsvergleich einbinden.
-9. [ ] T018: Veraltung, Cache-Schäden, Graphfehler und Wiederaufnahme testen.
-10. [ ] Gesamtläufe, echte Qt-Ansicht, Dokumentation und Briefing abschließen.
+6. [x] T017: GUI/CLI einbinden, testen, dokumentieren, committen und pushen (`4ef37bd`).
+7. [x] T018: Graph, Fingerprints und verifizierten Cache implementieren.
+8. [x] T018: Asset-Dry-run und Plan-/Ausführungsvergleich einbinden.
+9. [x] T018: Veraltung, Cache-Schäden, Graphfehler und Wiederaufnahme testen.
+10. [x] Gesamtläufe, echte Qt-Ansicht, Dokumentation und Briefing abschließen.
 11. [ ] T018 gezielt committen/pushen und Remote-Stand prüfen.
 
 ## Prüfungen und Erkenntnisse
@@ -59,6 +59,21 @@ Schreibergrenzen, Originalschutz und echter FramReduce-Help-Aufruf geprüft.
 Sichere Prozessgruppen zunächst Linux mit /proc; andere Plattformen werden
 ehrlich abgewiesen. Kein unkontrollierter Ausweichstart.
 
+T018: Gesamter Studio-Lauf 304 bestanden. Änderungen an Walk-/Mastermasken,
+unabhängige Tempelzweige, Timing/Tool/Algorithmus/Quelländerung, Namens-/Layout-
+Neutralität, beschädigte/fehlende/zusätzliche Cachedateien, Zyklen, Wiederaufnahme,
+Neustart, Nur-Lese-CLI und unveränderte Historie geprüft. Qt-Namenskonflikt
+mit QObject.event im Test gefunden, behoben und anschließend im gemeinsamen
+Buildplan-/Canvas-Lauf sowie vollständigen Studio-Lauf verifiziert.
+
+Abschlussprüfung: Zentraler Asset-Manager-Check 304 Studio- und 171 Pipeline-
+Tests bestanden; nach Darstellungsnachbesserung 19 weitere passende Qt-Tests.
+111 Studio-Dateien ohne Stilbefund. Vier echte Qt-Ansichten synthetischer
+Projekte visuell geprüft. Standardcheck weiter rot: 259 bestanden, 37 skipped,
+2 alte Dokumentationsfehler, 13 defekte Verweise, Godot 4 fehlt, 1907 geerbte
+Stilbefunde. Keine zusätzlichen Studio-Befunde. Kurzes Briefing unter
+`../asset-studio/SICHTPRUEFUNG_7.md`.
+
 ## Wiederholbarkeit und Schutz
 
 Temporäre synthetische Projekte; Originale nur lesen/kopieren. Keine rekursive
@@ -68,5 +83,6 @@ stagen. Commits mit englischem Emoji-Titel, danach Push wie beauftragt.
 
 ## Ergebnis
 
-In Arbeit. Persönliche Bedienprüfung und spätere Produktivfreigaben bleiben
-von technischen Tests getrennt.
+Notizkorrektur und beide Issues technisch umgesetzt. Abschluss-Commit/Push
+werden noch geprüft. Persönliche Bedienprüfung und spätere Produktivfreigaben
+bleiben von technischen Tests getrennt; nächste Bildaufgaben nicht vorgezogen.

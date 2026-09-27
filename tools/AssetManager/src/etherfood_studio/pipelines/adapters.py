@@ -28,7 +28,10 @@ class DiagnosticAdapter:
         script = PIPELINES / "diagnostic_worker.py"
         argv = (sys.executable, "-I", "-B", str(script), parameters.get("mode", "success"),
                 parameters.get("value", ""))
-        return CommandPlan(argv, ("result.json", "report.json"), self.hashes(script))
+        outputs = ("result.json", "report.json")
+        if parameters.get("mode") == "child":
+            outputs += ("late-child.txt",)
+        return CommandPlan(argv, outputs, self.hashes(script))
 
     @staticmethod
     def hashes(script: Path) -> tuple[tuple[str, str], ...]:

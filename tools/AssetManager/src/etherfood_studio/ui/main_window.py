@@ -36,6 +36,7 @@ from .notes import NotesPanel
 from .tasks.panel import TasksPanel
 from .tasks.kanban import KanbanPanel
 from .jobs import JobsDialog
+from .build_plan import BuildPlanDialog
 
 
 class MainWindow(QMainWindow):
@@ -52,6 +53,7 @@ class MainWindow(QMainWindow):
         self.selected_content_id: str | None = None
         self._refreshing = False
         self.job_dialog = None
+        self.build_dialog = None
         self._close_after_jobs = False
         self._build_ui()
         self.navigation = Navigation(self)
@@ -76,10 +78,11 @@ class MainWindow(QMainWindow):
         self.redo_action = self._action(toolbar, "Wiederholen", lambda: self.undo(True),
                                         "Ctrl+Shift+Z", "redo")
         self._action(toolbar, "Aufträge …", self.show_jobs, "", "show_jobs")
+        self._action(toolbar, "Buildplan …", self.show_build_plan, "", "show_build_plan")
         for text in ("Bildpipeline (später)", "Godot bereitstellen (später)"):
             action = toolbar.addAction(text)
             action.setEnabled(False)
-            action.setToolTip("Nicht Bestandteil der Pakete 1–4; kein simulierter Erfolg.")
+            action.setToolTip("Produktive Bildverarbeitung/Godot folgen in späteren Issues.")
         center = QWidget()
         outer = QVBoxLayout(center)
         self.breadcrumb = label(
@@ -830,6 +833,16 @@ class MainWindow(QMainWindow):
         self.search.query.setFocus()
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        modal = QApplication.activeModalWidget()
+        if isinstance(modal, BuildPlanDialog) and modal.worker:
+            modal.cancel()
+            event.ignore()
+            return
+        if self.build_dialog and self.build_dialog.worker:
+            self.build_dialog.cancel()
+            event.ignore()
+            self.statusBar().showMessage("Buildprüfung wird beendet; danach erneut schließen.")
+            return
         if self.job_dialog and self.job_dialog.runner.active:
             event.ignore()
             if QMessageBox.question(self, "Laufende Aufträge",
@@ -850,6 +863,9 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def jobs_idle(self) -> bool:
+        if self.build_dialog and self.build_dialog.worker:
+            self.statusBar().showMessage("Zuerst den laufenden Buildplan abschließen/abbrechen.")
+            return False
         if self.job_dialog and self.job_dialog.runner.active:
             self.statusBar().showMessage("Erst Aufträge beenden/abbrechen, dann Projekt wechseln.")
             return False
@@ -864,6 +880,17 @@ class MainWindow(QMainWindow):
         self.job_dialog.owner_id = self.selected_id or self.project.project().id
         self.job_dialog.show()
         self.job_dialog.raise_()
+
+    def show_build_plan(self) -> None:
+        if self.project:
+            dialog = BuildPlanDialog(self.project, self.selected_id or self.project.project().id,
+                                     self)
+            self.build_dialog = dialog
+            dialog.exec()
+            self.build_dialog = None
+            dialog.deleteLater()
+            if self.job_dialog:
+                self.job_dialog.refresh()
 
     def _jobs_changed(self) -> None:
         count = len(self.job_dialog.runner.active)

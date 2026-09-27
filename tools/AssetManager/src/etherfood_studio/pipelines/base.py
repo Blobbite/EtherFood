@@ -66,6 +66,10 @@ class PipelineAdapter(Protocol):
 
 def verify_files(root: Path, expected: tuple[str, ...], manifest: list[dict] | None = None
                  ) -> list[dict]:
+    actual = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() or p.is_symlink()}
+    if actual != set(expected):
+        raise StudioError("integrity",
+                          "Ausgabeordner enthält fehlende oder nicht erfasste Dateien.")
     if manifest is not None and (len(manifest) != len(expected) or
                                 {r["path"] for r in manifest} != set(expected)):
         raise StudioError("integrity", "Ergebnisliste ist unvollständig.")

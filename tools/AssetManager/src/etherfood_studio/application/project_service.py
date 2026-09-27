@@ -43,20 +43,21 @@ class ProjectService:
         return service
 
     @classmethod
-    def open(cls, directory: Path) -> "ProjectService":
+    def open(cls, directory: Path, *, read_only: bool = False) -> "ProjectService":
         root = real_path(directory)
         config = Configuration.load(safe_target(root, SETTINGS_NAME))
         validate_roots(config.roots, require_available=False)
         stored = config.roots.get("WORKSPACE_ROOT")
         if stored is None or real_path(stored, must_exist=False) != root:
             raise StudioError("unavailable", "Projektwurzel passt nicht zur lokalen Konfiguration.")
-        catalog = Catalog(safe_target(root, CATALOG_NAME))
+        catalog = Catalog(safe_target(root, CATALOG_NAME), read_only=read_only)
         service = cls(catalog, config)
         try:
             service.validate_structure()
             from ..storage.job_store import JobStore
 
-            JobStore(catalog).recover()
+            if not read_only:
+                JobStore(catalog).recover()
         except Exception:
             catalog.close()
             raise

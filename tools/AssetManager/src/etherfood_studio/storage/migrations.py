@@ -58,6 +58,13 @@ MIGRATIONS = {
             data TEXT NOT NULL, PRIMARY KEY(job_id,seq)
         )""",
     ),
+    5: (
+        """CREATE TABLE build_cache (
+            build_id TEXT PRIMARY KEY REFERENCES objects(id), node_key TEXT NOT NULL,
+            input_fingerprint TEXT NOT NULL, job_id TEXT NOT NULL REFERENCES jobs(id)
+        )""",
+        "CREATE INDEX cache_fingerprint ON build_cache(input_fingerprint)",
+    ),
 }
 
 CURRENT_VERSION = max(MIGRATIONS)

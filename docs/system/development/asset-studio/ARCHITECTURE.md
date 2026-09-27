@@ -99,3 +99,14 @@ Supervisor und den eingefrorenen Vertrag `studio-job-v1`. Registrierung,
 Hashprüfung und sichere Argumentlisten ersetzen keine Sandbox für fremde
 Werkzeuge. Anfangs sind ausschließlich Diagnose und lesender Help-Aufruf
 freigegeben. Produktive Bildverarbeitung und Godot bleiben separat gesperrt.
+
+## Ergänzung T018
+
+Der [Buildplan](BUILDPLAN.md) ist ein eigener typisierter DAG, keine Ableitung
+aus Canvas-Positionen oder Projekt-Hierarchie. Migration 5 registriert nur
+lokal geprüfte Ergebnisse im Cache; portable Snapshots bringen keine
+Cache-Vertrauensstellung mit. Input-Fingerprint, vollständige Ausgabedigestliste
+und Digests der tatsächlichen Vorgängerresultate werden separat geprüft.
+Dry-run ist schreibfrei, in der CLI sogar mit SQLite-Nur-Lese-Verbindung.
+Die neun Phasen lassen sich bereits mit synthetischen Diagnoseaufträgen
+ausführen; fehlende produktive Bildadapter bleiben sichtbar blockiert.

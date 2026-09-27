@@ -1,4 +1,4 @@
-# Ergebnisberichte: Pakete 1–6
+# Ergebnisberichte: Pakete 1–7
 
 Die technischen Kriterien von T001–T016 sind umgesetzt. Pakete 1–4 samt 4a
 sowie die verkürzte Anforderungs-/Canvas-Prüfrunde sind vom Benutzer abgenommen.
@@ -23,6 +23,7 @@ Der ursprüngliche Aufgabenplan unter
 | 6c | Baum-Drag-and-drop, Canvas-Symbole und Notiz-Dashboard | [Notiz-Bericht](6c.md) |
 | 6d | Dokumentanlage, Dokumente im Canvas und grüner Aufgabenhaken | [Dokumentationsbericht](6d.md) |
 | 7, Teil 1 | Kontrollierte Hintergrundaufträge und Adapter | [T017](T017.md) |
+| 7, Teil 2 | Typisierter Buildplan, verifizierter Cache und Veraltung | [T018](T018.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien
@@ -55,3 +56,8 @@ Zwischenpaket 6c: **244 Studio-Tests + 171 Pipeline-Tests bestanden**,
 
 Aktuell Zwischenpaket 6d: **261 Studio-Tests + 171 Pipeline-Tests bestanden**,
 **90 Studio-Dateien ohne Stilbefund**. [Nachweise und offene Punkte](6d.md).
+
+Paket 7 ergänzt die konsequente Notiztrennung, T017 und T018. Technischer
+Studio-Stand: **304 Tests bestanden**. Persönliche Abnahme anhand des
+[neuen Briefings](../SICHTPRUEFUNG_7.md) bleibt offen; produktive Bildadapter
+und Godot-Bereitstellung sind weiterhin nachfolgende Aufgaben.

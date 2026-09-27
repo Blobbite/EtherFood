@@ -26,7 +26,7 @@ class Catalog:
     """One controlled connection; workers return results to its owning service."""
 
     def __init__(self, path: Path, *, create: bool = False,
-                 target_version: int = CURRENT_VERSION) -> None:
+                 target_version: int = CURRENT_VERSION, read_only: bool = False) -> None:
         self.path = real_path(path, must_exist=not create)
         self._lock = RLock()
         self._depth = 0
@@ -39,7 +39,8 @@ class Catalog:
             except FileExistsError as exc:
                 raise StudioError("conflict", "Katalog existiert bereits.") from exc
         try:
-            self.db = sqlite3.connect(self.path.as_uri() + "?mode=rw", uri=True,
+            mode = "ro" if read_only else "rw"
+            self.db = sqlite3.connect(self.path.as_uri() + "?mode=" + mode, uri=True,
                                       isolation_level=None, check_same_thread=False, timeout=5)
             self.db.row_factory = sqlite3.Row
             self.db.execute("PRAGMA foreign_keys=ON")
@@ -53,6 +54,8 @@ class Catalog:
             if version > target_version:
                 raise StudioError("validation", "Katalogversion ist neuer als diese Anwendung.")
             if version < target_version:
+                if read_only:
+                    raise StudioError("unavailable", "Katalog zuerst regulär öffnen/migrieren.")
                 if version:
                     self.last_backup = self.path.with_name(
                         self.path.name + ".studio-backup-" + new_id(),

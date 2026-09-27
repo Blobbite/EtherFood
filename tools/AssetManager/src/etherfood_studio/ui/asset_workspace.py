@@ -17,6 +17,7 @@ from .notes import NotesPanel
 from .inventory import InventoryDialog
 from .sources import SourcesPanel
 from .tasks.panel import TasksPanel
+from .build_plan import BuildPlanDialog
 
 
 class AssetWorkspace(QDialog):
@@ -91,6 +92,8 @@ class AssetWorkspace(QDialog):
         actions = QHBoxLayout()
         actions.addWidget(button("Quellen / Lieferstand ansehen", "workspace_sources",
                                  lambda: self.tabs.setCurrentWidget(self.sources_page)))
+        actions.addWidget(button("Buildplan / Dry-run …", "workspace_build_plan",
+                                 self.show_build_plan))
         for title, name in (("Varianten erzeugen (später)", "workspace_build"),
                             ("Godot-Test (später)", "workspace_godot")):
             action = button(title, name, lambda: None)
@@ -113,6 +116,13 @@ class AssetWorkspace(QDialog):
                 self.notes.editor.save()
         elif self.tabs.currentIndex() == 2:
             self.save_requirements()
+
+    def show_build_plan(self) -> None:
+        if not self.record.data.get("asset_definition"):
+            return
+        dialog = BuildPlanDialog(self.assets.project, self.identifier, self)
+        dialog.exec()
+        dialog.deleteLater()
 
     def refresh(self) -> None:
         self.record = self.assets.asset(self.identifier)

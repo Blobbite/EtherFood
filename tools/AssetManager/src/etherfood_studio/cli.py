@@ -45,8 +45,33 @@ def main(argv: Sequence[str] | None = None) -> int:
     jobs.add_argument("--mode", choices=("success", "exit7", "missing", "slow", "child"),
                       default="success")
     jobs.add_argument("--timeout", type=float, default=30)
+    build = commands.add_parser("build-plan",
+                                 help="Lesender Buildplan oder explizite Cache-Diagnose")
+    build.add_argument("--project", type=Path, required=True)
+    build.add_argument("--asset", help="Asset-ID für echte Anforderungen, ohne Bildausführung")
+    build.add_argument("--diagnostic", action="store_true", help="Synthetischen Graph planen")
+    build.add_argument("--execute-diagnostic", action="store_true")
     args = parser.parse_args(argv)
     try:
+        if args.command == "build-plan":
+            from .application.build_graphs import asset_graph, diagnostic_graph
+            from .application.build_planner import BuildPlanner
+            from .application.project_service import ProjectService
+
+            if bool(args.asset) == bool(args.diagnostic) or \
+                    args.execute_diagnostic and not args.diagnostic:
+                raise StudioError("validation", "Entweder --asset ID oder --diagnostic wählen.")
+            project = ProjectService.open(args.project, read_only=not args.execute_diagnostic)
+            try:
+                owner = args.asset or project.project().id
+                graph = diagnostic_graph() if args.diagnostic else asset_graph(project, owner)
+                planner = BuildPlanner(project)
+                plan = planner.plan(owner, graph)
+                value = planner.execute(plan) if args.execute_diagnostic else plan.to_data()
+                print(json.dumps(value, ensure_ascii=False, indent=2))
+                return 1 if value.get("status") == "incomplete" else 0
+            finally:
+                project.catalog.close()
         if args.command == "jobs":
             from .application.job_service import JobService
             from .application.project_service import ProjectService
