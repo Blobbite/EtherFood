@@ -103,3 +103,10 @@ oder fremden Änderungen verändert; keine zusätzliche Abhängigkeit.
 Notizdarstellung und persönliche Nachabnahme bleiben offen; T017/T018 nicht
 begonnen. Commit-/Push-Nachweise der beiden Arbeitsabschnitte stehen im
 Git-Verlauf und den zugehörigen Issue-Kommentaren; keine pauschale Benutzerabnahme.
+
+Aufgabenabschnitt als `0923553` committed und gepusht. Abschließende
+Quellen-Regression ergänzt: Nach Verkleinern des Richtungssets bleibt bei einer
+bereits importierten, nun optionalen Richtung sowohl **Nicht erforderlich** als
+auch ihr tatsächlicher Lieferstand sichtbar. Keine Änderung ihrer Revision.
+Erneuter vollständiger Studio-Lauf danach: **190 bestanden**, Stilprüfung
+weiterhin **75 Dateien ohne Befund**.

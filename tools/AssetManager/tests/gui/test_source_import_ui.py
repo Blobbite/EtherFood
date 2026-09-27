@@ -235,3 +235,12 @@ def test_many_revisions_stay_in_one_collapsed_pose_bundle(delivery, tmp_path, qt
     dialog.deliveries.refresh()
     assert dialog.deliveries.matrix.topLevelItem(0).isExpanded()
     assert dialog.deliveries.matrix.topLevelItem(0).child(0).isExpanded()
+    record = service.assets.asset(dialog.identifier)
+    definition = service.assets.definition(record.id).to_data()
+    definition["directions"] = ["SO"]
+    service.assets.configure(record.id, definition, record.revision_no)
+    dialog.deliveries.refresh()
+    group = dialog.deliveries.matrix.topLevelItem(0)
+    unused = next(group.child(i) for i in range(group.childCount())
+                  if group.child(i).text(0) == "SW")
+    assert "Nicht erforderlich" in unused.text(2) and "Importiert" in unused.text(2)

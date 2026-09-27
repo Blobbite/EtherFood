@@ -102,6 +102,8 @@ class SourcesPanel(QWidget):
                 entry = entries_by_key.get(key)
                 revision = entry["revision"] if entry else None
                 state = SOURCE_STATES[entry["state"]] if entry else "Frühere Zuordnung"
+                if entry and not entry["required"] and revision:
+                    state = "Nicht erforderlich · " + state
                 slot = QTreeWidgetItem(group, [key.direction or "Ohne Richtung",
                     SOURCE_KINDS[key.kind], state, *revision_cells(revision)])
                 slot.setData(0, Qt.ItemDataRole.UserRole, "slot:" + key.token)
