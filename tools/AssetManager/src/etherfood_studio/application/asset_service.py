@@ -1,7 +1,7 @@
 """Asset configuration and append-only external observations, never source-file import."""
 
 from ..domain.assets import AssetDefinition, VariantKey, require
-from ..domain.models import Record, StudioError
+from ..domain.models import Record, StudioError, new_id
 from .project_service import ProjectService
 
 
@@ -17,6 +17,21 @@ class AssetService:
     def definition(self, identifier: str) -> AssetDefinition:
         data = self.asset(identifier).data.get("asset_definition")
         require(data is not None, "Zuerst die Asset-Anforderungen festlegen.")
+        return AssetDefinition.from_data(data)
+
+    @staticmethod
+    def creation_data(data: dict) -> dict:
+        definition = AssetDefinition.from_data(data)
+        return {"asset_definition": definition.to_data(), "workflow": definition.workflow}
+
+    def create(self, title: str, owner_id: str, data: dict) -> Record:
+        return self.project.create_card("asset", title, owner_id, self.creation_data(data))
+
+    def template(self, identifier: str) -> AssetDefinition:
+        """Copy configuration only, never identity, sources, evidence or approvals."""
+        data = self.definition(identifier).to_data()
+        for pose in data["poses"]:
+            pose["id"] = new_id()
         return AssetDefinition.from_data(data)
 
     def configure(self, identifier: str, data: dict, expected_revision: int) -> Record:

@@ -1,8 +1,10 @@
 # Ergebnisberichte: Pakete 1–6
 
-Die technischen Kriterien von T001–T014 sind umgesetzt. Pakete 1–4 samt 4a
-sind vom Benutzer abgenommen; die [Sichtprüfung für Paket 5](../SICHTPRUEFUNG_5.md)
-auf dem Zielrechner bleibt offen. Der ursprüngliche Aufgabenplan unter
+Die technischen Kriterien von T001–T016 sind umgesetzt. Pakete 1–4 samt 4a
+sowie die verkürzte Anforderungs-/Canvas-Prüfrunde sind vom Benutzer abgenommen.
+Zurückgestellte Bestandsprüfungen aus [Paket 5](../SICHTPRUEFUNG_5.md) bleiben
+offen; aktuell folgt das [Paket-6-Briefing](../SICHTPRUEFUNG_6.md).
+Der ursprüngliche Aufgabenplan unter
 `tools/AssetManager/works/` bleibt unveränderte Eingangsreferenz.
 
 | Paket | Aufgaben | Berichte |
@@ -12,7 +14,7 @@ auf dem Zielrechner bleibt offen. Der ursprüngliche Aufgabenplan unter
 | 3 | Projektstruktur, Dokumente, Status | [T006](T006.md), [T007](T007.md), [T008](T008.md) |
 | 4 | Desktop, Canvas, Undo/Redo, Editor | [T009](T009.md), [T010](T010.md), [T011](T011.md), [T012](T012.md) |
 | 5 | Asset-Anforderungen, lesender Bestand | [T013](T013.md), [T014](T014.md) |
-| 6 (in Arbeit) | Quellenimport, danach Asset-Anlage | [T015](T015.md) |
+| 6 | Quellenimport, Vorlagen und Asset-Menü | [T015](T015.md), [T016](T016.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien
@@ -25,6 +27,11 @@ weiterhin nicht (201 passed, 37 skipped, 2 failed), außerdem verbleiben
 Stilbefunde im geerbten Pipelinebestand. Diese Befunde wurden nicht verdeckt.
 Keine menschliche Sichtprüfung oder Godot-/Produktivfreigabe wird behauptet.
 
-Aktueller Stand Paket 5: 109 Studio-Tests, 57 Studio-Dateien ohne Stilbefund;
+Stand Paket 5: 109 Studio-Tests, 57 Studio-Dateien ohne Stilbefund;
 Walk-Bestand (400 Dateien) per Vorher-/Nachher-Hash unverändert. Aktuelle
 Kontrollbefehle und verbleibende Repository-Befunde stehen in [T014](T014.md).
+
+Aktueller technischer Stand Paket 6: **159 Studio-Tests + 171 bestehende
+Pipeline-Tests bestanden**, **70 Studio-Dateien ohne Stilbefund**. Geprüfte
+synthetische Quellenimporte, NPC-Anlage und Neustart; keine Game-Bilder
+verändert. Ausführliche Nachweise und verbleibende Grenzen: [T016](T016.md).

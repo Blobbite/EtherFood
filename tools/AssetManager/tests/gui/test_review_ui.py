@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QApplication, QDialogButtonBox, QInputDialog, QMes
 from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.issue_service import Finding, IssueService
 from etherfood_studio.ui.main_window import MainWindow
+from etherfood_studio.ui.asset_wizard import AssetWizard
 from etherfood_studio.ui.tasks.editor import TaskEditor
 
 
@@ -231,8 +232,16 @@ def test_context_actions_and_tree_cancel_preserve_unsaved_document(window, monke
 
 def test_canvas_context_menu_and_direct_card_creation(window, qt_app, monkeypatch):
     ids = arrange_demo(window, qt_app)
-    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Canvas-Asset", True))
     choose_popup_action("context_card_asset")
+
+    def fill_wizard():
+        wizard = QApplication.activeModalWidget()
+        assert isinstance(wizard, AssetWizard)
+        wizard.name.setText("Canvas-Asset")
+        wizard.review()
+        wizard.create()
+
+    QTimer.singleShot(0, fill_wizard)
     card = window.canvas.items_by_id[ids["one"]]
     point = window.canvas.mapFromScene(card.scenePos() + QPointF(30, 40))
     window.canvas.customContextMenuRequested.emit(point)

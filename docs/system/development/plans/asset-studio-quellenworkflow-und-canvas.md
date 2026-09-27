@@ -1,5 +1,11 @@
 # Arbeitsplan: Quellenworkflow und Canvas-Nachbesserung
 
+Fortschreibung: Der Canvas-Nachtest ist vom Benutzer vollständig bestätigt.
+Abschnitt A (T015/#22 und T016/#23) ist inzwischen in
+[Paket 6](asset-studio-paket-6.md) technisch umgesetzt. Die nachfolgenden
+Abschnitte B–D und die automatische Gesamterzeugung bleiben offen.
+Die folgenden Ausgangs-/Ergebnisabschnitte dokumentieren den damaligen Stand.
+
 ## Zweck und Ausgangslage
 
 27.09.2026, Basis `1038a17`: Der Benutzer möchte als Zielablauf Anforderungen

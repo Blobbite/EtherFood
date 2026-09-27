@@ -18,11 +18,11 @@ verwalteten Quellen. Bestehende Control-/Doku-/Grafikänderungen bleiben separat
 - [x] Aufgaben, Vorgänger und tatsächliche Dienste prüfen; Canvas-Abnahme festhalten.
 - [x] T015: begrenzte Bildprüfung, unveränderliche Quellenrevisionen, aktive Zuordnung.
 - [x] T015: Importdialog mit explizitem Raster, Konflikten, Teilstand und Abbruch.
-- [ ] T015: negative/Core-/Qt-Tests, Bericht, englischer Emoji-Commit und Push.
-- [ ] T016: Anlageassistent/Vorlagen mit Zusammenfassung und atomarer Anlage.
-- [ ] T016: Asset-Menü, Posenbutton neben Anker Y, echte Status-/Quellenanzeige.
-- [ ] T016: End-to-End-NPC-Nachweis, Gesamtprüfung, Bericht, Commit und Push.
-- [ ] Kurzes Benutzerbriefing und sichtbare offene Folgeaufgaben übergeben.
+- [x] T015: negative/Core-/Qt-Tests, Bericht, englischer Emoji-Commit und Push.
+- [x] T016: Anlageassistent/Vorlagen mit Zusammenfassung und atomarer Anlage.
+- [x] T016: Asset-Menü, Posenbutton neben Anker Y, echte Status-/Quellenanzeige.
+- [x] T016: End-to-End-NPC-Nachweis, Gesamtprüfung und Bericht; Commit/Push vorbereiten.
+- [x] Kurzes Benutzerbriefing und sichtbare offene Folgeaufgaben dokumentieren.
 
 ## Verträge und Entscheidungen
 
@@ -61,7 +61,7 @@ Kartenlayouts. Nur aufgabeneigene Dateien gezielt committen und pushen.
 
 ## Erkenntnisse, Prüfungen und Ergebnis
 
-Noch in Arbeit. Katalog kennt bereits unveränderliche `source_revision`-Objekte;
+Katalog kennt bereits unveränderliche `source_revision`-Objekte;
 eine neue Datenbank oder parallele Asset-Metadatenablage ist nicht erforderlich.
 Persönliche Import-/Anlageabnahme folgt erst nach dieser Umsetzung.
 
@@ -75,3 +75,26 @@ ungeprüft und werden nicht als vollständige aktive Lieferung gewertet.
 T015 abschließend: **154 Studio-Tests bestanden**, **66 Dateien ohne
 Stilbefund**, `git diff --check` sauber. [Ergebnisbericht](../asset-studio/task-results/T015.md).
 Keine Game-Originale verwendet oder geändert; keine zusätzlichen Abhängigkeiten.
+T015 committed und gepusht als `e1c88b8`. T016 beginnt mit einem gemeinsam
+verwendeten Anforderungsformular; Vorlage und Import besitzen keine zweite
+abgewandelte Definition derselben Asset-Einstellungen.
+
+T016 gezielt: 21 vorhandene Modell-/Formulartests sowie 13 Tests für
+Konfigurationsvorlagen, neuen NPC-Ablauf, Quellenbutton, Wiederöffnen,
+Dokumentzuordnung, Abbruch und bestehende Dashboard-Kontextaktionen bestanden.
+Archivierte Assets mit Quellen bleiben wieder öffnungsfähig; ihre Importaktion
+bleibt gesperrt. Benutzerbestätigung für ungespeicherte Posen und Notizen vorhanden.
+
+Abschluss T016: Control-Asset-Check erfolgreich mit 158 Studio- und 171
+Pipeline-Tests. Nach zusätzlichem Test der Speicherbestätigung **159 Studio-
+Tests bestanden**; **70 Dateien ohne Stilbefund**. Reale Qt-Screenshots von
+Posen, Quellen und Anlageassistent mit synthetischen Testdaten geprüft.
+Der Standardcheck bleibt mit zwei bekannten Dokumentationsfehlern
+(257 bestanden/37 übersprungen), fehlendem Godot 4 und 1907 geerbten
+Stilbefunden in 236 Dateien rot. Kein neuer Studio-Befund.
+
+[Ergebnis T016](../asset-studio/task-results/T016.md) und
+[sechs aktuelle manuelle Prüfpunkte](../asset-studio/SICHTPRUEFUNG_6.md).
+T015/T016 sind technisch fertig; persönliche Paket-6-Abnahme und alte bewusst
+zurückgestellte Bestandsprüfungen bleiben offen. Kein Folgepaket gestartet,
+keine Bildverarbeitung oder Spielintegration als fertig behauptet.

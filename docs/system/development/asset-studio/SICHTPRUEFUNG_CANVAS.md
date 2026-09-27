@@ -1,10 +1,10 @@
 # Kurzes Briefing: Anforderungen und Canvas
 
-Stand: 27.09.2026. Diese Runde ist bewusst kleiner als die vollständige
-Paket-5-Liste. Der gewünschte Quellenworkflow ist
-[konkret geplant](../plans/asset-studio-quellenworkflow-und-canvas.md);
-der Button neben Anker Y und die automatische Erzeugung sind noch nicht
-implementiert. Die Canvas-Anpassung gehört zum jetzigen Update.
+Abgenommene Runde vom 27.09.2026, kleiner als die vollständige Paket-5-Liste.
+Zum damaligen Stand war der Quellenworkflow nur geplant. Inzwischen sind
+Quellenimport und Button neben Anker Y technisch umgesetzt;
+aktuell gilt das [Paket-6-Briefing](SICHTPRUEFUNG_6.md).
+Die automatische Varianten-Erzeugung bleibt späteren Paketen vorbehalten.
 
 ## Bestätigt und aktueller Nachtest
 
@@ -80,8 +80,8 @@ Issues #20/#21 werden durch diese Planänderung nicht automatisch geschlossen.
 
 ## Nächste Kontrollpunkte
 
-Als nächstes zusammenhängendes Paket ist **Quellenimport und Asset-Anlage**
-vorgesehen (T015/#22 und T016/#23):
+Das damals nächste Paket **Quellenimport und Asset-Anlage** (T015/#22 und
+T016/#23) ist inzwischen technisch umgesetzt und wird separat geprüft:
 
 - **Spritesheets hinzufügen …** direkt neben Anker Y je Pose; mehrere Dateien
   auswählen, Pose, Richtung und Raster vor dem Import prüfen.

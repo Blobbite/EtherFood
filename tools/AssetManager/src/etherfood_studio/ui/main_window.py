@@ -23,6 +23,8 @@ from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
 from .canvas.view import Canvas
 from .asset_settings import AssetSettingsDialog
+from .asset_wizard import AssetWizard
+from .asset_workspace import AssetWorkspace
 from .source_import_dialog import SourceImportDialog
 from .inventory import InventoryDialog
 from .common import button, label, show_error
@@ -62,6 +64,8 @@ class MainWindow(QMainWindow):
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
         self._action(toolbar, "Demo anlegen", self.demo_dialog, "", "create_demo")
         self._action(toolbar, "Asset-Anforderungen …", self.asset_settings, "", "asset_settings")
+        self._action(toolbar, "Neues Asset / NPC …", self.create_asset, "", "new_asset")
+        self._action(toolbar, "Asset-Menü …", self.asset_workspace, "", "asset_workspace")
         self._action(toolbar, "Quellen importieren …", self.asset_sources, "", "asset_sources")
         self._action(toolbar, "Bestand erfassen …", self.asset_inventory, "", "asset_inventory")
         toolbar.addSeparator()
@@ -265,6 +269,37 @@ class MainWindow(QMainWindow):
             dialog.deleteLater()
         self.perform(review)
 
+    def create_asset(self, owner_id: str | None = None) -> None:
+        if not self.project:
+            return
+        if not owner_id:
+            parent = self.project.catalog.get(self.selected_id or self.project.project().id)
+            while parent.kind not in {"global", "act", "chapter", "package"} and parent.owner_id:
+                parent = self.project.catalog.get(parent.owner_id)
+            owner_id = parent.id
+        assets = AssetService(self.project)
+        def create(title: str, owner: str, data: dict):
+            identifier = self.commands.create_card("asset", title, owner,
+                                                   assets.creation_data(data))
+            return self.project.catalog.get(identifier)
+        dialog = AssetWizard(assets, self, owner_id=owner_id, create=create)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.refresh()
+            self.select_card(dialog.created.id)
+        dialog.deleteLater()
+
+    def asset_workspace(self) -> None:
+        if not self.project or not self.selected_id or not self.documents.confirm_discard():
+            return
+        def edit() -> None:
+            dialog = AssetWorkspace(AssetService(self.project), self.selected_id, self)
+            dialog.exec()
+            if dialog.changed:
+                self.documents.refresh_documents()
+                self.refresh()
+            dialog.deleteLater()
+        self.perform(edit)
+
     def asset_sources(self) -> None:
         if not self.project or not self.selected_id:
             return
@@ -281,7 +316,8 @@ class MainWindow(QMainWindow):
             return
         def edit() -> None:
             dialog = AssetSettingsDialog(AssetService(self.project), self.selected_id, self)
-            if dialog.exec() == QDialog.DialogCode.Accepted:
+            dialog.exec()
+            if dialog.changed:
                 self.refresh()
             dialog.deleteLater()
         self.perform(edit)
@@ -613,6 +649,9 @@ class MainWindow(QMainWindow):
                 if not accepted:
                     return
                 kind = names[name]
+        if kind == "asset":
+            self.create_asset(parent.id)
+            return
         title, accepted = QInputDialog.getText(self, "Karte anlegen", "Name")
         if accepted:
             def create() -> None:

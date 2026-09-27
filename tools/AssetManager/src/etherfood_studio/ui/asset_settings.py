@@ -1,12 +1,13 @@
-"""Requirements editor, separate from the later character import wizard."""
+"""Shared requirements form and pose-local access to verified source imports."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QLineEdit,
-    QTableWidget, QTableWidgetItem, QVBoxLayout,
+    QMessageBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from ..application.asset_service import AssetService
+from ..application.source_import import SourceImportService
 from ..domain.assets import (
     CAPABILITIES, DIRECTION_TEMPLATES, GRAPHICS, TYPE_PRESETS, AssetDefinition,
     default_definition, new_pose,
@@ -19,27 +20,29 @@ CAPTION = {"animated": "Animiert", "directional": "Gerichtet",
            "package_member": "Paketmitglied"}
 
 
-class AssetSettingsDialog(QDialog):
-    def __init__(self, service: AssetService, identifier: str, parent=None) -> None:
+class AssetDefinitionEditor(QWidget):
+    source_requested = Signal(str)
+
+    def __init__(self, definition: AssetDefinition, parent=None, *, source_actions=False,
+                 include_presets=True) -> None:
         super().__init__(parent)
-        self.service, self.identifier = service, identifier
-        self.record = service.asset(identifier)
-        self.setObjectName("asset_requirements")
-        self.setWindowTitle("Asset-Anforderungen · " + self.record.title)
-        self.resize(1000, 660)
+        self.source_actions = source_actions
+        self.source_counts = {}
+        self.setObjectName("asset_requirements_editor")
         layout = QVBoxLayout(self)
         layout.addWidget(label(
             "Anforderungen, keine Freigabe. Frames = Bilder pro Zyklus; FPS = Abspieltempo. "
             "Vorhandene Quellverweise bleiben bei Änderungen erhalten."
         ))
         form = QFormLayout()
-        self.preset = QComboBox()
-        for key, (title, _) in TYPE_PRESETS.items():
-            self.preset.addItem(title, key)
-        preset_row = QHBoxLayout()
-        preset_row.addWidget(self.preset)
-        preset_row.addWidget(button("Vorlage laden", "asset_load_preset", self.load_preset))
-        form.addRow("Neue Vorlage (ersetzt Eingaben)", preset_row)
+        if include_presets:
+            self.preset = QComboBox()
+            for key, (title, _) in TYPE_PRESETS.items():
+                self.preset.addItem(title, key)
+            preset_row = QHBoxLayout()
+            preset_row.addWidget(self.preset)
+            preset_row.addWidget(button("Vorlage laden", "asset_load_preset", self.load_preset))
+            form.addRow("Neue Vorlage (ersetzt Eingaben)", preset_row)
         self.type_id, self.type_label = QLineEdit(), QLineEdit()
         form.addRow("Typ-ID", self.type_id)
         form.addRow("Typname", self.type_label)
@@ -73,11 +76,14 @@ class AssetSettingsDialog(QDialog):
             "erben die Asset-Auswahl. Einzelbilder: keine FPS, Loop nein. "
             "Statische Assets: Posen, Frames und ggf. Richtungen leer lassen."
         ))
-        self.poses = QTableWidget(0, 8)
+        self.poses = QTableWidget(0, 9 if source_actions else 8)
         self.poses.setObjectName("asset_poses")
         self.poses.setHorizontalHeaderLabels([
             "Name", "Exportname", "Quellart", "Loop", "Richtungen", "FPS", "Anker X", "Anker Y",
-        ])
+        ] + (["Quellen / Lieferung"] if source_actions else []))
+        for col, width in enumerate((120, 110, 115, 60, 115, 65, 65, 65, 225)):
+            if col < self.poses.columnCount():
+                self.poses.setColumnWidth(col, width)
         self.poses.horizontalHeader().setStretchLastSection(True)
         layout.addWidget(self.poses, 1)
         row = QHBoxLayout()
@@ -87,12 +93,7 @@ class AssetSettingsDialog(QDialog):
         layout.addLayout(row)
         self.summary = label("", "asset_matrix_summary")
         layout.addWidget(self.summary)
-        actions = QHBoxLayout()
-        actions.addWidget(button("Speichern", "asset_save", self.save))
-        actions.addWidget(button("Abbrechen", "asset_cancel", self.reject))
-        layout.addLayout(actions)
-        existing = self.record.data.get("asset_definition")
-        self.fill(AssetDefinition.from_data(existing) if existing else default_definition())
+        self.fill(definition)
 
     def fill(self, definition: AssetDefinition) -> None:
         self.type_id.setText(definition.type_id)
@@ -121,6 +122,37 @@ class AssetSettingsDialog(QDialog):
             item = QTableWidgetItem(value)
             item.setData(Qt.ItemDataRole.UserRole, pose.id)
             self.poses.setItem(row, col, item)
+        if self.source_actions:
+            text = "Spritesheets hinzufügen …" if pose.source_kind == "spritesheet" \
+                else "Quellbilder hinzufügen …"
+            action = button(text, "pose_sources_" + pose.id,
+                             lambda checked=False, key=pose.id: self.source_requested.emit(key))
+            action.setToolTip("Quellen dieser Pose prüfen und zentral importieren. "
+                              "Geänderte Anforderungen vorher bewusst speichern.")
+            self.poses.setCellWidget(row, 8, action)
+            self.update_source_button(row)
+
+    def set_source_counts(self, rows: list[dict]) -> None:
+        self.source_counts = {}
+        for entry in rows:
+            if entry["required"]:
+                counts = self.source_counts.setdefault(entry["key"].pose_id, [0, 0])
+                counts[0] += int(entry["state"] == "imported")
+                counts[1] += 1
+        for row in range(self.poses.rowCount()):
+            self.update_source_button(row)
+
+    def update_source_button(self, row: int) -> None:
+        if not self.source_actions:
+            return
+        identifier = self.poses.item(row, 0).data(Qt.ItemDataRole.UserRole)
+        counts = self.source_counts.get(identifier)
+        action = self.poses.cellWidget(row, 8)
+        title = "Spritesheets hinzufügen …" if self.poses.item(row, 2).text() == "spritesheet" \
+            else "Quellbilder hinzufügen …"
+        action.setText(title + (f" · {counts[0]}/{counts[1]}" if counts else ""))
+        action.setToolTip("Lieferstand der gespeicherten Anforderungen. "
+                          "Geänderte Anforderungen vor dem Import bewusst speichern.")
 
     def remove_pose(self) -> None:
         if self.poses.currentRow() >= 0:
@@ -160,10 +192,72 @@ class AssetSettingsDialog(QDialog):
         except StudioError as error:
             self.summary.setText(str(error))
 
+class AssetSettingsDialog(QDialog):
+    def __init__(self, service: AssetService, identifier: str, parent=None) -> None:
+        super().__init__(parent)
+        self.service, self.identifier = service, identifier
+        self.record = service.asset(identifier)
+        self.changed = False
+        self.setObjectName("asset_requirements")
+        self.setWindowTitle("Asset-Anforderungen · " + self.record.title)
+        self.resize(1160, 720)
+        existing = self.record.data.get("asset_definition")
+        self.editor = AssetDefinitionEditor(
+            AssetDefinition.from_data(existing) if existing else default_definition(),
+            self, source_actions=True,
+        )
+        # Keep the established dialog inspection API while sharing one form with the wizard.
+        for name in ("poses", "preset", "summary", "frames", "directions", "graphics",
+                     "capabilities", "type_id", "type_label"):
+            setattr(self, name, getattr(self.editor, name))
+        self.editor.source_requested.connect(self.import_pose)
+        if existing:
+            self.editor.set_source_counts(SourceImportService(service).matrix(identifier))
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.editor)
+        actions = QHBoxLayout()
+        actions.addWidget(button("Speichern", "asset_save", self.save))
+        actions.addWidget(button("Schließen / ungespeicherte Eingaben verwerfen", "asset_cancel",
+                                 self.reject))
+        layout.addLayout(actions)
+
     def save(self) -> None:
         try:
-            self.service.configure(self.identifier, self.value().to_data(), self.record.revision_no)
+            self.record = self.service.configure(self.identifier, self.editor.value().to_data(),
+                                                  self.record.revision_no)
+            self.changed = True
         except StudioError as error:
             show_error(self, error)
             return
         self.accept()
+
+    def import_pose(self, pose_id: str) -> None:
+        try:
+            self.record, changed = import_pose_sources(
+                self, self.service, self.record, self.editor.value(), pose_id,
+            )
+            self.changed = self.changed or changed
+            if self.record.data.get("asset_definition"):
+                self.editor.set_source_counts(SourceImportService(self.service).matrix(
+                    self.identifier))
+        except StudioError as error:
+            show_error(self, error)
+
+
+def import_pose_sources(parent, service: AssetService, record, definition: AssetDefinition,
+                        pose_id: str):
+    from .source_import_dialog import SourceImportDialog
+    changed = False
+    if definition.to_data() != record.data.get("asset_definition"):
+        if QMessageBox.question(parent, "Anforderungen vor Import speichern?",
+            "Die geänderten Anforderungen müssen vor dem Quellimport gespeichert werden. "
+            "Ein späteres Schließen nimmt diese Speicherung oder Importe nicht zurück.") \
+                != QMessageBox.StandardButton.Yes:
+            return record, False
+        record = service.configure(record.id, definition.to_data(), record.revision_no)
+        changed = True
+    dialog = SourceImportDialog(service, record.id, parent, pose_id=pose_id)
+    dialog.exec()
+    changed = changed or dialog.changed
+    dialog.deleteLater()
+    return service.asset(record.id), changed

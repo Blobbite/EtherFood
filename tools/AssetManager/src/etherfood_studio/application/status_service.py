@@ -49,15 +49,18 @@ class StatusService:
             definition = AssetDefinition.from_data(record.data["asset_definition"])
             kind = definition.workflow
             materials = "supports_materials" in definition.capabilities
-            sources = SourceImportService(AssetService(self.project))
-            source_rows = sources.matrix(identifier)
-            fingerprint = sources.fingerprint(identifier)
-            if fingerprint:
-                inputs["source"] = fingerprint
+            if not record.archived:
+                sources = SourceImportService(AssetService(self.project))
+                source_rows = sources.matrix(identifier)
+                fingerprint = sources.fingerprint(identifier)
+                if fingerprint:
+                    inputs["source"] = fingerprint
         evidence = {key: Evidence(**value)
                     for key, value in record.data.get("evidence", {}).items()}
         result = resolve(kind, inputs, evidence, supports_materials=materials,
                          current_build_id=record.data.get("current_build_id"))
+        if record.archived and "source" in result:
+            result["source"] = StepStatus("source", "blocked", "Asset ist archiviert.")
         if source_rows is not None and not inputs.get("source"):
             required = [row for row in source_rows if row["required"]]
             missing = [row for row in required if row["state"] != "imported"]

@@ -3,6 +3,17 @@
 Ein Asset benötigt zuerst gespeicherte Anforderungen. **Quellen importieren …**
 in Werkzeugleiste oder Kontextmenü öffnet die Mehrfachauswahl für PNG-Dateien.
 Das importiert geprüfte Kopien, nicht die späteren Grafik-/Framevarianten.
+Im **Asset-Menü → Posen** und im Anforderungsdialog steht derselbe Import
+direkt neben **Anker Y**. Der Zähler zeigt die Lieferung der gespeicherten
+Anforderungen. Vor dem Import noch nicht gespeicherte Änderungen werden nur
+nach ausdrücklicher Bestätigung übernommen.
+
+**Neues Asset / NPC …** führt über Name, Besitzer, Vorlage und Anforderungen
+zur Zusammenfassung. Erst **Asset jetzt anlegen** schreibt Metadaten.
+**Nur Konfiguration** kopiert Einstellungen mit neuen Pose-/Asset-IDs, keine
+Quellen, Nachweise oder Freigaben. Bestehende Quellen lassen sich später ergänzen.
+Im Asset-Menü sind Übersicht, Quellen, Posen, Quellenversionen und Dokumentation
+nutzbar; die späteren Verarbeitungs-/Prüfreiter bleiben sichtbar deaktiviert.
 
 1. PNG-Dateien auswählen. Pose, Richtung und Quellart je Zeile prüfen.
    Dateinamen schlagen nur eine eindeutig passende Richtung vor; fehlende

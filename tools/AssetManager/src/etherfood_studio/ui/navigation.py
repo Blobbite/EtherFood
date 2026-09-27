@@ -59,6 +59,8 @@ class Navigation:
                lambda: self._on_card(identifier, self.open_notes))
         if not record.archived:
             if record.kind == "asset":
+                action("Asset-Menü öffnen …", "context_asset_workspace", "asset",
+                       lambda: self._on_card(identifier, window.asset_workspace))
                 action("Asset-Anforderungen …", "context_asset_settings", "asset",
                        lambda: self._on_card(identifier, window.asset_settings))
                 action("Quellen importieren …", "context_asset_sources", "asset",

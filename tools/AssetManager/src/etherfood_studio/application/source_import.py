@@ -139,7 +139,9 @@ class SourceImportService:
 
     def active(self, identifier: str) -> dict[SourceKey, Record]:
         result = {}
-        bindings = self.assets.asset(identifier).data.get("active_sources", {})
+        record = self.catalog.get(identifier)
+        require(record.kind == "asset", "Quellenzuordnung benötigt ein Asset.")
+        bindings = record.data.get("active_sources", {})
         require(isinstance(bindings, dict), "Ungültige aktive Quellenzuordnungen.")
         for token, revision_id in bindings.items():
             revision = self.catalog.get(revision_id)

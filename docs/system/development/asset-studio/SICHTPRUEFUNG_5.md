@@ -4,8 +4,9 @@ Stand: 26.09.2026. T013/#20 und T014/#21 sind technisch umgesetzt.
 Die persönliche Sichtprüfung steht aus; beide Issues bleiben bis zur
 Rückmeldung offen. Pakete 1–4 einschließlich 4a sind bereits abgenommen.
 
-Aktualisierung 27.09.2026: Für die aktuelle Benutzerrunde gilt die
-[verkürzte Prüfliste für Anforderungen und Canvas](SICHTPRUEFUNG_CANVAS.md).
+Aktualisierung 27.09.2026: Die
+[verkürzte Prüfliste für Anforderungen und Canvas](SICHTPRUEFUNG_CANVAS.md)
+ist abgenommen; aktuell gilt das [Paket-6-Briefing](SICHTPRUEFUNG_6.md).
 Die folgenden acht Punkte bleiben als vollständige Paket-5-Referenz erhalten;
 zurückgestellte Punkte sind ausdrücklich noch nicht persönlich abgenommen.
 
@@ -64,9 +65,9 @@ keine `.import` löschen und keine Legacy-Pipeline hierfür ausführen.
 Bitte Rückmeldung mit Nummern, zum Beispiel `✅ 1–8` oder
 `❗ 5: falsche Zuordnung; gewählter Ordner …; Screenshot …`.
 Wenn alle Punkte passen, schließen wir #20/#21 nach deiner Abnahme ab.
-Der nächste Quellen-/Erzeugungsablauf ist inzwischen
-[geplant](../plans/asset-studio-quellenworkflow-und-canvas.md);
-T015/#22 und T016/#23 wurden noch nicht implementiert.
+Quellenimport und Asset-Anlage (T015/#22 und T016/#23) sind inzwischen
+technisch umgesetzt und werden im Paket-6-Briefing getrennt abgenommen.
+Die eigentliche Varianten-Erzeugung bleibt danach geplant.
 
 ## Zusatzfälle und Grenzen
 
