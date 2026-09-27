@@ -1,10 +1,10 @@
 # Quellenimport und aktive Lieferungen
 
-Ein Asset benötigt zuerst gespeicherte Anforderungen. **Quellen importieren …**
-in Werkzeugleiste oder Kontextmenü öffnet die Mehrfachauswahl für PNG-Dateien.
+Ein Asset benötigt zuerst gespeicherte Anforderungen. **Asset-Menü → Posen**
+öffnet über den Quellenbutton neben **Anker Y** die Mehrfachauswahl für PNG-Dateien.
 Das importiert geprüfte Kopien, nicht die späteren Grafik-/Framevarianten.
-Im **Asset-Menü → Posen** und im Anforderungsdialog steht derselbe Import
-direkt neben **Anker Y**. Der Zähler zeigt die Lieferung der gespeicherten
+Das Asset-Menü ist der gemeinsame Einstieg in Toolbar und Rechtsklick-Menü.
+Der Zähler zeigt die Lieferung der gespeicherten
 Anforderungen. Vor dem Import noch nicht gespeicherte Änderungen werden nur
 nach ausdrücklicher Bestätigung übernommen.
 
@@ -12,15 +12,21 @@ nach ausdrücklicher Bestätigung übernommen.
 zur Zusammenfassung. Erst **Asset jetzt anlegen** schreibt Metadaten.
 **Nur Konfiguration** kopiert Einstellungen mit neuen Pose-/Asset-IDs, keine
 Quellen, Nachweise oder Freigaben. Bestehende Quellen lassen sich später ergänzen.
-Im Asset-Menü sind Übersicht, Quellen, Posen, Quellenversionen und Dokumentation
+Im Asset-Menü sind Übersicht, Quellen/Revisionen, Posen und Dokumentation
 nutzbar; die späteren Verarbeitungs-/Prüfreiter bleiben sichtbar deaktiviert.
 
 1. PNG-Dateien auswählen. Pose, Richtung und Quellart je Zeile prüfen.
-   Dateinamen schlagen nur eine eindeutig passende Richtung vor; fehlende
+   Dateinamen schlagen eine eindeutig passende Richtung und Rasterangaben vor; fehlende
    Richtungen werden niemals durch andere Dateien aufgefüllt.
-2. Raster bewusst wählen: **16×1 = 16 Frames nebeneinander**, **1×16 = untereinander**,
-   beispielsweise **4×4** oder ein anderes teilbares Raster. Die Bildproportionen
-   bestimmen das Raster nicht. Source-Einzelbilder verwenden **1×1** und bleiben
+2. Rastervorschlag kontrollieren: **16×1 = 16 Frames nebeneinander**,
+   **1×16 = untereinander**, **4×4 = vier Spalten und vier Zeilen**.
+   Eindeutige Dateiangaben wie `_4x4_` werden eingetragen. Sonst prüft **Auto**
+   beim Prüfschritt regelmäßige Transparenzabstände im Hintergrund. Undurchsichtige,
+   widersprüchliche oder unklare Bilder erfordern eine manuelle Auswahl.
+   Bildanalyse ist ein Vorschlag, keine künstlerische Abnahme; vor dem Import
+   stehen das konkrete Raster und die Framezahl sichtbar in der Tabelle.
+   Die Bildproportionen allein bestimmen nichts. Manuelle Angaben haben Vorrang.
+   Source-Einzelbilder verwenden **1×1** und bleiben
    unabhängig von Animationslieferungen; es wird kein erster Frame ausgeschnitten.
 3. **Auswahl prüfen** liest und decodiert die PNGs mit Grenzen. Höchstens 128
    Dateien je Lieferung, standardmäßig 64 MiB/Datei und 32 Millionen Pixel/Bild.
@@ -29,10 +35,21 @@ nutzbar; die späteren Verarbeitungs-/Prüfreiter bleiben sichtbar deaktiviert.
    SHA256-Objektspeicher `.asset-studio/objects` im Studio-Projekt.
    Originalname, Hash, Maße, Raster, Pose/Richtung, Importzeit und optionales
    externes Werkzeug werden in unveränderlichen Quellenrevisionen gespeichert.
-5. Unter **Lieferstand und Revisionen** fehlen nicht gelieferte Pflichtquellen
-   weiterhin. Nicht benötigte Richtungen werden getrennt angezeigt. Neue
-   Lieferungen ersetzen aktive Zuordnungen nur mit ausdrücklicher Bestätigung.
-   Eine ältere Revision kann bewusst wieder aktiviert werden.
+5. **Auswahl und Prüfung** zeigt bereits gespeicherte Quellen als kompakte
+   Posenbündel; nur neu ausgewählte Dateien erscheinen einzeln. Nach dem Import
+   wird die neue Auswahl geleert, das gespeicherte Bündel bleibt auch beim
+   erneuten Öffnen sichtbar.
+6. **Lieferstand und Revisionen** bzw. **Asset-Menü → Quellen / Revisionen**:
+   Pose aufklappen, dann einzelne Richtung für ihre historischen Revisionen.
+   Aktive Dateien zeigen **Raster**, **Frames** und Importdatum unabhängig vom
+   Dateinamen. Nicht gelieferte Pflichtquellen bleiben fehlend; unnötige Richtungen
+   bleiben ausdrücklich nicht erforderlich. Keine globale lange Revisionsliste.
+7. **Ersetzen …** an einer Richtung beschränkt die Lieferung auf diese Quelle.
+   **Pose neu liefern …** fordert alle aktuell benötigten Richtungen der Pose
+   gemeinsam; eine unvollständige Auswahl ändert nichts. Ersetzen benötigt weiter
+   die bewusste Bestätigung. Andere Posen und Originale bleiben unberührt.
+   Frühere Einzelrevisionen oder vollständige Lieferbündel lassen sich wieder
+   aktivieren; eine beschädigte Quelle verhindert den gesamten Bündelwechsel.
 
 Der Katalog unterscheidet Quelle, Entwurfsstand und Freigabe. Eine aktive
 Quellenrevision ist keine Sichtabnahme, kein fertiger Build und keine

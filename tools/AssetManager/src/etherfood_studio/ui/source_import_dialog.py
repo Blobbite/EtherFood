@@ -7,7 +7,8 @@ from threading import Event
 from PySide6.QtCore import QThread, Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QFileDialog, QHBoxLayout, QLineEdit, QMessageBox,
-    QSpinBox, QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout, QWidget,
+    QSpinBox, QTableWidget, QTableWidgetItem, QTabWidget, QTreeWidget, QTreeWidgetItem,
+    QVBoxLayout, QWidget,
 )
 
 from ..application.asset_service import AssetService
@@ -15,6 +16,7 @@ from ..application.project_service import ProjectService
 from ..application.source_import import ImportPlan, SourceImportService, SourceSpec
 from ..domain.models import StudioError
 from ..domain.sources import SourceKey
+from ..storage.grid_detection import named_grid
 from .common import button, label, show_error
 from .sources import SourcesPanel
 
@@ -44,11 +46,12 @@ class SourceWorker(QThread):
 
 class SourceImportDialog(QDialog):
     def __init__(self, assets: AssetService, identifier: str, parent=None,
-                 *, pose_id: str | None = None) -> None:
+                 *, pose_id: str | None = None, keys: tuple[SourceKey, ...] | None = None) -> None:
         super().__init__(parent)
         self.assets, self.identifier = assets, identifier
         self.definition = assets.definition(identifier)
-        self.pose_id = pose_id
+        self.keys = tuple(keys or ())
+        self.pose_id = self.keys[0].pose_id if self.keys else pose_id
         self.plan: ImportPlan | None = None
         self.worker: SourceWorker | None = None
         self.changed = self.pending_close = False
@@ -58,11 +61,23 @@ class SourceImportDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(label(
             "Geprüfte PNG-Kopien zentral speichern. Originale bleiben unverändert. "
-            "Raster = Spalten × Zeilen, immer ausdrücklich auswählen; keine Animationserzeugung."
+            "Raster = Spalten × Zeilen. Automatische Vorschläge vor dem Import prüfen; "
+            "keine Animationserzeugung."
         ))
         self.tabs = QTabWidget()
         page = QWidget()
         form = QVBoxLayout(page)
+        self.bundles = QTreeWidget()
+        self.bundles.setObjectName("source_saved_bundles")
+        self.bundles.setHeaderLabels(["Gespeichertes Posenbündel", "Aktive Quellen",
+                                      "Aufbewahrt", ""])
+        self.bundles.setRootIsDecorated(False)
+        for column, width in enumerate((235, 130, 140)):
+            self.bundles.setColumnWidth(column, width)
+        self.bundles.setMaximumHeight(130)
+        form.addWidget(self.bundles)
+        self.selection_scope = label("", "source_selection_scope")
+        form.addWidget(self.selection_scope)
         controls = QHBoxLayout()
         self.choose = button("PNG-Dateien auswählen …", "source_choose", self.choose_files)
         self.remove = button("Zeile entfernen", "source_remove", self.remove_row)
@@ -89,6 +104,7 @@ class SourceImportDialog(QDialog):
         self.tabs.addTab(page, "Auswahl und Prüfung")
         self.deliveries = SourcesPanel(assets, identifier, self, include_import=False)
         self.deliveries.changed.connect(self.revision_changed)
+        self.deliveries.import_requested.connect(self.select_scope)
         self.tabs.addTab(self.deliveries, "Lieferstand und Revisionen")
         layout.addWidget(self.tabs, 1)
         self.status = label("Noch keine Dateien ausgewählt.", "source_import_status")
@@ -105,6 +121,53 @@ class SourceImportDialog(QDialog):
                        button("Schließen", "source_close", self.reject)):
             actions.addWidget(widget)
         layout.addLayout(actions)
+        self.refresh_bundles()
+        self.scope_caption()
+
+    def scope_caption(self) -> None:
+        self.selection_scope.setText(
+            f"Neue Lieferung für {len(self.keys)} fest gewählte Richtung(en). "
+            "Die Auswahl muss vollständig sein; andere Quellen bleiben unverändert."
+            if self.keys else "Neue Auswahl: gespeicherte Bündel bleiben oben sichtbar. "
+            "Einzelne Quellen und Revisionen unter Lieferstand und Revisionen bearbeiten.")
+
+    def refresh_bundles(self) -> None:
+        service = SourceImportService(self.assets)
+        rows, revisions = service.matrix(self.identifier), service.revisions(self.identifier)
+        poses = {p.id: p.display_name for p in self.definition.poses}
+        self.bundles.clear()
+        for pose_id in dict.fromkeys([*(r["key"].pose_id for r in rows),
+                                     *(r.data["slot"]["pose_id"] for r in revisions)]):
+            saved = [r for r in revisions if r.data["slot"]["pose_id"] == pose_id]
+            if not saved:
+                continue
+            required = [r for r in rows if r["key"].pose_id == pose_id and r["required"]]
+            count = sum(r["state"] == "imported" for r in required)
+            item = QTreeWidgetItem(self.bundles, [poses.get(pose_id, "Statisch / frühere Pose"),
+                f"{count}/{len(required)} geliefert", f"{len(saved)} Revisionen"])
+            self.bundles.setItemWidget(item, 3, button(
+                "Lieferstand öffnen", "bundle_" + str(pose_id),
+                lambda checked=False, pid=pose_id: self.show_delivery(pid)))
+        if not self.bundles.topLevelItemCount():
+            QTreeWidgetItem(self.bundles, ["Noch keine gespeicherten Lieferbündel."])
+
+    def show_delivery(self, pose_id) -> None:
+        self.tabs.setCurrentWidget(self.deliveries)
+        self.deliveries.show_pose(pose_id)
+
+    def select_scope(self, keys) -> None:
+        if self.table.rowCount() and QMessageBox.question(self, "Neue Auswahl beginnen?",
+            "Die noch nicht importierte Dateiauswahl verwerfen? Gespeicherte Quellen bleiben "
+            "erhalten.") != QMessageBox.StandardButton.Yes:
+            return
+        self.keys = tuple(keys or ())
+        self.pose_id = self.keys[0].pose_id if self.keys else None
+        self.table.setRowCount(0)
+        self.replace_active.setChecked(False)
+        self.invalidate()
+        self.scope_caption()
+        self.tabs.setCurrentIndex(0)
+        self.choose_files()
 
     def invalidate(self, *args) -> None:
         self.plan = None
@@ -113,6 +176,7 @@ class SourceImportDialog(QDialog):
     def revision_changed(self) -> None:
         self.changed = True
         self.invalidate()
+        self.refresh_bundles()
 
     def choose_files(self) -> None:
         paths, _ = QFileDialog.getOpenFileNames(self, "Source-PNGs / Spritesheets auswählen",
@@ -133,7 +197,8 @@ class SourceImportDialog(QDialog):
             self.table.setItem(row, 0, item)
             pose = QComboBox()
             for value in self.definition.poses:
-                pose.addItem(value.display_name, value.id)
+                if not self.keys or value.id in {k.pose_id for k in self.keys}:
+                    pose.addItem(value.display_name, value.id)
             if not self.definition.poses:
                 pose.addItem("Statisches Bild", None)
             if self.pose_id:
@@ -142,6 +207,8 @@ class SourceImportDialog(QDialog):
             direction.addItem("Bitte wählen", "?")
             directions = tuple(dict.fromkeys((*self.definition.directions,
                 *(d for p in self.definition.poses for d in p.directions or ()))))
+            if self.keys:
+                directions = tuple(dict.fromkeys(k.direction for k in self.keys))
             for value in directions or (None,):
                 direction.addItem(value or "Ohne Richtung", value)
             match = re.search(r"(?:^|_)(NO|NW|SO|SW|N|O|S|W)(?=_|\.|$)", path.stem, re.I)
@@ -149,33 +216,45 @@ class SourceImportDialog(QDialog):
                 direction.setCurrentIndex(direction.findData(match[1].upper()))
             elif not directions:
                 direction.setCurrentIndex(1)
+            elif not match and len(directions) == 1:
+                direction.setCurrentIndex(1)
             kind = QComboBox()
-            kind.addItem("Spritesheet", "spritesheet")
-            kind.addItem("Source-Einzelbild", "single_image")
+            for title, value in (("Spritesheet", "spritesheet"),
+                                 ("Source-Einzelbild", "single_image")):
+                if not self.keys or value in {k.kind for k in self.keys}:
+                    kind.addItem(title, value)
             selected = next((p for p in self.definition.poses if p.id == pose.currentData()), None)
             single = selected is None or selected.source_kind == "single_image"
-            kind.setCurrentIndex(int(single))
+            kind.setCurrentIndex(max(0, kind.findData("single_image" if single else "spritesheet")))
+            single = kind.currentData() == "single_image"
             grid = QComboBox()
             grid.setEditable(True)
-            grid.addItems(["16x1", "1x16", "4x4", "4x2", "5x2", "4x3", "7x2", "1x1"])
-            grid.setCurrentText("1x1" if single else "16x1")
-            grid.setToolTip("Spalten × Zeilen; keine Ableitung aus den Bildproportionen.")
+            grid.addItems(["Auto", "16x1", "1x16", "4x4", "4x2", "5x2", "4x3", "7x2", "1x1"])
+            try:
+                hint = named_grid(path.name)
+            except StudioError:
+                hint = None  # The worker reports conflicting names; no silent fallback.
+            grid.setCurrentText("1x1" if single else f"{hint[0]}x{hint[1]}" if hint else "Auto")
+            grid.setToolTip("Vorschlag aus Dateiname, sonst Auto-Prüfung der Transparenzabstände. "
+                            "Spalten × Zeilen; manuell änderbar, nie nur aus dem Seitenverhältnis.")
             frames = QSpinBox()
             frames.setRange(1, 64)
             frames.setValue(1 if single else 16)
+            self.grid_frames(grid.currentText(), frames)
             for column, widget in enumerate((pose, direction, kind, grid, frames), 1):
                 self.table.setCellWidget(row, column, widget)
             for combo in (pose, direction, kind, grid):
                 combo.currentTextChanged.connect(self.invalidate)
-            kind.currentIndexChanged.connect(lambda index, g=grid:
-                                             g.setCurrentText("1x1" if index else "16x1"))
+            kind.currentIndexChanged.connect(lambda index, g=grid, k=kind:
+                g.setCurrentText("1x1" if k.currentData() == "single_image" else "Auto"))
             grid.currentTextChanged.connect(lambda text, f=frames: self.grid_frames(text, f))
             frames.valueChanged.connect(self.invalidate)
         self.invalidate()
 
     @staticmethod
     def grid_frames(text: str, frames: QSpinBox) -> None:
-        match = re.fullmatch(r"\s*(\d+)\s*[x×]\s*(\d+)\s*", text)
+        frames.setEnabled(text.strip().casefold() != "auto")
+        match = re.fullmatch(r"\s*(\d+)\s*[xX×]\s*(\d+)\s*", text)
         if match:
             frames.setValue(int(match[1]) * int(match[2]))
 
@@ -188,13 +267,15 @@ class SourceImportDialog(QDialog):
         for row in range(self.table.rowCount()):
             pose, direction, kind, grid, frames = [self.table.cellWidget(row, c)
                                                   for c in range(1, 6)]
-            match = re.fullmatch(r"\s*(\d+)\s*[x×]\s*(\d+)\s*", grid.currentText())
-            if not match:
+            auto = grid.currentText().strip().casefold() == "auto"
+            match = re.fullmatch(r"\s*(\d+)\s*[xX×]\s*(\d+)\s*", grid.currentText())
+            if not match and not auto:
                 raise StudioError("validation", "Raster als Spalten×Zeilen angeben, z. B. 16x1.")
             result.append(SourceSpec(
                 Path(self.table.item(row, 0).data(Qt.ItemDataRole.UserRole)),
                 SourceKey(pose.currentData(), direction.currentData(), kind.currentData()),
-                int(match[1]), int(match[2]), frames.value(), self.external_tool.text().strip(),
+                int(match[1]) if match else 16, int(match[2]) if match else 1,
+                frames.value(), self.external_tool.text().strip(), auto_grid=auto,
             ))
         return result
 
@@ -219,7 +300,8 @@ class SourceImportDialog(QDialog):
             self.invalidate()
             self.status.setText("Quellen lesen und prüfen …")
             self.launch(lambda service, cancel, progress: service.prepare(
-                self.identifier, revision, specs, cancelled=cancel, progress=progress))
+                self.identifier, revision, specs, required_keys=self.keys,
+                cancelled=cancel, progress=progress))
         except StudioError as error:
             self.failed(error)
 
@@ -239,6 +321,9 @@ class SourceImportDialog(QDialog):
 
     def receive(self, result) -> None:
         if isinstance(result, ImportPlan):
+            for row, (spec, _) in enumerate(result.sources):
+                self.table.cellWidget(row, 4).setCurrentText(f"{spec.columns}x{spec.rows}")
+                self.table.cellWidget(row, 5).setValue(spec.frames)
             self.plan = result
             self.status.setText(f"{len(result.sources)} Quellen geprüft. "
                 f"{len(self.definition.expected())} Zielvarianten laut Anforderungen (noch nicht "
@@ -246,7 +331,10 @@ class SourceImportDialog(QDialog):
         else:
             self.changed = True
             self.plan = None
+            self.table.setRowCount(0)
+            self.replace_active.setChecked(False)
             self.deliveries.refresh()
+            self.refresh_bundles()
             self.status.setText(f"{len(result)} neue Quellenrevisionen importiert. "
                                 "Originale unverändert; keine Varianten erzeugt oder freigegeben.")
             self.tabs.setCurrentIndex(1)

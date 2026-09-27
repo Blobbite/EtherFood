@@ -22,11 +22,8 @@ from ..application.status_service import STATE_NAMES, STEP_NAMES, StatusService,
 from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
 from .canvas.view import Canvas
-from .asset_settings import AssetSettingsDialog
 from .asset_wizard import AssetWizard
 from .asset_workspace import AssetWorkspace
-from .source_import_dialog import SourceImportDialog
-from .inventory import InventoryDialog
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
 from .project_dialog import ProjectDialog
@@ -63,11 +60,8 @@ class MainWindow(QMainWindow):
         self._action(toolbar, "Öffnen …", self.open_dialog, "Ctrl+O", "open_project")
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
         self._action(toolbar, "Demo anlegen", self.demo_dialog, "", "create_demo")
-        self._action(toolbar, "Asset-Anforderungen …", self.asset_settings, "", "asset_settings")
         self._action(toolbar, "Neues Asset / NPC …", self.create_asset, "", "new_asset")
         self._action(toolbar, "Asset-Menü …", self.asset_workspace, "", "asset_workspace")
-        self._action(toolbar, "Quellen importieren …", self.asset_sources, "", "asset_sources")
-        self._action(toolbar, "Bestand erfassen …", self.asset_inventory, "", "asset_inventory")
         toolbar.addSeparator()
         self.undo_action = self._action(toolbar, "Rückgängig", lambda: self.undo(False),
                                         "Ctrl+Z", "undo")
@@ -258,17 +252,6 @@ class MainWindow(QMainWindow):
         action.triggered.connect(call)
         return action
 
-    def asset_inventory(self) -> None:
-        if not self.project or not self.selected_id:
-            return
-        def review() -> None:
-            dialog = InventoryDialog(AssetService(self.project), self.selected_id, self)
-            dialog.exec()
-            if dialog.changed:
-                self.refresh()
-            dialog.deleteLater()
-        self.perform(review)
-
     def create_asset(self, owner_id: str | None = None) -> None:
         if not self.project:
             return
@@ -296,28 +279,6 @@ class MainWindow(QMainWindow):
             dialog.exec()
             if dialog.changed:
                 self.documents.refresh_documents()
-                self.refresh()
-            dialog.deleteLater()
-        self.perform(edit)
-
-    def asset_sources(self) -> None:
-        if not self.project or not self.selected_id:
-            return
-        def edit() -> None:
-            dialog = SourceImportDialog(AssetService(self.project), self.selected_id, self)
-            dialog.exec()
-            if dialog.changed:
-                self.refresh()
-            dialog.deleteLater()
-        self.perform(edit)
-
-    def asset_settings(self) -> None:
-        if not self.project or not self.selected_id:
-            return
-        def edit() -> None:
-            dialog = AssetSettingsDialog(AssetService(self.project), self.selected_id, self)
-            dialog.exec()
-            if dialog.changed:
                 self.refresh()
             dialog.deleteLater()
         self.perform(edit)

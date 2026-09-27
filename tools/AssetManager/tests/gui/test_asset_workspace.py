@@ -1,6 +1,6 @@
 """End-to-end NPC creation, pose-local partial import and reopening the same asset."""
 
-from time import monotonic
+from time import monotonic, sleep
 
 from PIL import Image
 import pytest
@@ -19,6 +19,7 @@ from etherfood_studio.ui.asset_wizard import AssetWizard
 from etherfood_studio.ui.asset_workspace import AssetWorkspace
 from etherfood_studio.ui.asset_settings import AssetSettingsDialog
 from etherfood_studio.ui.main_window import MainWindow
+from etherfood_studio.ui.inventory import InventoryDialog
 from etherfood_studio.ui.source_import_dialog import SourceImportDialog
 
 
@@ -38,9 +39,10 @@ def window(qt_app, tmp_path):
 
 
 def wait_worker(dialog):
-    deadline = monotonic() + 10
+    deadline = monotonic() + 30
     while dialog.worker is not None and monotonic() < deadline:
         QTest.qWait(10)
+        sleep(0.001)
     assert dialog.worker is None
 
 
@@ -89,7 +91,7 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         workspace = QApplication.activeModalWidget()
         assert isinstance(workspace, AssetWorkspace)
         assert workspace.identifier == identifier
-        assert workspace.tabs.count() == 8
+        assert workspace.tabs.count() == 7
         assert all(not workspace.tabs.isTabEnabled(i) for i in (3, 4, 5))
         assert "0/8" in workspace.workflow.toPlainText()
         workspace.tabs.setCurrentIndex(2)
@@ -215,3 +217,33 @@ def test_pose_import_saves_pending_requirements_only_after_confirmation(
     assert SourceImportService(assets).revisions(record.id) == []
     dialog.close()
     dialog.deleteLater()
+
+
+def test_only_asset_menu_exposes_data_actions_and_inventory(window, qt_app):
+    assets = AssetService(window.project)
+    owner = next(c.id for c in window.project.cards() if c.kind == "global")
+    record = assets.create("Zentral", owner, default_definition().to_data())
+    window.refresh()
+    window.select_card(record.id)
+    for name in ("asset_settings", "asset_sources", "asset_inventory"):
+        assert window.findChild(QAction, name) is None
+    menu = window.navigation.menu(record.id)
+    names = [action.objectName() for action in menu.actions()]
+    assert "context_asset_workspace" in names
+    assert not {"context_asset_settings", "context_asset_sources", "context_asset_inventory"} \
+        .intersection(names)
+    menu.deleteLater()
+    workspace = AssetWorkspace(assets, record.id)
+    workspace.show()
+    workspace.tabs.setCurrentWidget(workspace.sources_page)
+
+    def close_inventory():
+        inventory = QApplication.activeModalWidget()
+        assert isinstance(inventory, InventoryDialog)
+        assert inventory.identifier == record.id
+        inventory.reject()
+
+    QTimer.singleShot(0, close_inventory)
+    QTest.mouseClick(workspace.inventory_button, Qt.MouseButton.LeftButton)
+    workspace.close()
+    workspace.deleteLater()

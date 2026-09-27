@@ -61,12 +61,6 @@ class Navigation:
             if record.kind == "asset":
                 action("Asset-Menü öffnen …", "context_asset_workspace", "asset",
                        lambda: self._on_card(identifier, window.asset_workspace))
-                action("Asset-Anforderungen …", "context_asset_settings", "asset",
-                       lambda: self._on_card(identifier, window.asset_settings))
-                action("Quellen importieren …", "context_asset_sources", "asset",
-                       lambda: self._on_card(identifier, window.asset_sources))
-                action("Bestand lesend erfassen …", "context_asset_inventory", "asset",
-                       lambda: self._on_card(identifier, window.asset_inventory))
             if record.kind in {"global", "act", "chapter", "package"}:
                 action("Vorhandenes Asset verwenden …", "context_use_existing", "asset",
                        lambda: self._on_card(identifier, window.use_existing_dialog))

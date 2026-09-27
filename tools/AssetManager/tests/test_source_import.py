@@ -2,7 +2,7 @@
 
 from dataclasses import asdict, replace
 
-from PIL import Image
+from PIL import Image, ImageDraw
 import pytest
 
 from etherfood_studio.application.asset_service import AssetService
@@ -11,7 +11,7 @@ from etherfood_studio.application.source_import import SourceImportService, Sour
 from etherfood_studio.application.status_service import StatusService
 from etherfood_studio.domain.assets import default_definition
 from etherfood_studio.domain.models import StudioError
-from etherfood_studio.domain.sources import SourceKey
+from etherfood_studio.domain.sources import SourceKey, expected_sources
 from etherfood_studio.domain.workflows import Evidence, input_fingerprint
 from etherfood_studio.storage.blob_store import file_hash
 from etherfood_studio.storage.sqlite_repository import Catalog
@@ -185,3 +185,67 @@ def test_partial_matrix_reopen_and_static_source(sources, tmp_path):
                         SourceKey(None, None, "single_image"), 1, 1, 1)
     service.import_plan(plan(service, identifier, [static]))
     assert StatusService(service.project).status(identifier)["source"].state == "passed"
+
+
+@pytest.mark.parametrize("grid", [(1, 16), (16, 1), (4, 4), (4, 2)])
+@pytest.mark.parametrize("named", [True, False])
+def test_grid_suggestions_from_names_or_transparency(sources, tmp_path, grid, named):
+    service, identifier = sources
+    path = tmp_path / (f"hero_SW_{grid[0]}x{grid[1]}_o.png" if named else "master.png")
+    image = Image.new("RGBA", (grid[0] * 12, grid[1] * 12))
+    draw = ImageDraw.Draw(image)
+    for y in range(grid[1]):
+        for x in range(grid[0]):
+            draw.rectangle((x * 12 + 3, y * 12 + 2, x * 12 + 8, y * 12 + 9),
+                           fill=(20, 180, 40, 255))
+    image.save(path)
+    spec = replace(spec_for(service, identifier, path), auto_grid=True)
+    prepared = plan(service, identifier, [spec])
+    resolved = prepared.sources[0][0]
+    assert (resolved.columns, resolved.rows) == grid
+    assert resolved.frames == grid[0] * grid[1] and not resolved.auto_grid
+    revision, = service.import_plan(prepared)
+    assert revision.data["grid"] == list(grid)
+
+
+@pytest.mark.parametrize("name", ["ambiguous.png", "hero_4x4_16x1.png", "hero_7x2.png"])
+def test_unclear_grid_needs_manual_selection(sources, tmp_path, name):
+    service, identifier = sources
+    path = sheet(tmp_path / name, (16, 16))
+    spec = spec_for(service, identifier, path)
+    before = service.catalog.export_snapshot()
+    with pytest.raises(StudioError):
+        plan(service, identifier, [replace(spec, auto_grid=True)])
+    assert service.catalog.export_snapshot() == before
+    assert plan(service, identifier, [replace(spec, columns=4, rows=4, frames=16)])
+
+
+def test_scoped_pose_import_and_atomic_bundle_reactivation(sources, tmp_path):
+    service, identifier = sources
+    required = expected_sources(service.assets.definition(identifier))
+    first = spec_for(service, identifier, sheet(tmp_path / "SW.png"))
+    second = spec_for(service, identifier,
+                      sheet(tmp_path / "SO.png", color=(210, 30, 30, 255)), "SO")
+    revision = service.assets.asset(identifier).revision_no
+    with pytest.raises(StudioError, match="alle ausgewählten"):
+        service.prepare(identifier, revision, [first], required_keys=required)
+    prepared = service.prepare(identifier, revision, [first, second], required_keys=required)
+    with pytest.raises(StudioError, match="Unvollständige"):
+        service.import_plan(replace(prepared, sources=prepared.sources[:1]))
+    original = service.import_plan(prepared)
+    sheet(first.path, color=(30, 30, 190, 255))
+    latest = service.import_plan(plan(service, identifier, [first, second]), replace_active=True)
+    service.activate_pose_delivery(identifier, required[0].pose_id, original[0].data["delivery_id"],
+                                   service.assets.asset(identifier).revision_no)
+    assert {r.id for r in service.active(identifier).values()} == {r.id for r in original}
+    # A damaged member must not partially switch the bundle.
+    service.store.path_for(latest[0].data["sha256"]).write_bytes(b"bad synthetic blob")
+    before = service.catalog.export_snapshot()
+    with pytest.raises(StudioError, match="beschädigt"):
+        service.activate_pose_delivery(identifier, required[0].pose_id,
+            latest[0].data["delivery_id"], service.assets.asset(identifier).revision_no)
+    assert service.catalog.export_snapshot() == before
+    partial = service.import_plan(plan(service, identifier, [second]), replace_active=True)
+    with pytest.raises(StudioError, match="nicht alle"):
+        service.activate_pose_delivery(identifier, required[0].pose_id,
+            partial[0].data["delivery_id"], service.assets.asset(identifier).revision_no)

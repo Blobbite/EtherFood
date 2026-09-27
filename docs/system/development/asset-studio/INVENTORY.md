@@ -6,7 +6,7 @@ verschoben, repariert oder verarbeitet. Es entsteht keine Freigabe.
 ## Bedienung
 
 1. Asset-Karte auswählen (zum Beispiel den Demo-Helden).
-2. **Asset-Anforderungen …** öffnen, Vorlage und Posen festlegen. Für den
+2. **Asset-Menü → Posen** öffnen, Vorlage und Posen festlegen. Für den
    Walk-Bestand genügt die Figur-Vorlage mit Exportname `walk`. Weitere Posen
    ausdrücklich ergänzen; `slowwalk` ist nicht `walk`.
 3. Richtungen in Reihenfolge, Grafikprofile und Frames wählen. FPS stehen
@@ -14,7 +14,8 @@ verschoben, repariert oder verarbeitet. Es entsteht keine Freigabe.
 4. **Matrix prüfen**, anschließend speichern. Die Standardfigur erwartet
    200 Varianten je Spritesheet-Pose. Eine Textur erwartet fünf Grafikprofile,
    ohne Posen/Frames. Ein `single_image` wie Jump hat ein Bild, keine FPS/Loop.
-5. **Bestand erfassen …**, gewünschten Ordner auswählen und **Lesend erfassen**.
+5. **Asset-Menü → Quellen / Revisionen → Vorhandenen Bestand lesend erfassen …**,
+   gewünschten Ordner auswählen und **Lesend erfassen**.
    Der Scan läuft im Hintergrund und lässt sich abbrechen; kein automatischer
    Scan beim Projektstart. Die Anforderungen gehören zum ausgewählten Asset.
 6. Vorschläge, erwartete Varianten und Probleme/Fremdberichte prüfen. Nur

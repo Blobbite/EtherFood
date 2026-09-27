@@ -41,7 +41,7 @@ Typ und Fähigkeiten (`animated`, `directional`, `supports_materials`,
 zusätzlich Zusammenhänge und Grenzen. Vorlage und Anzeigename sind keine
 Asset-spezifische Pipeline-Sonderbehandlung.
 
-Die Asset-Karte öffnet über **Asset-Anforderungen** den Konfigurationsdialog.
+Die Asset-Karte öffnet über **Asset-Menü → Posen** das gemeinsame Anforderungsformular.
 Posen besitzen stabile UUID, Anzeigename, Exportname, Quellart, Loop, optional
 eigene geordnete Richtungen, FPS und normalisierten Anker. Namen wie `walk`
 und `slowwalk` sind getrennt. Frames (Bilderanzahl) sind keine FPS (Tempo).

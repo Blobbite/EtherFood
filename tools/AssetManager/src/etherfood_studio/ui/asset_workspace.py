@@ -13,6 +13,7 @@ from ..domain.models import StudioError
 from .asset_settings import AssetDefinitionEditor, import_pose_sources
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
+from .inventory import InventoryDialog
 from .sources import SourcesPanel
 
 
@@ -40,10 +41,13 @@ class AssetWorkspace(QDialog):
         self.tabs.addTab(self.overview, "Übersicht")
         self.sources_page = QWidget()
         self.sources_layout = QVBoxLayout(self.sources_page)
+        self.inventory_button = button("Vorhandenen Bestand lesend erfassen …",
+                                        "workspace_inventory", self.open_inventory)
+        self.sources_layout.addWidget(self.inventory_button)
         self.sources = None
         self.sources_notice = label("Zuerst unter Posen die Anforderungen speichern.")
         self.sources_layout.addWidget(self.sources_notice)
-        self.tabs.addTab(self.sources_page, "Quellen")
+        self.tabs.addTab(self.sources_page, "Quellen / Revisionen")
         poses_page = QWidget()
         poses_layout = QVBoxLayout(poses_page)
         existing = self.record.data.get("asset_definition")
@@ -62,9 +66,6 @@ class AssetWorkspace(QDialog):
             self.tabs.setTabEnabled(index, False)
             self.tabs.setTabToolTip(index, "Folgepaket: noch nicht implementiert. "
                                     "Import ist keine Erzeugung, Prüfung oder Freigabe.")
-        self.versions = QPlainTextEdit()
-        self.versions.setReadOnly(True)
-        self.tabs.addTab(self.versions, "Versionen")
         self.documents = DocumentEditor()
         self.documents.bind(DocumentService(assets.project))
         self.documents.show_card(identifier)
@@ -92,6 +93,7 @@ class AssetWorkspace(QDialog):
 
     def refresh(self) -> None:
         self.record = self.assets.asset(self.identifier)
+        self.inventory_button.setEnabled(bool(self.record.data.get("asset_definition")))
         statuses = StatusService(self.assets.project).status(self.identifier)
         self.workflow.setPlainText("Nächster Schritt / echte Voraussetzungen\n" + "\n".join(
             f"{STEP_NAMES[row.id]}: {STATE_NAMES[row.state]} · {status_reason(row)}"
@@ -113,12 +115,16 @@ class AssetWorkspace(QDialog):
             definition = self.assets.definition(self.identifier)
             self.overview.appendPlainText(f"\n{len(definition.expected())} geplante Varianten; "
                                            "noch keine Erzeugung verfügbar.")
-            revisions = self.sources.service.revisions(self.identifier)
-            self.versions.setPlainText(
-                "Quellenrevisionen (keine Builds/Kandidaten/Freigaben):\n\n" +
-                "\n\n".join(f"{r.created_at} · {r.title}\nRevision: {r.id}\n"
-                             f"SHA256: {r.data['sha256']}" for r in revisions)
-            )
+
+    def open_inventory(self) -> None:
+        try:
+            dialog = InventoryDialog(self.assets, self.identifier, self)
+            dialog.exec()
+            if dialog.changed:
+                self.did_change()
+            dialog.deleteLater()
+        except StudioError as error:
+            show_error(self, error)
 
     def did_change(self) -> None:
         self.changed = True

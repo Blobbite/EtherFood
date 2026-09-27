@@ -18,6 +18,7 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Arbeitsplan Paket 5: Asset-Grundlagen und Bestand](../plans/asset-studio-paket-5.md)
 - [Nächster Quellenworkflow und Canvas-Nachbesserung](../plans/asset-studio-quellenworkflow-und-canvas.md)
 - [Arbeitsplan Paket 6: Quellenimport und Asset-Anlage](../plans/asset-studio-paket-6.md)
+- [Zwischenpaket 6a: Quellenbedienung und Aufgaben am Asset](../plans/asset-studio-paket-6a.md)
 - [Ergebnisberichte T001–T016](task-results/index.md)
 - [Pfadkarte](PATH_MAP.json)
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)
