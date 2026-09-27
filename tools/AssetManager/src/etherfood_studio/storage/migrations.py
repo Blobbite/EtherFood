@@ -65,6 +65,12 @@ MIGRATIONS = {
         )""",
         "CREATE INDEX cache_fingerprint ON build_cache(input_fingerprint)",
     ),
+    6: (
+        """CREATE TABLE pipeline_plugins (
+            identifier TEXT PRIMARY KEY, manifest TEXT NOT NULL CHECK(json_valid(manifest)),
+            code_path TEXT NOT NULL, code_hash TEXT NOT NULL, approved_hash TEXT
+        )""",
+    ),
 }
 
 CURRENT_VERSION = max(MIGRATIONS)

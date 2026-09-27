@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..config import Configuration
 from ..domain.models import Record, StudioError
+from ..domain.graphics import default_profiles
 from ..domain.relations import CARD_KINDS, validate_relation
 from ..storage.paths import real_path, safe_target, validate_roots
 from ..storage.sqlite_repository import Catalog, canonical
@@ -32,7 +33,8 @@ class ProjectService:
         service = cls(catalog, Configuration(mapping))
         try:
             with catalog.transaction():
-                project = catalog.create("project", title)
+                project = catalog.create("project", title, data={
+                    "graphics_profiles": default_profiles()})
                 service.create_card("global", "Projektweite Inhalte", project.id)
             settings = {"schema_version": 1, "roots": {k: str(v) for k, v in mapping.items()}}
             with safe_target(root, SETTINGS_NAME).open("x", encoding="utf-8") as output:
@@ -53,11 +55,15 @@ class ProjectService:
         catalog = Catalog(safe_target(root, CATALOG_NAME), read_only=read_only)
         service = cls(catalog, config)
         try:
-            service.validate_structure()
             from ..storage.job_store import JobStore
-
             if not read_only:
-                JobStore(catalog).recover()
+                from .profile_service import ProfileService
+                with catalog.transaction():
+                    ProfileService(service).ensure()
+                    service.validate_structure()
+                    JobStore(catalog).recover()
+            else:
+                service.validate_structure()
         except Exception:
             catalog.close()
             raise
@@ -84,6 +90,13 @@ class ProjectService:
         with self.catalog.transaction():
             if kind == "global" and any(row.kind == "global" for row in self.cards()):
                 raise StudioError("conflict", "Projektweiter Rahmen existiert bereits.")
+            if kind == "pipeline":
+                from .pipeline_service import PipelineService
+                from ..domain.pipeline_recipes import validate_recipe
+                if not data or data.get("project_id") != self.project().id:
+                    raise StudioError("validation",
+                                      "Pipeline benötigt die aktuelle Projektbindung.")
+                validate_recipe(data.get("recipe"), PipelineService(self).manifests())
             record = self.catalog.create(kind, title, parent_id, {"order": 0, **(data or {})})
             parent = self.catalog.get(parent_id)
             validate_relation(record, parent, "belongs_to", self.catalog.relations())
@@ -276,6 +289,8 @@ class ProjectService:
 
     def validate_structure(self) -> None:
         self.project()
+        from .profile_service import ProfileService
+        ProfileService(self).profiles()
         cards = self.cards(include_archived=True)
         if len([row for row in cards if row.kind == "global"]) != 1:
             raise StudioError("integrity", "Projektweiter Rahmen fehlt oder ist mehrfach vorhanden")
@@ -290,11 +305,20 @@ class ProjectService:
                 validate_checklist(record.data.get("checklist", []))
             if record.kind == "document":
                 validate_note_style(record.data)
+            if record.kind == "pipeline_assignment":
+                from .pipeline_service import PipelineService
+                PipelineService(self).validate_assignment(record)
 
         for card in cards:
+            if card.kind == "pipeline":
+                from ..domain.pipeline_recipes import validate_recipe
+                from .pipeline_service import PipelineService
+                if card.data.get("project_id") != self.project().id:
+                    raise StudioError("integrity", "Projektfremdes Pipeline-Rezept.")
+                validate_recipe(card.data["recipe"], PipelineService(self).manifests())
             if card.kind == "asset" and "asset_definition" in card.data:
-                from ..domain.assets import AssetDefinition
-                AssetDefinition.from_data(card.data["asset_definition"])
+                from .asset_service import AssetService
+                AssetService(self).parse_definition(card.data["asset_definition"])
                 if card.data.get("active_sources"):
                     from .asset_service import AssetService
                     from .source_import import SourceImportService

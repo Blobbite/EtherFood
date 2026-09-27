@@ -11,6 +11,7 @@ from ..domain.models import StudioError
 from ..domain.relations import PARENTS
 from ..domain.sources import expected_sources
 from .asset_settings import AssetDefinitionEditor
+from ..application.profile_service import ProfileService
 from .common import button, label, show_error
 
 
@@ -53,7 +54,8 @@ class AssetWizard(QDialog):
         templates.addWidget(button("Konfiguration laden", "asset_wizard_load", self.load_template))
         form.addRow("Vorlage (ohne Quellen/Freigaben)", templates)
         form_layout.addLayout(form)
-        self.editor = AssetDefinitionEditor(default_definition(), include_presets=False)
+        self.editor = AssetDefinitionEditor(default_definition(), include_presets=False,
+            profiles=ProfileService(assets.project).profiles())
         form_layout.addWidget(self.editor, 1)
         self.pages.addWidget(page)
         summary_page = QWidget()

@@ -1,12 +1,10 @@
 # EtherFood Asset Studio
 
-Lokales Verwaltungswerkzeug neben PyGameTools. Der Implementierungsauftrag
-umfasst Pakete 1–7; produktive Bildpipelines und Godot-Bereitstellung folgen
-erst in späteren, gesondert freizugebenden Paketen.
-
-Aktuell ist die Bedienabnahme der Auftrags-/Buildplan-Dialoge zurückgestellt.
-Vor weiterer Pipeline-Umsetzung wird eine servicebasierte Integration gemeinsam
-besprochen; siehe [Status von Paket 7](SICHTPRUEFUNG_7.md).
+Lokales Verwaltungswerkzeug neben PyGameTools. Der neue, ausdrücklich
+freigegebene Auftrag ergänzt projektweite Canvas-Pipelines mit echter
+Bildverarbeitung. Die frühere Diagnose-Prüfrunde bleibt historische Referenz;
+die neue Bedienung und Abnahme stehen unter [Projektpipelines](PIPELINES.md).
+Godot-Bereitstellung und persönliche Sichtabnahmen bleiben getrennt.
 
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)
@@ -22,6 +20,8 @@ besprochen; siehe [Status von Paket 7](SICHTPRUEFUNG_7.md).
 - [Arbeitsplan: direkte Inhaltsoberflächen](../plans/asset-studio-inhaltsoberflaechen.md)
 - [Asset-Anforderungen und lesende Bestandserfassung](INVENTORY.md)
 - [Quellenimport und aktive Lieferungen](SOURCES.md)
+- [Projektweite Canvas-Bildpipelines: Bedienung und Sichtprüfung](PIPELINES.md)
+- [Arbeitsplan und tatsächliche Prüfergebnisse](../plans/asset-studio-projektpipelines.md)
 - [Aufträge und sichere Werkzeugprüfung](JOBS.md)
 - [Buildplan, Cache und Änderungsfolgen](BUILDPLAN.md)
 - [Briefing Paket 7: Aufträge und Buildplan](SICHTPRUEFUNG_7.md)

@@ -38,7 +38,8 @@ class JobService:
 
     def prepare(self, owner_id: str, adapter: str = "diagnostic", parameters: dict | None = None,
                 *, source_ids: tuple[str, ...] = (), timeout: float = 30,
-                resource_key: str | None = None) -> BuildRequest:
+                resource_key: str | None = None,
+                bindings: tuple[InputFile, ...] = ()) -> BuildRequest:
         require_supported()
         self.project.require_active_card(owner_id)
         if not math.isfinite(timeout) or not 0.05 <= timeout <= 3600:
@@ -47,6 +48,23 @@ class JobService:
         parameters = parameters or {}
         adapter_object = adapter_for(adapter)
         adapter_object.validate(parameters)
+        if adapter == "studio-image" and parameters.get("operation") == "plugin":
+            from .plugin_service import PluginService
+            from ..domain.pipeline_recipes import validate_parameters
+            from ..pipelines.fingerprints import digest
+
+            supplied = parameters["plugin"]
+            plugin = PluginService(self.project).trusted(supplied["id"])
+            if (plugin["code_hash"] != supplied["code_hash"] or
+                    plugin["manifest"]["entry_point"] != supplied["entry_point"] or
+                    plugin["manifest"]["version"] != supplied["version"] or
+                    digest(plugin["manifest"]) != supplied["manifest_sha256"] or
+                    plugin["manifest"]["dependencies"] != supplied["dependencies"] or
+                    not any(b.name == "plugin.py" and b.sha256 == plugin["code_hash"]
+                            for b in bindings)):
+                raise StudioError("integrity",
+                                  "Python-Auftrag stimmt nicht mit der Freigabe überein.")
+            validate_parameters(parameters["settings"], plugin["manifest"]["parameters"])
         directory = self.workspace(identifier)
         plan = adapter_object.plan(directory, parameters)
         inputs = []
@@ -59,6 +77,17 @@ class JobService:
             path = BlobStore(self.project.catalog, self.root).path_for(digest)
             inputs.append(InputFile(source.id, str(path.relative_to(self.root)),
                                     source.id + ".png", digest, source.data["length"]))
+        for binding in bindings:
+            self.validate_binding(owner_id, binding)
+            inputs.append(binding)
+        if len({item.name for item in inputs}) != len(inputs):
+            raise StudioError("validation", "Doppelte Eingabedateinamen im Bildauftrag.")
+        if adapter == "studio-image":
+            if parameters["metadata"] is not None and \
+                    parameters["metadata"]["source_revision"] not in source_ids:
+                raise StudioError("validation",
+                                  "Bildeingang benötigt eine Originalrevision dieses Assets.")
+            adapter_object.validate_inputs(parameters, inputs)
         request = BuildRequest(identifier, owner_id, adapter, canonical(parameters), tuple(inputs),
                                plan.outputs, plan.argv, plan.tool_hashes,
                                resource_key or f"{owner_id}:{adapter}", timeout,
@@ -72,6 +101,34 @@ class JobService:
             self.store.finish(identifier, {"status": "failed", "reason": str(error)})
             raise
         return request
+
+    def validate_binding(self, owner_id, binding):
+        if (not isinstance(binding, InputFile) or type(binding.length) is not int or
+                binding.length < 1 or not isinstance(binding.name, str) or
+                binding.name in {"", ".", ".."} or any(c in binding.name for c in "/\\:\x00")):
+            raise StudioError("validation", "Ungültiger Vertrag für eine Arbeitskopie.")
+        path = safe_target(self.root, binding.source)
+        blob = self.project.catalog.db.execute("SELECT length FROM blobs WHERE sha256=?",
+                                                (binding.sha256,)).fetchone()
+        registered = blob and path == BlobStore(self.project.catalog, self.root).path_for(
+            binding.sha256) and blob[0] == binding.length
+        if not registered:
+            build = self.project.catalog.get(binding.revision_id)
+            registered = (build.kind == "build" and build.owner_id == owner_id and
+                build.data.get("contract") == "studio-build-v1" and
+                binding.source == f".asset-studio/jobs/{build.data['job_id']}/output/" +
+                path.name and any(item["path"] == path.name and
+                    item["sha256"] == binding.sha256 and item["length"] == binding.length
+                    for item in build.data["outputs"]))
+            if registered:
+                from ..storage.build_cache import BuildCache
+
+                expected = tuple(item["path"] for item in build.data["outputs"])
+                BuildCache(self.project.catalog).verify(build, expected, build.data["dependencies"])
+        if not registered:
+            raise StudioError("validation", "Eingabe ist kein registrierter Blob/Asset-Build.")
+        if path.stat().st_size != binding.length or file_hash(path) != binding.sha256:
+            raise StudioError("integrity", "Abhängigkeit/Ressource wurde verändert.")
 
     def host_argv(self, request: BuildRequest) -> tuple[str, ...]:
         return (sys.executable, "-I", "-B", str(PIPELINES / "host.py"),

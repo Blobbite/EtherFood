@@ -1,0 +1,20 @@
+{
+  "contract": "studio-python-step-v1",
+  "id": "python:grayscale",
+  "name": "Optionale Graustufen",
+  "version": "1.0.0",
+  "description": "Mischt Graustufen mit dem Original; erhält RGBA, Raster, Größe und Alpha.",
+  "parameters": {
+    "amount": {
+      "type": "number",
+      "default": 1.0,
+      "minimum": 0.0,
+      "maximum": 1.0
+    }
+  },
+  "inputs": {"image": "image"},
+  "outputs": {"image": "image"},
+  "capabilities": [],
+  "entry_point": "apply",
+  "dependencies": ["Pillow==12.1.1"]
+}

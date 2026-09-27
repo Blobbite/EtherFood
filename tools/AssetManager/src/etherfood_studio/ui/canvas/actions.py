@@ -30,7 +30,8 @@ class CanvasActions:
         source_record = window.project.catalog.get(source)
         menu = QMenu(window)
         menu.addSection("Neu unter: " + owner.title)
-        names = {"note": "Notiz", "document": "Dokumentation", "task": "Aufgabe",
+        names = {"pipeline": "Pipeline", "note": "Notiz", "document": "Dokumentation",
+                 "task": "Aufgabe",
                  "issue": "Issue", "asset": "Asset", "package": "Ordner / Paket",
                  "chapter": "Kapitel", "act": "Akt"}
         choices = {}

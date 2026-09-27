@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etherfood.local/schemas/asset-studio/pipeline-recipe-v1.json",
+  "title": "Projektlokales Pipeline-Rezept v1",
+  "description": "Semantische Prüfungen (Zyklen, Porttypen, Ressourcen und Projektprofile) erfolgen zusätzlich im Studio-Dienst.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "category",
+    "enabled",
+    "steps",
+    "connections",
+    "profiles",
+    "capabilities",
+    "resources",
+    "overridable",
+    "legacy_unresolved"
+  ],
+  "properties": {
+    "contract": {
+      "const": "studio-pipeline-v1"
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "\\S"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "connections": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/connection"
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_-]*$"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "animated",
+          "directional",
+          "supports_materials",
+          "static_image",
+          "package_member"
+        ]
+      }
+    },
+    "resources": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": {
+        "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/resource"
+      }
+    },
+    "overridable": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_-]{1,80}\\.[a-z][a-z0-9_]{0,63}$"
+      }
+    },
+    "legacy_unresolved": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 0,
+        "maxLength": 512
+      }
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "operation",
+        "enabled",
+        "parameters"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "operation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_:-]+$"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "parameters": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "additionalProperties": {
+            "type": [
+              "string",
+              "boolean",
+              "integer",
+              "number"
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "source"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "prepare8"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "prepare16"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "graphics"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "palette"
+                ],
+                "properties": {
+                  "palette": {
+                    "type": "string",
+                    "maxLength": 512
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "frames"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "frames",
+                  "timing",
+                  "fps"
+                ],
+                "properties": {
+                  "frames": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 64
+                  },
+                  "timing": {
+                    "enum": [
+                      "keep_fps",
+                      "keep_duration"
+                    ]
+                  },
+                  "fps": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 240
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "color"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "mode",
+                  "reference",
+                  "palette",
+                  "materials",
+                  "mask",
+                  "strength",
+                  "max_distance"
+                ],
+                "properties": {
+                  "mode": {
+                    "enum": [
+                      "soft",
+                      "fixed",
+                      "material"
+                    ]
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "palette": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "materials": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "mask": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "strength": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "max_distance": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 50
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "source_color"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "mode",
+                  "reference",
+                  "palette",
+                  "materials",
+                  "mask",
+                  "strength",
+                  "max_distance"
+                ],
+                "properties": {
+                  "mode": {
+                    "enum": [
+                      "soft",
+                      "fixed",
+                      "material"
+                    ]
+                  },
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "palette": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "materials": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "mask": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "strength": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "max_distance": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 50
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "out",
+        "to",
+        "in"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "out": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "in": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "length",
+        "name"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 33554432
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^/\\\\:\\u0000]+\\.(?:[pP][nN][gG]|[jJ][sS][oO][nN])$"
+        }
+      }
+    }
+  }
+}

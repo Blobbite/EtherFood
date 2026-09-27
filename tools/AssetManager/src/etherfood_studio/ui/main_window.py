@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QToolBar, QTreeWidgetItem, QTreeWidgetItemIterator, QVBoxLayout, QWidget,
 )
 
-from ..application.commands import Commands
+from ..application.commands import Command, Commands
 from ..application.asset_service import AssetService
 from ..application.document_service import DocumentService
 from ..application.project_service import ProjectService
@@ -364,6 +364,61 @@ class MainWindow(QMainWindow):
             dialog.deleteLater()
         self.perform(edit)
 
+    def open_pipeline(self, identifier: str) -> None:
+        if not self.project or not self.prepare_content_change():
+            return
+        def edit():
+            from .pipeline_editor import PipelineEditor
+            dialog = PipelineEditor(self.project, identifier, self, commands=self.commands)
+            dialog.exec()
+            self.refresh()
+            dialog.deleteLater()
+        self.perform(edit)
+
+    def create_pipeline(self, *, choose_template=False) -> None:
+        if not self.project or not self.prepare_content_change():
+            return
+        from ..application.pipeline_service import PipelineService
+        from ..domain.pipeline_recipes import TEMPLATES, template
+
+        identifier = "empty"
+        if choose_template:
+            title, accepted = QInputDialog.getItem(self, "Pipeline-Vorlage", "Ausgangspunkt",
+                                                   list(TEMPLATES.values()), 0, False)
+            if not accepted:
+                return
+            identifier = next(key for key, value in TEMPLATES.items() if value == title)
+        title, accepted = QInputDialog.getText(self, "Neue projektweite Pipeline", "Name",
+                                               text=TEMPLATES[identifier])
+        if not accepted:
+            return
+        def create():
+            service = PipelineService(self.project)
+            key = self.commands.create_card("pipeline", title, service.global_id,
+                {"project_id": service.project_id, "recipe": template(identifier)})
+            self.refresh()
+            self.select_card(key)
+            self.open_pipeline(key)
+        self.perform(create)
+
+    def import_pipeline(self) -> None:
+        if not self.project or not self.prepare_content_change():
+            return
+        def load():
+            from .pipeline_exchange_dialogs import import_pipeline
+            record = import_pipeline(self.project, self)
+            if record:
+                def archived(value):
+                    current = self.project.catalog.get(record.id)
+                    if current.archived != value:
+                        self.project.archive(record.id, value, current.revision_no)
+                self.commands.execute(Command("Pipeline-Kopie importieren",
+                    lambda: archived(False), lambda: archived(True)))
+                self.refresh()
+                self.select_card(record.id)
+                self.open_pipeline(record.id)
+        self.perform(load)
+
     def perform(self, call: Callable) -> bool:
         try:
             call()
@@ -536,7 +591,9 @@ class MainWindow(QMainWindow):
 
     def open_canvas_content(self, identifier: str) -> None:
         record = self.project.catalog.get(identifier)
-        if record.kind == "note":
+        if record.kind == "pipeline":
+            self.open_pipeline(identifier)
+        elif record.kind == "note":
             if not self.select_card(record.id):
                 return
             self.tabs.setCurrentWidget(self.notes)

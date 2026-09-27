@@ -1,6 +1,5 @@
 """Read-only status projection for the dashboard; no editable success flag."""
 
-from ..domain.assets import AssetDefinition
 from ..domain.workflows import Evidence, StepStatus, resolve
 from .asset_service import AssetService
 from .project_service import ProjectService
@@ -46,7 +45,8 @@ class StatusService:
         materials = True
         source_rows = None
         if record.data.get("asset_definition"):
-            definition = AssetDefinition.from_data(record.data["asset_definition"])
+            definition = AssetService(self.project).parse_definition(
+                record.data["asset_definition"])
             kind = definition.workflow
             materials = "supports_materials" in definition.capabilities
             if not record.archived:
@@ -80,6 +80,12 @@ class StatusService:
         return result
 
     def summary(self, identifier: str) -> str:
+        if self.project.catalog.get(identifier).kind == "pipeline":
+            from .pipeline_service import PipelineService
+            values = PipelineService(self.project).summary(identifier)
+            enabled = "aktiv" if values["enabled"] else "aus"
+            return (f"{values['category']}\n{enabled} · {values['status']} · "
+                    f"{values['assets']} Assets\nLetzter Lauf: {values['last_build']}")
         statuses = list(self.status(identifier).values())
         dependency = next((row for row in statuses if row.id == "dependencies"), None)
         if dependency:

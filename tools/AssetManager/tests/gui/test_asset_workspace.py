@@ -113,7 +113,8 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         assert isinstance(workspace, AssetWorkspace)
         assert workspace.identifier == identifier
         assert workspace.tabs.count() == 7
-        assert all(not workspace.tabs.isTabEnabled(i) for i in (3, 4, 5))
+        assert all(workspace.tabs.isTabEnabled(i) for i in (3, 4))
+        assert not workspace.tabs.isTabEnabled(5)  # No automatic Godot/sight approval.
         assert "0/8" in workspace.workflow.toPlainText()
         workspace.tabs.setCurrentIndex(2)
         action = workspace.editor.poses.cellWidget(0, 8)

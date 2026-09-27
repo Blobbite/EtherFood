@@ -97,8 +97,9 @@ Migration 4 und [Auftragsverwaltung](JOBS.md) halten lokale Ausführungsnachweis
 von transportierten Metadaten getrennt. CLI und QProcess benutzen denselben
 Supervisor und den eingefrorenen Vertrag `studio-job-v1`. Registrierung,
 Hashprüfung und sichere Argumentlisten ersetzen keine Sandbox für fremde
-Werkzeuge. Anfangs sind ausschließlich Diagnose und lesender Help-Aufruf
-freigegeben. Produktive Bildverarbeitung und Godot bleiben separat gesperrt.
+Werkzeuge. Im ursprünglichen Paket waren ausschließlich Diagnose und lesender
+Help-Aufruf freigegeben. Projektpipelines ergänzen inzwischen den geprüften
+Bildadapter; Godot-Bereitstellung bleibt separat gesperrt.
 
 ## Ergänzung T018
 
@@ -108,5 +109,24 @@ lokal geprüfte Ergebnisse im Cache; portable Snapshots bringen keine
 Cache-Vertrauensstellung mit. Input-Fingerprint, vollständige Ausgabedigestliste
 und Digests der tatsächlichen Vorgängerresultate werden separat geprüft.
 Dry-run ist schreibfrei, in der CLI sogar mit SQLite-Nur-Lese-Verbindung.
-Die neun Phasen lassen sich bereits mit synthetischen Diagnoseaufträgen
-ausführen; fehlende produktive Bildadapter bleiben sichtbar blockiert.
+Die neun Diagnosephasen bleiben als technische Selbstprüfung ausführbar.
+Echte Bildrezepte verwenden inzwischen denselben Buildplan und Cache.
+
+## Ergänzung: projektweite Canvas-Pipelines
+
+Migration 6 ergänzt die lokale, hashgebundene Pluginregistrierung. Projektprofile
+liegen versioniert am bestehenden Projektobjekt. Rezepte sind `pipeline`-Karten
+unter dessen einzigem globalen Rahmen; `pipeline_assignment`-Objekte verweisen
+auf sie. Knotenlayouts bleiben in `layouts`, technische Verbindungen und Parameter
+im Rezept. Projektbeziehungen erhalten keine ausführbare Bedeutung.
+
+`PipelineService`/`ProfileService` verwalten Revisionen und Zuweisungsprioritäten.
+`RecipeBuildService` übersetzt in den bestehenden DAG, `studio-image` führt echte
+PyGameTools-Bildalgorithmen über `JobService`/Supervisor aus. `RecipeResultService`
+prüft veröffentlichte Ableitungen desselben Assets und deren Aktualität. GUI-
+Arbeiter führen diese Dienste außerhalb des UI-Threads aus, kein zweiter Runner.
+
+`PluginService` liest ausschließlich deklarative Manifeste; fremder Code läuft
+erst nach ausdrücklicher Freigabe im Worker. `PipelineExchange` übernimmt geprüfte,
+eigenständige Rezeptkopien ohne Assets, Jobs oder lokale Codefreigaben. Details,
+Austauschschemata und tatsächliche Grenzen: [Projektpipelines](PIPELINES.md).

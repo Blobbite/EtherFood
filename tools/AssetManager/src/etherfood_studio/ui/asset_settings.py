@@ -2,11 +2,12 @@
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QLineEdit,
+    QCheckBox, QComboBox, QDialog, QFormLayout, QGridLayout, QHBoxLayout, QLineEdit,
     QMessageBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from ..application.asset_service import AssetService
+from ..application.profile_service import ProfileService
 from ..application.source_import import SourceImportService
 from ..domain.assets import (
     CAPABILITIES, DIRECTION_TEMPLATES, GRAPHICS, TYPE_PRESETS, AssetDefinition,
@@ -24,8 +25,9 @@ class AssetDefinitionEditor(QWidget):
     source_requested = Signal(str)
 
     def __init__(self, definition: AssetDefinition, parent=None, *, source_actions=False,
-                 include_presets=True) -> None:
+                 include_presets=True, profiles=None) -> None:
         super().__init__(parent)
+        self.profile_definitions = profiles
         self.source_actions = source_actions
         self.source_counts = {}
         self.setObjectName("asset_requirements_editor")
@@ -61,13 +63,15 @@ class AssetDefinitionEditor(QWidget):
                 lambda checked=False, n=count: self.directions.setText(
                     ",".join(DIRECTION_TEMPLATES[n]))))
         form.addRow("Richtungen (Reihenfolge)", direction_row)
-        profiles = QHBoxLayout()
+        profile_row = QGridLayout()
         self.graphics = {}
-        for name in GRAPHICS:
-            check = QCheckBox(name)
+        for index, name in enumerate(profiles if profiles is not None else GRAPHICS):
+            check = QCheckBox(profiles[name]["name"] if profiles else name)
+            if profiles and not profiles[name]["enabled"]:
+                check.setToolTip("Projektweit deaktiviert: nicht als Pflichtausgabe angefordert.")
             self.graphics[name] = check
-            profiles.addWidget(check)
-        form.addRow("Grafikprofile", profiles)
+            profile_row.addWidget(check, index // 4, index % 4)
+        form.addRow("Grafikprofile", profile_row)
         self.frames = QLineEdit()
         form.addRow("Frames (z. B. 8,10,12,14,16)", self.frames)
         layout.addLayout(form)
@@ -182,7 +186,7 @@ class AssetDefinitionEditor(QWidget):
                     "frames": [int(v) for v in self.split(self.frames.text())], "poses": poses}
         except ValueError as error:
             raise StudioError("validation", "Ungültige Zahl oder Loop-Angabe.") from error
-        return AssetDefinition.from_data(data)
+        return AssetDefinition.from_data(data, profiles=self.profile_definitions)
 
     def preview(self) -> None:
         try:
@@ -203,8 +207,8 @@ class AssetSettingsDialog(QDialog):
         self.resize(1160, 720)
         existing = self.record.data.get("asset_definition")
         self.editor = AssetDefinitionEditor(
-            AssetDefinition.from_data(existing) if existing else default_definition(),
-            self, source_actions=True,
+            service.parse_definition(existing) if existing else default_definition(),
+            self, source_actions=True, profiles=ProfileService(service.project).profiles(),
         )
         # Keep the established dialog inspection API while sharing one form with the wizard.
         for name in ("poses", "preset", "summary", "frames", "directions", "graphics",

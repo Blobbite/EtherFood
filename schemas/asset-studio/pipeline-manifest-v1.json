@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etherfood.local/schemas/asset-studio/pipeline-manifest-v1.json",
+  "title": "Deklaratives Python-Schritt-Manifest v1",
+  "description": "Kein importierbarer Python-Pfad. Registrierung und hashgebundene Freigabe werden getrennt und nur lokal gespeichert.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "id",
+    "name",
+    "version",
+    "description",
+    "parameters",
+    "inputs",
+    "outputs",
+    "capabilities",
+    "entry_point",
+    "dependencies"
+  ],
+  "properties": {
+    "contract": {
+      "const": "studio-python-step-v1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^python:[a-z0-9_-]{1,64}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "\\S"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "\\S"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "\\S"
+    },
+    "parameters": {
+      "type": "object",
+      "maxProperties": 32,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/parameter"
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "image"
+      ],
+      "properties": {
+        "image": {
+          "const": "image"
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "image"
+      ],
+      "properties": {
+        "image": {
+          "const": "image"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "animated",
+          "directional",
+          "supports_materials",
+          "static_image",
+          "package_member"
+        ]
+      }
+    },
+    "entry_point": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,127}$"
+    },
+    "dependencies": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*==[A-Za-z0-9][A-Za-z0-9_.+-]*$"
+      }
+    }
+  },
+  "$defs": {
+    "parameter": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "default",
+            "minimum",
+            "maximum"
+          ],
+          "properties": {
+            "type": {
+              "const": "number"
+            },
+            "default": {
+              "type": "number",
+              "minimum": -1000000000000,
+              "maximum": 1000000000000
+            },
+            "minimum": {
+              "type": "number",
+              "minimum": -1000000000000,
+              "maximum": 1000000000000
+            },
+            "maximum": {
+              "type": "number",
+              "minimum": -1000000000000,
+              "maximum": 1000000000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "default",
+            "minimum",
+            "maximum"
+          ],
+          "properties": {
+            "type": {
+              "const": "integer"
+            },
+            "default": {
+              "type": "integer",
+              "minimum": -1000000000000,
+              "maximum": 1000000000000
+            },
+            "minimum": {
+              "type": "integer",
+              "minimum": -1000000000000,
+              "maximum": 1000000000000
+            },
+            "maximum": {
+              "type": "integer",
+              "minimum": -1000000000000,
+              "maximum": 1000000000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "default"
+          ],
+          "properties": {
+            "type": {
+              "const": "boolean"
+            },
+            "default": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "default"
+          ],
+          "properties": {
+            "type": {
+              "const": "string"
+            },
+            "default": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 512
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "default",
+            "choices"
+          ],
+          "properties": {
+            "type": {
+              "const": "choice"
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "choices": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 128,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

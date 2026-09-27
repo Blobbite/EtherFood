@@ -6,7 +6,7 @@ from .theme import is_dark
 
 KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
               "asset": "Asset", "package": "Paket", "note": "Notiz", "document": "Dokument",
-              "task": "Aufgabe", "issue": "Issue"}
+              "task": "Aufgabe", "issue": "Issue", "pipeline": "Pipeline"}
 DOCUMENT_COLOR = "#eee4f8"
 
 
@@ -17,7 +17,8 @@ def kind_icon(kind: str) -> QIcon:
         return drawn_icon(kind)
     from .action_icons import action_icon
     return action_icon({"project": "computer", "global": "globe", "act": "folder",
-                        "chapter": "folder", "package": "package"}.get(kind, "file"))
+                        "chapter": "folder", "package": "package",
+                        "pipeline": "settings"}.get(kind, "file"))
 
 
 def record_icon(record) -> QIcon:

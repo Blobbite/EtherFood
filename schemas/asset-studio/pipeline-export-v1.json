@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etherfood.local/schemas/asset-studio/pipeline-export-v1.json",
+  "title": "Eigenständige Pipeline-Kopie v1",
+  "description": "recipe.json im ZIP; Ressourcen unter resources/<SHA-256>.dat. Keine Original-Assets, Python-Dateien, Aufträge oder Freigaben.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "name",
+    "recipe",
+    "profiles"
+  ],
+  "properties": {
+    "contract": {
+      "const": "studio-pipeline-export-v1"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "\\S"
+    },
+    "recipe": {
+      "$ref": "pipeline-recipe-v1.json"
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/profile"
+      }
+    },
+    "layout": {
+      "$ref": "#/$defs/layout"
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "name",
+        "enabled",
+        "method",
+        "mode",
+        "value",
+        "colors",
+        "parent"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "\\S"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "method": {
+          "enum": [
+            "comic",
+            "pixel",
+            "pixel_low"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "factor",
+            "max_edge"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 16384
+        },
+        "colors": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 256
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "factor"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "maximum": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "pixel_low"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "parent": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "parent": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "pipeline_nodes": {
+          "type": "object",
+          "maxProperties": 128,
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {
+              "x": {
+                "type": "number",
+                "minimum": -1000000,
+                "maximum": 1000000
+              },
+              "y": {
+                "type": "number",
+                "minimum": -1000000,
+                "maximum": 1000000
+              },
+              "w": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "h": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 10000
+              }
+            }
+          }
+        },
+        "pipeline_legacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "nodes",
+            "edges",
+            "mappings"
+          ],
+          "properties": {
+            "nodes": {
+              "type": "object",
+              "maxProperties": 128,
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80,
+                "pattern": "^[a-zA-Z0-9_-]+$"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 16384
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 16384
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 16384
+                  },
+                  "file": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 16384
+                  },
+                  "color": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 16384
+                  },
+                  "group": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": "^[a-zA-Z0-9_-]+$"
+                  }
+                }
+              }
+            },
+            "edges": {
+              "type": "array",
+              "maxItems": 512,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "from",
+                  "to"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "from": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": "^[a-zA-Z0-9_-]+$"
+                  },
+                  "to": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": "^[a-zA-Z0-9_-]+$"
+                  },
+                  "from_side": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 512
+                  },
+                  "to_side": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 512
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 512
+                  },
+                  "color": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 512
+                  }
+                }
+              }
+            },
+            "mappings": {
+              "type": "array",
+              "maxItems": 128,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "node",
+                  "original",
+                  "resolved",
+                  "operation"
+                ],
+                "properties": {
+                  "node": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": "^[a-zA-Z0-9_-]+$"
+                  },
+                  "original": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 1024
+                  },
+                  "resolved": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 1024
+                  },
+                  "operation": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 1024
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

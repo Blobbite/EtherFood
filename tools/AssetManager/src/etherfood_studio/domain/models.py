@@ -7,7 +7,8 @@ from uuid import uuid4
 
 KINDS = frozenset({
     "project", "global", "act", "chapter", "asset", "package", "note", "document",
-    "task", "issue", "pose", "source_revision", "profile_revision", "mask_revision",
+    "task", "issue", "pipeline", "pipeline_assignment", "pose", "source_revision",
+    "profile_revision", "mask_revision",
     "build", "check", "review", "approval", "deployment", "candidate", "export", "test_run",
 })
 IMMUTABLE = frozenset({

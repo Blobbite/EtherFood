@@ -98,7 +98,9 @@ class Canvas(QGraphicsView):
             positions[identifier] = {"x": depth * 295, "y": cursor, "w": width, "h": 100}
             if card.kind == "note":
                 positions[identifier] |= {"w": 144, "h": 62}
-            cursor += 125
+            if card.kind == "pipeline":
+                positions[identifier] |= {"w": 340, "h": 145}
+            cursor += 170 if card.kind == "pipeline" else 125
             children = [row for row in cards if row.owner_id == identifier]
             children.sort(key=lambda row: (
                 row.kind != "global", row.data.get("order", 0), row.title,

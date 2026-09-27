@@ -1,6 +1,11 @@
 # Briefing Paket 7 – Notizen, Aufträge und Buildplan
 
-## Aktueller Status: Bedienprüfung zurückgestellt
+## Historischer Status: durch den Projektpipeline-Auftrag abgelöst
+
+Der inzwischen ausdrücklich freigegebene Auftrag für projektweite
+Canvas-Bildpipelines ersetzt die folgende zurückgestellte Diagnose-Prüfrunde.
+Aktuelle Bedienung und Sichtprüfung: [Projektpipelines](PIPELINES.md).
+Die nachstehenden Punkte bleiben als historische Referenz erhalten.
 
 Nach dem UI-Feinschliff wurde die vorgeschlagene Auftrags-/Buildplan-/Cache-
 Prüfrunde vom Benutzer zurückgestellt: Die separaten technischen Dialoge sind

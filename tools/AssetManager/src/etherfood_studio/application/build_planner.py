@@ -7,6 +7,7 @@ import json
 from ..domain.builds import BuildGraph, BuildNode, VariantTarget
 from ..domain.models import StudioError, new_id
 from ..pipelines.adapters import REGISTRY
+from ..pipelines.base import InputFile
 from ..pipelines.fingerprints import digest, input_fingerprint
 from ..storage.build_cache import BuildCache
 from .job_service import JobService
@@ -30,6 +31,7 @@ class BuildPlan:
     owner_id: str
     nodes: tuple[PlannedNode, ...]
     variants: tuple[VariantTarget, ...]
+    snapshot: str = "{}"
 
     @property
     def counts(self) -> dict[str, int]:
@@ -46,7 +48,8 @@ class BuildPlanner:
         self.project = project
         self.cache = BuildCache(project.catalog)
 
-    def plan(self, owner_id: str, graph: BuildGraph, *, cancelled=lambda: False) -> BuildPlan:
+    def plan(self, owner_id: str, graph: BuildGraph, *, cancelled=lambda: False,
+             snapshot="{}") -> BuildPlan:
         self.project.require_active_card(owner_id)
         rows, fingerprints = {}, {}
         for node in graph.ordered():
@@ -78,7 +81,7 @@ class BuildPlanner:
             rows[node.key] = PlannedNode(node, fingerprint, state, reason,
                                          cached.id if cached else None,
                                          cached.data["result_digest"] if cached else None)
-        return BuildPlan(new_id(), owner_id, tuple(rows.values()), graph.variants)
+        return BuildPlan(new_id(), owner_id, tuple(rows.values()), graph.variants, snapshot)
 
     def execute(self, plan: BuildPlan, *, cancelled=lambda: False, on_event=lambda event: None
                 ) -> dict:
@@ -105,17 +108,17 @@ class BuildPlanner:
                     record = self.project.catalog.get(row.build_id)
                     data = self.cache.verify(record, tuple(o.path for o in node.outputs),
                                               dependencies)
-                    results[node.key] = data
+                    results[node.key] = {**data, "build_id": record.id}
                     item.update(actual="reused", build_id=record.id)
                 else:
-                    # Every executable adapter currently emits diagnostic artifacts only.
                     parameters = json.loads(node.parameters)
                     if node.adapter == "diagnostic":
                         parameters["value"] = digest({"input": row.fingerprint,
                                                       "dependencies": dependencies})
                     request = service.prepare(plan.owner_id, node.adapter, parameters,
                                                source_ids=node.source_ids,
-                                               resource_key=f"build:{plan.owner_id}:{node.key}")
+                                               resource_key=f"build:{plan.owner_id}:{node.key}",
+                                               bindings=self.bindings(node, results), timeout=300)
                     if request.tool_hashes != node.tools or request.outputs != \
                             tuple(o.path for o in node.outputs):
                         service.start_failed(request.job_id, "Plan/Tool geändert; neu planen")
@@ -126,15 +129,39 @@ class BuildPlanner:
                     if result["status"] == "succeeded":
                         record = self.cache.register(plan.owner_id, node, row.fingerprint,
                                                      dependencies, request.job_id)
-                        results[node.key] = record.data
+                        results[node.key] = {**record.data, "build_id": record.id}
                         item.update(actual="built", build_id=record.id)
             except (StudioError, OSError, ValueError) as error:
                 item.update(actual="failed", reason=str(error))
             actual.append(item)
             on_event({"kind": "node_finished", **item})
         success = all(r["actual"] in {"built", "reused", "not_required"} for r in actual)
+        diagnostic = all(row.node.adapter != "studio-image" for row in plan.nodes)
         report = {"contract": "studio-build-run-v1", "plan": plan.to_data(), "actual": actual,
-                  "status": "succeeded" if success else "incomplete", "diagnostic": True}
+                  "status": "succeeded" if success else "incomplete",
+                  "diagnostic": diagnostic, "published": success and not diagnostic}
         record = self.project.catalog.create("build", "Plan-/Ausführungsvergleich", plan.owner_id,
                                               report)
         return {**report, "run_id": record.id}
+
+    def bindings(self, node, results):
+        if node.adapter != "studio-image":
+            return ()
+        from ..storage.blob_store import BlobStore
+
+        store = BlobStore(self.project.catalog, self.project.catalog.path.parent)
+        bindings = []
+        for item in node.inputs:
+            if item.role == "source":
+                continue
+            path = store.path_for(item.sha256)
+            bindings.append(InputFile(item.revision_id or item.sha256,
+                str(path.relative_to(store.root)), item.role, item.sha256, path.stat().st_size))
+        for dependency in node.dependencies:
+            data = results[dependency.node]
+            item = next(v for v in data["outputs"] if v["path"] == dependency.output)
+            bindings.append(InputFile(data["build_id"],
+                f".asset-studio/jobs/{data['job_id']}/output/{dependency.output}",
+                "upstream.png" if dependency.kind == "image" else "upstream.json",
+                item["sha256"], item["length"]))
+        return tuple(bindings)

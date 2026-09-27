@@ -220,6 +220,14 @@ class Catalog:
             Catalog.validate_layout(data["manual"])
         if "note_board" in data:
             validate_note_position(data["note_board"])
+        if "pipeline_nodes" in data:
+            positions = data["pipeline_nodes"]
+            if (not isinstance(positions, dict) or len(positions) > 128 or
+                    any(not isinstance(key, str) or not isinstance(value, dict) or
+                        set(value) - {"x", "y", "w", "h"} for key, value in positions.items())):
+                raise StudioError("validation", "Ungültiges Pipeline-Knotenlayout.")
+            for position in positions.values():
+                Catalog.validate_layout(position)
 
     def save_layout(self, identifier: str, data: dict) -> None:
         self.validate_layout(data)

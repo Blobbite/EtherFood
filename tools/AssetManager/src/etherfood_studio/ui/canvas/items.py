@@ -149,9 +149,9 @@ class CardItem(QGraphicsRectItem):
     def resize(self, width: float, height: float) -> None:
         self.setRect(0, 0, width, height)
         for child, text in self.texts:
-            child.setText(QFontMetricsF(child.font()).elidedText(
-                text, Qt.TextElideMode.ElideRight, width - child.pos().x() - 16,
-            ))
+            child.setText("\n".join(QFontMetricsF(child.font()).elidedText(
+                line, Qt.TextElideMode.ElideRight, width - child.pos().x() - 16,
+            ) for line in text.splitlines()))
         for side, point in {"top": QPointF(width / 2, 0), "right": QPointF(width, height / 2),
                             "bottom": QPointF(width / 2, height),
                             "left": QPointF(0, height / 2)}.items():
@@ -182,7 +182,10 @@ class CardItem(QGraphicsRectItem):
             self.view.moved.emit(self.identifier, self.pos().x(), self.pos().y())
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        self.view.toggle_requested.emit(self.identifier)
+        if self.kind == "pipeline":
+            self.view.open_requested.emit(self.identifier)
+        else:
+            self.view.toggle_requested.emit(self.identifier)
         event.accept()
 
 

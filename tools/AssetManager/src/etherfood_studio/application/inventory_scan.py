@@ -8,7 +8,7 @@ import re
 from threading import Event
 from typing import Callable
 
-from ..domain.assets import AssetDefinition, DIRECTIONS, GRAPHICS, VariantKey
+from ..domain.assets import AssetDefinition, DIRECTIONS, VariantKey
 from ..domain.models import StudioError
 from ..storage.inventory_files import ScanLimits, check_cancel, inspect_png
 from ..storage.paths import real_path
@@ -83,7 +83,7 @@ def propose(path: Path, root: Path, definition: AssetDefinition, info: dict,
     if "direction" in meta and isinstance(meta["direction"], str):
         directions.append(meta["direction"])
     direction = one(directions, "Richtungen", notes)
-    graphics = [v for v in parts if v in GRAPHICS]
+    graphics = [v for v in parts if v in definition.profile_keys]
     if "graphics" in meta and isinstance(meta["graphics"], str):
         graphics.append(meta["graphics"])
     graphic = one(graphics, "Grafikprofile", notes)

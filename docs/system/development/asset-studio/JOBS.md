@@ -1,5 +1,10 @@
 # Aufträge und sichere Werkzeugprüfung (T017)
 
+Dieser Einstieg bleibt eine technische Selbstprüfung. Echte Bilderzeugung
+startet über [projektweite Canvas-Pipelines](PIPELINES.md) und verwendet
+denselben Auftragsdienst/Supervisor. Eine erfolgreiche Diagnose ersetzt
+keinen Bildbuild.
+
 **Aufträge …** in der Projekt-Toolbar öffnet die Auftragsliste. Diagnose starten
 prüft die technische Ausführung, nicht die Spielgrafiken. Wählbar sind Erfolg,
 Exit 7, fehlende Ausgabe, langer Lauf und Lauf mit Kindprozess. **FramReduce

@@ -28,9 +28,11 @@ class BuildCache:
         if not local or data.get("contract") != "studio-build-v1":
             raise StudioError("integrity", "Kein lokal verifiziertes Build.")
         job = JobStore(self.catalog).get(local["job_id"])
-        if (job["status"] != "succeeded" or data["dependencies"] != dependencies or
+        if (job["status"] != "succeeded" or job["request"]["owner_id"] != record.owner_id or
+                data["dependencies"] != dependencies or
                 data["outputs"] != job["result"]["files"] or
                 set(job["request"]["outputs"]) != set(expected) or
+                data["tools"] != job["request"]["tool_hashes"] or
                 data["input_fingerprint"] != local["input_fingerprint"]):
             raise StudioError("integrity", "Cachebindung/Ergebnisvertrag passt nicht.")
         directory = safe_target(self.root, f".asset-studio/jobs/{job['id']}/output")
@@ -53,7 +55,9 @@ class BuildCache:
         job = JobStore(self.catalog).get(job_id)
         if job["status"] != "succeeded":
             raise StudioError("integrity", "Unvollständige Aufträge sind kein Cache.")
-        if (job["request"]["adapter"] != node.adapter or
+        if (job["request"]["adapter"] != node.adapter or job["request"]["owner_id"] != owner or
+                node.adapter == "studio-image" and
+                job["request"]["parameters"] != node.parameters or
                 tuple(tuple(v) for v in job["request"]["tool_hashes"]) != node.tools):
             raise StudioError("integrity", "Auftrag passt nicht zum geplanten Adapter/Werkzeug.")
         expected = tuple(o.path for o in node.outputs)
@@ -62,9 +66,10 @@ class BuildCache:
         data = {"contract": "studio-build-v1", "node_key": node.key, "stage": node.stage,
                 "input_fingerprint": fingerprint, "result_digest": digest(files),
                 "outputs": files, "dependencies": dependencies, "job_id": job_id,
-                "diagnostic": True, "tools": list(node.tools)}
+                "diagnostic": node.adapter != "studio-image", "tools": list(node.tools)}
         with self.catalog.transaction():
-            record = self.catalog.create("build", "Diagnosebuild · " + node.stage, owner, data)
+            title = "Diagnosebuild" if data["diagnostic"] else "Bildbuild"
+            record = self.catalog.create("build", title + " · " + node.stage, owner, data)
             self.catalog.db.execute("INSERT INTO build_cache VALUES (?,?,?,?)",
                                     (record.id, node.key, fingerprint, job_id))
         return record

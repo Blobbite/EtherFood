@@ -38,6 +38,11 @@ class Navigation:
             self.window.canvas_actions.add_arrangements(menu)
             menu.exec(self.window.canvas.viewport().mapToGlobal(point))
             menu.deleteLater()
+        elif self.window.project and self.window.selected_id and \
+                self.window.project.catalog.get(self.window.selected_id).kind == "global":
+            menu = self.menu(self.window.selected_id)
+            menu.exec(self.window.canvas.viewport().mapToGlobal(point))
+            menu.deleteLater()
 
     def _on_card(self, identifier: str, call: Callable) -> None:
         if self.window.select_card(identifier):
@@ -64,6 +69,17 @@ class Navigation:
         action("Dokumente / Notiz öffnen", "context_open", "document",
                lambda: self._on_card(identifier, self.open_notes))
         if not record.archived:
+            if record.kind == "pipeline":
+                action("Pipeline öffnen …", "context_pipeline_open", "pipeline",
+                       lambda: window.open_pipeline(identifier))
+            if record.kind == "global":
+                action("Neue Pipeline …", "context_pipeline_new", "pipeline",
+                       lambda: window.create_pipeline())
+                action("Pipeline aus Vorlage …", "context_pipeline_template", "pipeline",
+                       lambda: window.create_pipeline(choose_template=True))
+                action("Pipeline importieren …", "context_pipeline_import", "pipeline",
+                       window.import_pipeline)
+                menu.addSeparator()
             if record.kind == "asset":
                 action("Asset-Menü öffnen …", "context_asset_workspace", "asset",
                        lambda: self._on_card(identifier, window.asset_workspace))

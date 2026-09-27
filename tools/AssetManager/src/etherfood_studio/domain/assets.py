@@ -18,6 +18,7 @@ TYPE_PRESETS = {
     "effect": ("Effekt", ("animated", "package_member")),
     "texture": ("Textur", ("static_image", "package_member")),
     "prop": ("Objekt", ("static_image", "directional", "supports_materials", "package_member")),
+    "npc": ("NPC", ("animated", "directional", "supports_materials", "package_member")),
 }
 
 
@@ -106,9 +107,11 @@ class AssetDefinition:
     graphics: tuple[str, ...]
     frames: tuple[int, ...]
     poses: tuple[Pose, ...]
+    active_graphics: tuple[str, ...] | None = None
+    profile_keys: tuple[str, ...] = GRAPHICS
 
     @classmethod
-    def from_data(cls, data: dict) -> "AssetDefinition":
+    def from_data(cls, data: dict, *, profiles: dict | None = None) -> "AssetDefinition":
         fields(data, {"schema_version", "type", "directions", "graphics", "frames", "poses"})
         require(type(data["schema_version"]) is int and data["schema_version"] == 1,
                 "Unbekannte Asset-Modellversion.")
@@ -124,7 +127,8 @@ class AssetDefinition:
         choices(data["directions"], DIRECTIONS, empty="directional" not in caps)
         require(bool(data["directions"]) == ("directional" in caps),
                 "Richtungen passen nicht zur Fähigkeit directional.")
-        choices(data["graphics"], GRAPHICS)
+        keys = tuple(profiles) if profiles is not None else GRAPHICS
+        choices(data["graphics"], keys)
         choices(data["frames"], tuple(range(1, 65)), empty="animated" not in caps)
         require(isinstance(data["poses"], list) and len(data["poses"]) <= 64,
                 "Höchstens 64 Posen sind erlaubt.")
@@ -140,7 +144,9 @@ class AssetDefinition:
                 "Nicht gerichtete Assets haben keine Posenrichtungen.")
         definition = cls(asset_type["id"], asset_type["label"], tuple(caps),
                          tuple(data["directions"]), tuple(data["graphics"]),
-                         tuple(data["frames"]), poses)
+                         tuple(data["frames"]), poses,
+                         tuple(k for k in data["graphics"] if profiles[k]["enabled"])
+                         if profiles is not None else None, keys)
         require(len(definition.expected()) <= 20000, "Variantenmatrix ist zu groß (max. 20000).")
         return definition
 
@@ -154,13 +160,15 @@ class AssetDefinition:
                 "graphics": list(self.graphics), "frames": list(self.frames),
                 "poses": [p.to_data() for p in self.poses]}
 
-    def expected(self) -> tuple[VariantKey, ...]:
+    def expected(self, *, include_disabled: bool = False) -> tuple[VariantKey, ...]:
+        graphics = self.graphics if include_disabled or self.active_graphics is None \
+            else self.active_graphics
         if "static_image" in self.capabilities:
             return tuple(VariantKey(None, d, g, None)
-                         for d, g in product(self.directions or (None,), self.graphics))
+                         for d, g in product(self.directions or (None,), graphics))
         return tuple(VariantKey(p.id, d, g, f) for p in self.poses
                      for d, g, f in product(p.directions or self.directions or (None,),
-                                            self.graphics,
+                                            graphics,
                                             (1,) if p.source_kind == "single_image"
                                             else self.frames))
 

@@ -3,6 +3,7 @@
 from ..domain.assets import AssetDefinition, VariantKey, require
 from ..domain.models import Record, StudioError, new_id
 from .project_service import ProjectService
+from .profile_service import ProfileService
 
 
 class AssetService:
@@ -17,11 +18,13 @@ class AssetService:
     def definition(self, identifier: str) -> AssetDefinition:
         data = self.asset(identifier).data.get("asset_definition")
         require(data is not None, "Zuerst die Asset-Anforderungen festlegen.")
-        return AssetDefinition.from_data(data)
+        return self.parse_definition(data)
 
-    @staticmethod
-    def creation_data(data: dict) -> dict:
-        definition = AssetDefinition.from_data(data)
+    def parse_definition(self, data: dict) -> AssetDefinition:
+        return AssetDefinition.from_data(data, profiles=ProfileService(self.project).profiles())
+
+    def creation_data(self, data: dict) -> dict:
+        definition = self.parse_definition(data)
         return {"asset_definition": definition.to_data(), "workflow": definition.workflow}
 
     def create(self, title: str, owner_id: str, data: dict) -> Record:
@@ -32,10 +35,10 @@ class AssetService:
         data = self.definition(identifier).to_data()
         for pose in data["poses"]:
             pose["id"] = new_id()
-        return AssetDefinition.from_data(data)
+        return self.parse_definition(data)
 
     def configure(self, identifier: str, data: dict, expected_revision: int) -> Record:
-        definition = AssetDefinition.from_data(data)
+        definition = self.parse_definition(data)
         with self.project.catalog.transaction():
             record = self.asset(identifier)
             if record.revision_no != expected_revision:

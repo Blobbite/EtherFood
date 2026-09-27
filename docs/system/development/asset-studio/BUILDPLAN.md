@@ -1,7 +1,12 @@
 # Buildplan, Cache und Änderungsfolgen (T018)
 
-**Buildplan …** in der Toolbar oder **Buildplan / Dry-run …** im Asset-Menü
-öffnet dieselbe Planung. Der Asset-Modus liest gespeicherte Anforderungen,
+Der folgende technische Buildplan beschreibt den ursprünglichen T018-Einstieg
+in Toolbar und CLI. **Buildplan / Dry-run …** im Asset-Menü verwendet inzwischen
+das ausdrücklich zugewiesene [Projektpipeline-Rezept](PIPELINES.md) und dessen
+echte Bildadapter. Beide Einstiege nutzen denselben Planer, Supervisor und Cache,
+aber Diagnose und Bildverarbeitung bleiben verschiedene Aufträge.
+
+Der ursprüngliche Asset-Modus liest gespeicherte Anforderungen,
 aktive Originalrevisionen und deren tatsächliche Bytes. Er zeigt die
 Variantenanzahl und für jeden technischen Schritt einen nachvollziehbaren Grund.
 Ungespeicherte Formularänderungen gehören noch nicht zu diesem Entwurf.
@@ -87,11 +92,11 @@ Der Vergleich zeigt pro Schritt Plan, tatsächlichen Zustand und Buildbindung.
 Die Ausführung ist ausdrücklich ein zusätzlicher Schreibauftrag; erst der
 Button **Diagnoseplan ausführen** bzw. `--execute-diagnostic` startet sie.
 
-Echte Asset-Dry-runs verwenden bereits die Projektanforderungen und Originale.
-Produktive Bildadapter, Masterauswahl und Maskenbearbeitung sind aber noch
-Folge-Issues T019/T020 und danach. Solche Schritte werden **blockiert** angezeigt,
-nicht als simuliert erfolgreich. Die aktuellen synthetischen Builds erzeugen
-weder neue Spielgrafiken noch künstlerische Prüfungen oder Godot-Freigaben.
-Der Graph-/Cachevertrag ist für diese nachfolgenden Adapter vorbereitet.
+Projektpipelines erzeugen inzwischen echte Grafik-, Frame- und Farbergebnisse
+über den registrierten Bildadapter. Der frühere feste Plan ist kein Ersatz für
+ein solches Rezept; seine noch nicht angebundenen Schritte bleiben blockiert.
+Masterauswahl, Maskenbearbeitung, künstlerische Abnahme und Godot-Bereitstellung
+bleiben gesonderte Aufgaben. Synthetische Diagnosebuilds zählen weiterhin weder
+als Spielgrafiken noch als Freigaben.
 
 [Manuelles Briefing](SICHTPRUEFUNG_7.md) · [Ergebnisbericht](task-results/T018.md)

@@ -86,7 +86,9 @@ class FramReduceHelpAdapter(DiagnosticAdapter):
         return verify_files(workspace / "output", request.outputs)
 
 
-REGISTRY = {a.identifier: a for a in (DiagnosticAdapter(), FramReduceHelpAdapter())}
+from .image_adapter import ImageAdapter
+
+REGISTRY = {a.identifier: a for a in (DiagnosticAdapter(), FramReduceHelpAdapter(), ImageAdapter())}
 
 
 def adapter_for(identifier: str):

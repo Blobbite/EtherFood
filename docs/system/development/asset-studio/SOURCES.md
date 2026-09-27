@@ -17,7 +17,9 @@ Erst **Asset jetzt anlegen** schreibt Metadaten.
 **Nur Konfiguration** kopiert Einstellungen mit neuen Pose-/Asset-IDs, keine
 Quellen, Nachweise oder Freigaben. Bestehende Quellen lassen sich später ergänzen.
 Im Asset-Menü sind Übersicht, Quellen/Revisionen, Posen und Dokumentation
-nutzbar; die späteren Verarbeitungs-/Prüfreiter bleiben sichtbar deaktiviert.
+nutzbar. **Pipeline / Farben**, **Varianten** und **Bilder erzeugen …** führen
+zu den [projektweiten Bildpipelines](PIPELINES.md). Eine technische Erzeugung
+ist weiterhin keine Sichtabnahme oder Godot-Freigabe.
 
 1. PNG-Dateien auswählen. Pose, Richtung und Quellart je Zeile prüfen.
    Dateinamen schlagen eine eindeutig passende Richtung und Rasterangaben vor; fehlende
@@ -80,9 +82,11 @@ Metadaten-Snapshots enthalten keine PNG-Bytes oder lokalen Quellpfade.
 Nach Snapshot-Import sind Quellenverweise ausdrücklich ungeprüft; sie zählen
 nicht als vollständige Lieferung. Dateien erneut bewusst importieren.
 
-## Noch nicht enthalten
+## Abgrenzung
 
-Keine Animationserzeugung, Frameinterpolation, Farb-/Maskenberechnung,
-Grafikvarianten, automatische Pipeline, Godot-Bereitstellung oder Freigabe.
+Der Quellenimport allein erzeugt keine Animationen, Zwischenframes, Masken,
+Grafikvarianten oder Freigaben. Farbverarbeitung und Grafik-/Frameableitungen
+starten ausdrücklich über [Projektpipelines](PIPELINES.md). Godot-Bereitstellung
+und künstlerische Freigabe bleiben davon getrennt.
 Der lesende Bestandsscanner bleibt getrennt: Seine Beobachtungen sind keine
 verwalteten Quellenkopien.
