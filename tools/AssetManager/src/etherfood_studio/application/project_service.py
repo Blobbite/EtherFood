@@ -212,6 +212,11 @@ class ProjectService:
             raise StudioError("integrity", "Projektweiter Rahmen fehlt oder ist mehrfach vorhanden")
         edges = self.catalog.relations()
         from dataclasses import replace
+        from ..domain.checklists import validate_checklist
+
+        for record in self.catalog.records(include_archived=True):
+            if record.kind in {"task", "issue"}:
+                validate_checklist(record.data.get("checklist", []))
 
         for card in cards:
             if card.kind == "asset" and "asset_definition" in card.data:

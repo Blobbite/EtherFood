@@ -4,6 +4,7 @@ Rückmeldung: Quellenbutton sowie 1×16- und 4×4-Import bestätigt. Gewünschte
 Bedienkorrekturen und Aufgabenintegration werden in
 [Zwischenpaket 6a](../plans/asset-studio-paket-6a.md) bearbeitet. Die übrigen
 Prüfpunkte gelten dadurch nicht pauschal als abgenommen.
+Aktuelle Nachprüfliste: [Zwischenpaket 6a](SICHTPRUEFUNG_6A.md).
 
 T015/#22 und T016/#23 sind technisch implementiert. Der vorherige
 Canvas-Nachtest ist vollständig vom Benutzer bestätigt. Jetzt geht es nur

@@ -32,6 +32,33 @@ nennen. Titel-/Textsuche und Filter liefern stabile Karten-IDs; Kapitel-
 Filter berücksichtigen auch gemeinsam verwendete Assets.
 Eine erledigte Aufgabe ist ausdrücklich **keine** Build- oder Godot-Freigabe.
 
+Seit Zwischenpaket 6a stehen dieselben Aufgaben/Issues direkt unter
+**Asset-Menü → Dokumentation → Aufgaben & Issues** zur Verfügung. Die dortige
+Suche ist auf das ausgewählte Asset begrenzt; im Hauptfenster bleibt die
+projektweite Suche erhalten. Es gibt keine zweite Aufgabenablage oder kopierte
+Aufgaben-ID. Notizen/Anhänge bleiben daneben in ihrem eigenen Reiter.
+
+Aufgaben und Issues können eine To-do-Liste besitzen. Im Anlage-/Bearbeitendialog
+Punkte ergänzen, per Doppelklick umbenennen oder gezielt entfernen. Häkchen in
+der Detailansicht speichern unmittelbar über denselben Revisionsdienst.
+Noch nicht per **+ Punkt** übernommener Eingabetext wird beim Speichern ergänzt.
+Die Suche findet auch To-do-Texte. Höchstens 200 Punkte mit je 500 Zeichen;
+leere, doppelte oder ungültige Einträge werden abgelehnt.
+
+To-dos sind das optionale Datenfeld `checklist` des bestehenden Datensatzes:
+Liste aus `{id, text, done}` mit stabilen UUIDs, Text und echtem Boolean.
+Alte Aufgaben ohne Feld entsprechen einer leeren Liste; keine DB-Migration.
+Katalogöffnung und Snapshot-Import prüfen diese Daten. Ein Schreibkonflikt
+überschreibt keine fremden Änderungen. Bei Editorfehlern bleiben lokale
+Eingaben erhalten, bei fehlgeschlagenem direktem Häkchen wird der tatsächliche
+Katalogstand wieder angezeigt.
+
+Offene To-dos verhindern **Erledigt**. Alle Häkchen setzen den Aufgabenstatus
+nicht automatisch und bestätigen auch keine benötigte Aufgabenabnahme.
+Eine erneut geöffnete Teilaufgabe setzt einen erledigten Task zurück auf offen;
+Inhaltsänderungen heben wie bisher eine frühere Aufgabenabnahme auf.
+Der Asset-Workflow und Spiel-/Godot-Freigaben bleiben davon getrennt.
+
 ## Asset-Anforderungen (Paket 5 / T013)
 
 `asset_definition` im Asset-Datensatz enthält Version 1 mit datengetriebenem

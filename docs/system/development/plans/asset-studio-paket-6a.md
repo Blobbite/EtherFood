@@ -33,10 +33,10 @@ vorhanden (T007/T012/4a), fehlen aber am Asset; anklickbare To-do-Listen fehlen.
 - [x] Rastervorschläge und kompakte Quellen-/Revisionsansicht implementieren.
 - [x] Begrenzte Einzel-/Posenaktionen und zentralen Einstieg absichern.
 - [x] Quellen-Tests/Dokumentation und englischen Emoji-Commit/Push vorbereiten.
-- [ ] Aufgaben/Issues am Asset und gespeicherte To-do-Listen ergänzen.
-- [ ] Dienste, echte Qt-Bedienung und Regressionen testen.
-- [ ] Dokumentation, zweiter englischer Emoji-Commit und Push.
-- [ ] Kurzes Nachbriefing mit tatsächlich offenen Punkten bereitstellen.
+- [x] Aufgaben/Issues am Asset und gespeicherte To-do-Listen ergänzen.
+- [x] Dienste, echte Qt-Bedienung und Regressionen testen.
+- [x] Dokumentation und zweiten englischen Emoji-Commit/Push vorbereiten.
+- [x] Kurzes Nachbriefing mit tatsächlich offenen Punkten dokumentieren.
 
 ## Entscheidungen und Schutz
 
@@ -77,3 +77,29 @@ bestanden**. **71 Studio-Quell-/Testdateien ohne Stilbefund** und
 Bündel geprüft. Frühere Testläufe mit zu knapper Qt-Worker-Wartezeit abgebrochen;
 die Testschleife gibt nun den Python-Worker ausdrücklich frei. Danach vollständiger
 Lauf erfolgreich. Keine originale Spielgrafik verändert.
+
+Quellenabschnitt als `82dd3d9` separat committed und gepusht. Aufgaben/Issues
+nutzen nun denselben `TasksPanel`/`IssueService` im Asset-Menü und Hauptfenster.
+Die Asset-Ansicht ist fest auf dieses Asset begrenzt. To-dos sind revisionierte
+optionale Daten derselben Aufgaben, keine zweite Datenbank; alte Aufgaben bleiben
+lesbar. Änderungen an abgenommenen Inhalten heben deren Aufgabenabnahme auf.
+Offene Punkte verhindern Erledigt; alle Häkchen ersetzen weder den bewussten
+Statuswechsel noch eine nötige Abnahme. Ungespeicherte Notizen bleiben beim
+Aufgaben-Refresh erhalten. 35 bestehende Dienst-/GUI-Tests und 16 neue gezielte
+To-do-/Asset-Aufgabentests bestanden; Gesamtprüfung folgt.
+
+Abschlussprüfungen: `python3 tools/control.py asset-manager check` erfolgreich,
+**190 Studio-Tests und 171 Pipeline-Tests bestanden**. **75 Studio-Dateien ohne
+Stilbefund**, echte Quellen-/Bündel-/Aufgabenansichten per Qt-Screenshot geprüft.
+`python3 tools/control.py check` zweimal tatsächlich ausgeführt; abschließend
+259 Tests bestanden, 37 übersprungen, zwei bekannte Doku-Prüfungen fehlgeschlagen.
+Weiterhin fehlen Godot 4 und Dokumentationsziele (13 bestehende defekte Links);
+die abschließende Stilprüfung meldet 1907 geerbte Befunde in 241 Dateien, aber
+keinen im Studio. `git diff --check` sauber. Keine ursprünglichen Spielbilder
+oder fremden Änderungen verändert; keine zusätzliche Abhängigkeit.
+
+[Ergebnisbericht](../asset-studio/task-results/6a.md) und
+[sieben kurze Nachprüfpunkte](../asset-studio/SICHTPRUEFUNG_6A.md) vorbereitet.
+Notizdarstellung und persönliche Nachabnahme bleiben offen; T017/T018 nicht
+begonnen. Commit-/Push-Nachweise der beiden Arbeitsabschnitte stehen im
+Git-Verlauf und den zugehörigen Issue-Kommentaren; keine pauschale Benutzerabnahme.

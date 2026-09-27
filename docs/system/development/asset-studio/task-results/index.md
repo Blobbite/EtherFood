@@ -3,7 +3,8 @@
 Die technischen Kriterien von T001–T016 sind umgesetzt. Pakete 1–4 samt 4a
 sowie die verkürzte Anforderungs-/Canvas-Prüfrunde sind vom Benutzer abgenommen.
 Zurückgestellte Bestandsprüfungen aus [Paket 5](../SICHTPRUEFUNG_5.md) bleiben
-offen; aktuell folgt das [Paket-6-Briefing](../SICHTPRUEFUNG_6.md).
+offen; der Quellenbutton und 1×16-/4×4-Import aus Paket 6 sind bestätigt.
+Aktuell folgt das [Nachbriefing 6a](../SICHTPRUEFUNG_6A.md).
 Der ursprüngliche Aufgabenplan unter
 `tools/AssetManager/works/` bleibt unveränderte Eingangsreferenz.
 
@@ -15,6 +16,7 @@ Der ursprüngliche Aufgabenplan unter
 | 4 | Desktop, Canvas, Undo/Redo, Editor | [T009](T009.md), [T010](T010.md), [T011](T011.md), [T012](T012.md) |
 | 5 | Asset-Anforderungen, lesender Bestand | [T013](T013.md), [T014](T014.md) |
 | 6 | Quellenimport, Vorlagen und Asset-Menü | [T015](T015.md), [T016](T016.md) |
+| 6a | Raster/Bündel, zentraler Einstieg, Aufgaben/To-dos | [Nachbesserungsbericht](6a.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien
@@ -31,7 +33,10 @@ Stand Paket 5: 109 Studio-Tests, 57 Studio-Dateien ohne Stilbefund;
 Walk-Bestand (400 Dateien) per Vorher-/Nachher-Hash unverändert. Aktuelle
 Kontrollbefehle und verbleibende Repository-Befunde stehen in [T014](T014.md).
 
-Aktueller technischer Stand Paket 6: **159 Studio-Tests + 171 bestehende
+Technischer Stand Paket 6: **159 Studio-Tests + 171 bestehende
 Pipeline-Tests bestanden**, **70 Studio-Dateien ohne Stilbefund**. Geprüfte
 synthetische Quellenimporte, NPC-Anlage und Neustart; keine Game-Bilder
 verändert. Ausführliche Nachweise und verbleibende Grenzen: [T016](T016.md).
+
+Aktuell Zwischenpaket 6a: **190 Studio-Tests + 171 Pipeline-Tests bestanden**,
+**75 Studio-Dateien ohne Stilbefund**. [Nachweise und offene Punkte](6a.md).

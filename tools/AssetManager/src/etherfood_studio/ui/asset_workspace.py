@@ -15,6 +15,7 @@ from .common import button, label, show_error
 from .documents.editor import DocumentEditor
 from .inventory import InventoryDialog
 from .sources import SourcesPanel
+from .tasks.panel import TasksPanel
 
 
 class AssetWorkspace(QDialog):
@@ -70,7 +71,14 @@ class AssetWorkspace(QDialog):
         self.documents.bind(DocumentService(assets.project))
         self.documents.show_card(identifier)
         self.documents.saved.connect(self.did_change)
-        self.tabs.addTab(self.documents, "Dokumentation")
+        self.documentation = QTabWidget()
+        self.documentation.setObjectName("asset_documentation_tabs")
+        self.documentation.addTab(self.documents, "Notizen && Anhänge")
+        self.tasks = TasksPanel(owner_id=identifier)
+        self.tasks.bind(assets.project)
+        self.tasks.changed.connect(self.did_change)
+        self.documentation.addTab(self.tasks, "Aufgaben && Issues")
+        self.tabs.addTab(self.documentation, "Dokumentation")
         layout.addWidget(self.tabs, 1)
         actions = QHBoxLayout()
         actions.addWidget(button("Quellen / Lieferstand ansehen", "workspace_sources",
@@ -85,14 +93,20 @@ class AssetWorkspace(QDialog):
         layout.addLayout(actions)
         save = QAction(self)
         save.setShortcut(QKeySequence.StandardKey.Save)
-        save.triggered.connect(lambda: self.documents.save()
-                               if self.tabs.currentWidget() is self.documents
-                               else self.save_requirements())
+        save.triggered.connect(self.save_current_tab)
         self.addAction(save)
         self.refresh()
 
+    def save_current_tab(self) -> None:
+        if self.tabs.currentWidget() is self.documentation:
+            if self.documentation.currentWidget() is self.documents:
+                self.documents.save()
+        elif self.tabs.currentIndex() == 2:
+            self.save_requirements()
+
     def refresh(self) -> None:
         self.record = self.assets.asset(self.identifier)
+        self.tasks.refresh()
         self.inventory_button.setEnabled(bool(self.record.data.get("asset_definition")))
         statuses = StatusService(self.assets.project).status(self.identifier)
         self.workflow.setPlainText("Nächster Schritt / echte Voraussetzungen\n" + "\n".join(

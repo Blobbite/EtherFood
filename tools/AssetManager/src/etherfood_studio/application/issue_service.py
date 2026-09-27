@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass
 
 from ..domain.models import Record, StudioError
+from ..domain.checklists import validate_checklist
 from .project_service import ProjectService
 
 TASK_STATES = ("open", "in_progress", "blocked", "done")
@@ -29,11 +30,12 @@ class IssueService:
 
     def create(self, owner_id: str, title: str, body: str = "", *, issue: bool = False,
                priority: str = "normal", approval_needed: bool = False, assignee: str = "",
-               finding: Finding | None = None) -> Record:
+               finding: Finding | None = None, checklist: list[dict] | None = None) -> Record:
         self.catalog.get(owner_id)
         if priority not in PRIORITIES:
             raise StudioError("validation", "Unbekannte Priorität.")
         self._validate_body(body)
+        items = validate_checklist(checklist if checklist is not None else [])
         location = asdict(finding or Finding())
         for field, kind in (("asset_id", "asset"), ("build_id", "build")):
             if location[field] and self.catalog.get(location[field]).kind != kind:
@@ -49,6 +51,7 @@ class IssueService:
         return self.catalog.create("issue" if issue else "task", title, owner_id, {
             "body": body, "status": "open", "priority": priority, "assignee": assignee,
             "approval_needed": approval_needed, "approval_confirmed": False, "finding": location,
+            "checklist": items,
         })
 
     @staticmethod
@@ -57,18 +60,22 @@ class IssueService:
             raise StudioError("validation", "Beschreibung ist größer als 1 MiB.")
 
     def update(self, identifier: str, title: str, body: str, expected_revision: int,
-               *, priority: str = "normal", assignee: str = "") -> Record:
+               *, priority: str = "normal", assignee: str = "",
+               checklist: list[dict] | None = None) -> Record:
         record = self.catalog.get(identifier)
         self.project._check_revision(record, expected_revision)
         if record.kind not in {"task", "issue"} or priority not in PRIORITIES:
             raise StudioError("validation", "Ungültige Aufgabe oder Priorität.")
         self._validate_body(body)
         data = record.data | {"body": body, "priority": priority, "assignee": assignee.strip()}
+        if checklist is not None:
+            data["checklist"] = validate_checklist(checklist)
         if title.strip() == record.title and data == record.data:
             return record
         # An approval covers the reviewed contents, never subsequent edits.
         data["approval_confirmed"] = False
-        if data["approval_needed"] and data["status"] == "done":
+        if data["status"] == "done" and (data["approval_needed"] or
+                any(not item["done"] for item in data.get("checklist", []))):
             data["status"] = "open"
         return self.catalog.save(record, title=title, data=data)
 
@@ -78,6 +85,9 @@ class IssueService:
         self.project._check_revision(record, expected_revision)
         if record.kind not in {"task", "issue"} or status not in TASK_STATES:
             raise StudioError("validation", "Unzulässiger Aufgabenstatus.")
+        if status == "done" and any(not item["done"] for item in
+                                   validate_checklist(record.data.get("checklist", []))):
+            raise StudioError("validation", "Zuerst alle To-do-Punkte erledigen.")
         if status == "done" and record.data["approval_needed"] and not approval_confirmed:
             raise StudioError("validation", "Benötigte Abnahme wurde nicht bestätigt.")
         return self.catalog.save(record, data=record.data | {
@@ -102,6 +112,7 @@ class IssueService:
                 continue
             if asset_type and owner.data.get("workflow") != asset_type:
                 continue
-            if query.casefold() in (row.title + "\n" + row.data["body"]).casefold():
+            text = "\n".join(item["text"] for item in row.data.get("checklist", []))
+            if query.casefold() in (row.title + "\n" + row.data["body"] + "\n" + text).casefold():
                 results.append(row)
         return results
