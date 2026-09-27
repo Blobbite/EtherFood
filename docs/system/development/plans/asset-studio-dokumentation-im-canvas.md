@@ -34,7 +34,7 @@ Textwechsel würde neue Dokumentation fälschlich als Post-it einsortieren.
 3. [x] Dokumente im Canvas und gemeinsame Icons ergänzen.
 4. [x] Gezielte Tests, Studio-/Standardcheck und Qt-Ansicht prüfen.
 5. [x] Bedienungsdokumentation, kurze Prüfliste und Folgeempfehlung aktualisieren.
-6. [ ] Eigene Änderungen englisch mit Emoji committen, pushen und verifizieren.
+6. [x] Eigene Änderungen englisch mit Emoji committen, pushen und verifizieren.
 
 ## Prüfungen und Erkenntnisse
 
@@ -57,6 +57,8 @@ Standardcheck tatsächlich ausgeführt: **259 bestanden, 37 übersprungen,
 2 bestehende Dokumentationsfehler**, 13 defekte Bestandslinks wegen fehlender
 Entscheidungsübersicht/ADR-0008. Godot 4 fehlt; **1907 geerbte Stilbefunde in
 256 Dateien**, kein Studio-Befund. Bestehende Probleme nicht verdeckt.
+Nach Abschluss der Dokumentation erneut ausgeführt: unveränderte Befunde,
+keine zusätzlichen defekten Links.
 
 ## Wiederholbarkeit und Wiederherstellung
 
@@ -76,3 +78,9 @@ Nach der kurzen Bedienprüfung Vorschlag für Paket 7: T017/#24 (kontrollierte
 Arbeitsprozesse) und T018/#25 (Buildplan, Cache und Veraltung). Beide Issues und
 Phase C/#4 wurden lesend auf GitHub als offen bestätigt. Keine persönliche
 Abnahme von 6c/6d und keine Pipeline-Freigabe vorwegnehmen.
+
+Implementierung, Tests und Briefing als **bb8c0a4** (`📄 Add dedicated documentation
+creation and canvas icons`) committed und nach `origin/main` gepusht. Remote-Hash
+über `git ls-remote origin refs/heads/main` mit lokalem HEAD abgeglichen.
+Kein Force-Push, keine fremden Game-/Control-Dateien mitcommittet. Dieser Nachtrag
+dokumentiert die tatsächlich erfolgte Übergabe.
