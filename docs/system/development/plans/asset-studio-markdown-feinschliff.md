@@ -34,7 +34,7 @@ Spalten sowie die 820-Pixel-Lesefläche passen nicht zum gewünschten Editor.
 - [x] Dezente Tabellensteuerung und flexible Zellgrößen umsetzen.
 - [x] Vollbreite mit drei Inhaltsausrichtungen integrieren.
 - [x] Qt-/Regressionsprüfungen, Sichtkontrolle und aktuelles Briefing ergänzen.
-- [ ] Eigene Änderungen prüfen, englischen Emoji-Commit erstellen und pushen.
+- [x] Eigene Änderungen prüfen, englischen Emoji-Commit erstellen und pushen.
 
 ## Prüfungen und Wiederherstellung
 
@@ -69,3 +69,6 @@ Datenmigration ist nicht nötig; alte Darstellungswerte werden lesend aufgefange
   Game-Entscheidungsdokumenten/Links. Keine Ausweitung dieses UI-Pakets darauf.
 - Aktuelles Nutzerbriefing: [Darstellung](../asset-studio/DARSTELLUNG.md).
   Die persönliche Benutzerabnahme bleibt separat; T017/T018 bleiben unverändert.
+- Umsetzung mit `76d45fc` (`🎨 Refine Studio icons and full-width Markdown editing`)
+  nach `main` gepusht; lokaler und Remote-Tracking-Stand anschließend identisch.
+  Vorhandene fremde Änderungen blieben unangetastet und außerhalb des Commits.
