@@ -38,7 +38,8 @@ Pfeilziele ändern; bei Inhaltssymbolen gilt dieselbe Prüfung wie im Baum.
 Aufgaben, Issues, Notizen und seit 6d auch Dokumentation erscheinen als kompakte
 Icon-Karten mit kurzem Titel und vollständigem Tooltip. Ihre Besitzerverbindungen werden aus der
 vorhandenen Zuordnung abgeleitet. Ein Doppelklick öffnet eine Aufgabe im
-Kanban-Editor, die Notiz im Notiz-Dashboard bzw. Dokumentation im Dokumenteditor.
+Kanban-Editor bzw. Dokumentation im Dokumenteditor. Bei Notizen genügt ein
+einfacher Klick: Sie öffnen ausschließlich im Notiz-Dashboard.
 Auswahl verändert nicht den Zoom. Dokumentation besitzt einen violetten
 Hintergrund und ein passendes Seitensymbol; generierte Berichte bleiben nur lesbar
 und können nicht frei einer anderen Karte zugeordnet werden.
@@ -67,8 +68,8 @@ Unterreiter **Dokumente & Anhänge** und bietet denselben Dokumentationsbutton.
 Quelltext (auch leerer Inhalt), Originaldatei und Herkunft bleiben erhalten.
 Ein ausdrücklicher Revisionsimport in eine vorhandene Notiz oder Dokumentation
 behält deren Typ, ID und Anhänge. Bestehende Notizen und frühere Importe werden
-nicht rückwirkend umklassifiziert. Notizen lassen sich weiterhin über
-**Dokument / Anhänge** in diesem Editor öffnen.
+nicht rückwirkend umklassifiziert. Die Dokumentauswahl blendet Notizen aus;
+deren Markdown und Anhänge werden direkt im Notiz-Dashboard bearbeitet.
 
 ## Post-its im Notiz-Dashboard
 
@@ -76,16 +77,20 @@ Das Dashboard zeigt vorhandene manuelle Dokumente der Vorlagen **Freie Notiz**
 und **Testnotiz**. Andere Dokumentvorlagen und generierte Berichte bleiben in
 der Dokumentation. Alte freie Notizen ohne explizite Vorlage bleiben lesbar.
 
-- **+ Notiz** erstellt einen Eintrag an der ausgewählten Karte. Doppelklick
-  oder **Notiz bearbeiten** öffnet Titel, Text, sechs Farben und **Oben anheften**.
+- **+ Notiz** erstellt einen Eintrag an der ausgewählten Karte. Ein Klick auf
+  ein Post-it lädt darunter den eingebetteten Editor mit Titel, Markdown,
+  Vorschau, sechs Farben, **Oben anheften** und Anhängen. Doppelklick oder
+  **Notiz bearbeiten** fokussiert diesen Editor, ohne Reiterwechsel.
 - Angeheftete Notizen stehen zuerst, danach wird nach Titel sortiert. Die Farbe
   ist unabhängig von Aufgabenstatus oder Asset-Freigabe.
 - Bereich und Herkunft bleiben sichtbar. Text-/Farbfilter sowie **Gesamtes
   Projekt** helfen bei größeren Sammlungen. Akt/Kapitel berücksichtigen auch
   verwendete Assets/Pakete und deren Unterkarten, ohne doppelte Notizen.
-- **Dokument / Anhänge** öffnet exakt denselben Datensatz im bisherigen Editor.
-  Markdown, Revisionen, Herkunft und sichere Anhänge bleiben erhalten.
+- **Speichern** oder **Strg+S** speichert die aktive Notiz revisioniert.
+  Baum, Canvas, Suche und Kontextmenü öffnen denselben Datensatz im Dashboard.
+  Im Asset-Menü gibt es dafür einen eigenen Unterreiter **Notizen**.
 - Abbrechen/Schließen mit geändertem Text fragt nach Speichern oder Verwerfen.
+  Das gilt auch beim Wechseln der Notiz, des Bereichs oder des Projekts.
   Revisionskonflikte überschreiben keine andere Fassung und behalten den Entwurf.
 
 `note_color` und `note_pinned` sind optionale Darstellungsfelder im bestehenden

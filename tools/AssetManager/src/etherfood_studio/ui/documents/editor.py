@@ -45,8 +45,9 @@ class SafePreview(QTextBrowser):
 class DocumentEditor(QWidget):
     saved = Signal()
 
-    def __init__(self) -> None:
+    def __init__(self, *, notes_only: bool = False) -> None:
         super().__init__()
+        self.notes_only = notes_only
         self.service: DocumentService | None = None
         self.owner_id: str | None = None
         self.current: Record | None = None
@@ -121,12 +122,14 @@ class DocumentEditor(QWidget):
         self.documents.clear()
         rows = self.service.documents(self.owner_id) if self.service and self.owner_id else []
         for row in rows:
+            if is_note(row) != self.notes_only:
+                continue
             generated = row.data["document_type"] == "generated"
             suffix = " [Bericht, schreibgeschützt]" if generated else ""
             self.documents.addItem(kind_icon("note" if is_note(row) else "document"),
                                    row.title + suffix, row.id)
         index = self.documents.findData(select_id) if select_id else 0
-        self.documents.setCurrentIndex(max(0, index) if rows else -1)
+        self.documents.setCurrentIndex(max(0, index) if self.documents.count() else -1)
         self.documents.blockSignals(False)
         self._load(self.documents.currentData())
 
@@ -136,7 +139,8 @@ class DocumentEditor(QWidget):
         if self.current and self.current.id == identifier:
             return True
         record = self.service.catalog.get(identifier)
-        if record.kind != "document" or not self.confirm_discard():
+        if record.kind != "document" or is_note(record) != self.notes_only \
+                or not self.confirm_discard():
             return False
         self.owner_id = record.owner_id
         self.refresh_documents(identifier)
@@ -205,14 +209,13 @@ class DocumentEditor(QWidget):
         self.saved.emit()
         return record
 
-    def new_document(self, *, note: bool = False) -> None:
+    def new_document(self) -> None:
         if not self.confirm_discard() or not self.owner_id:
             return
-        title, accepted = QInputDialog.getText(self, "Neue Notiz" if note
-                                              else "Neue Dokumentation", "Titel")
+        title, accepted = QInputDialog.getText(self, "Neue Dokumentation", "Titel")
         if not accepted:
             return
-        templates = [key for key in TEMPLATES if (key in NOTE_TEMPLATES) == note]
+        templates = [key for key in TEMPLATES if key not in NOTE_TEMPLATES]
         template, accepted = QInputDialog.getItem(self, "Vorlage", "Typ", templates, 0, False)
         if accepted:
             try:

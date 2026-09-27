@@ -93,8 +93,8 @@ class Navigation:
             self.window.documents.new_document()
 
     def new_note(self) -> None:
-        self.window.tabs.setCurrentWidget(self.window.documents)
-        self.window.documents.new_document(note=True)
+        self.window.tabs.setCurrentWidget(self.window.notes)
+        self.window.notes.new_note()
 
     def new_task(self, issue: bool) -> None:
         self.window.tabs.setCurrentWidget(self.window.tasks)
@@ -105,7 +105,7 @@ class Navigation:
         record = window.project.catalog.get(identifier)
         title, accepted = QInputDialog.getText(window, "Dokument umbenennen", "Name",
                                                text=record.title)
-        if not accepted or not window.documents.confirm_discard():
+        if not accepted or not window.prepare_content_change():
             return
 
         def rename() -> None:

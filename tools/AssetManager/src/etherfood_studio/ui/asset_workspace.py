@@ -13,6 +13,7 @@ from ..domain.models import StudioError
 from .asset_settings import AssetDefinitionEditor, import_pose_sources
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
+from .notes import NotesPanel
 from .inventory import InventoryDialog
 from .sources import SourcesPanel
 from .tasks.panel import TasksPanel
@@ -74,6 +75,13 @@ class AssetWorkspace(QDialog):
         self.documentation = QTabWidget()
         self.documentation.setObjectName("asset_documentation_tabs")
         self.documentation.addTab(self.documents, "Dokumente && Anhänge")
+        self.notes = NotesPanel(self.documents.confirm_discard)
+        self.notes.bind(assets.project)
+        self.notes.set_scope(identifier)
+        self.notes.findChild(QWidget, "notes_project").hide()
+        self.notes.owner_button.hide()
+        self.notes.changed.connect(self.did_change)
+        self.documentation.addTab(self.notes, "Notizen")
         self.tasks = TasksPanel(owner_id=identifier)
         self.tasks.bind(assets.project)
         self.tasks.changed.connect(self.did_change)
@@ -101,6 +109,8 @@ class AssetWorkspace(QDialog):
         if self.tabs.currentWidget() is self.documentation:
             if self.documentation.currentWidget() is self.documents:
                 self.documents.save()
+            elif self.documentation.currentWidget() is self.notes:
+                self.notes.editor.save()
         elif self.tabs.currentIndex() == 2:
             self.save_requirements()
 
@@ -178,7 +188,7 @@ class AssetWorkspace(QDialog):
                 return
             if answer == QMessageBox.StandardButton.Save and not self.save_requirements():
                 return
-        if self.documents.confirm_discard():
+        if self.documents.confirm_discard() and self.notes.confirm_discard():
             super().reject()
 
     def closeEvent(self, event) -> None:

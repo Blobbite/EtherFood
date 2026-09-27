@@ -25,6 +25,7 @@ def window(qt_app, tmp_path):
     qt_app.processEvents()
     yield result
     result.documents.dirty = False
+    result.notes.editor.dirty = False
     result.close()
 
 
@@ -67,7 +68,8 @@ def test_task_details_edit_conflict_cancel_and_save(window, qt_app, monkeypatch)
 def test_search_document_open_preserves_unsaved_content(window, monkeypatch):
     service = DocumentService(window.project)
     first = window.documents.create_document("Erste Notiz")
-    second = service.create(window.selected_id, "Zweite Notiz", "Zweiter Text")
+    second = service.create(window.selected_id, "Zweites Dokument", "Zweiter Text",
+                            template="Dokumentation")
     window.documents.editor.setPlainText("Ungespeichert")
     monkeypatch.setattr(QMessageBox, "question", lambda *a: QMessageBox.Cancel)
     window.open_document(second.id)
@@ -183,14 +185,19 @@ def test_context_note_tree_navigation_rename_and_icons(window, qt_app, monkeypat
     window.refresh()
     monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Kontextnotiz", True))
     monkeypatch.setattr(QInputDialog, "getItem", lambda *a, **k: ("Freie Notiz", True))
+    def fill_note():
+        editor = QApplication.activeModalWidget()
+        editor.title.setText("Kontextnotiz")
+        editor.save()
+    QTimer.singleShot(50, fill_note)
     # Choose an action from the real popup's event loop.
     choose_popup_action("context_new_note")
     position = window.tree.visualItemRect(tree_item(window, ids["one"])).center()
     window.tree.customContextMenuRequested.emit(position)
-    doc = window.documents.current
+    doc = window.notes.editor.current
     assert doc.title == "Kontextnotiz" and doc.owner_id == ids["one"]
-    window.documents.editor.setPlainText("Notiz mit Inhalt")
-    window.documents.save()
+    window.notes.editor.editor.setPlainText("Notiz mit Inhalt")
+    window.notes.editor.save()
     issue = IssueService(window.project).create(ids["two"], "Baum-Issue", "Inhalt sichtbar",
                                                 issue=True)
     window.refresh()
@@ -198,8 +205,9 @@ def test_context_note_tree_navigation_rename_and_icons(window, qt_app, monkeypat
     assert "Inhalt sichtbar" in window.tasks.details.toPlainText()
     assert window.selected_id == ids["two"] and window.selected_content_id == issue.id
     window.tree.setCurrentItem(tree_item(window, doc.id))
-    assert window.documents.current.id == doc.id
-    assert window.documents.editor.toPlainText() == "Notiz mit Inhalt"
+    assert window.tabs.currentWidget() == window.notes
+    assert window.notes.editor.current.id == doc.id
+    assert window.notes.editor.editor.toPlainText() == "Notiz mit Inhalt"
     monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Neuer Notizname", True))
     context_action(window, doc.id, "context_rename").trigger()
     assert "Neuer Notizname" in tree_item(window, doc.id).text(0)

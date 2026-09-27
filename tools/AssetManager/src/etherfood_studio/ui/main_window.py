@@ -138,7 +138,6 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.tasks, "Aufgaben-Kanban")
         self.notes = NotesPanel(self.prepare_content_change)
         self.notes.changed.connect(self._notes_changed)
-        self.notes.document_requested.connect(self.open_document)
         self.notes.focus_requested.connect(self.select_card)
         self.tabs.addTab(self.notes, "Notizen")
         self.documents = DocumentEditor()
@@ -219,7 +218,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(center)
         save = QAction("Dokument speichern", self)
         save.setShortcut(QKeySequence.StandardKey.Save)
-        save.triggered.connect(self.documents.save)
+        save.triggered.connect(lambda: (self.notes.editor if self.tabs.currentWidget() is self.notes
+                                        else self.documents).save())
         self.addAction(save)
         search = QAction("Suche", self)
         search.setShortcut(QKeySequence("Ctrl+F"))
@@ -234,7 +234,20 @@ class MainWindow(QMainWindow):
         if not self.project:
             return False
         record = self.project.catalog.get(identifier)
-        if record.kind == "document":
+        if is_note(record):
+            if not self.prepare_content_change() or not self.select_card(record.owner_id):
+                self._select_tree_item(self.selected_content_id or self.selected_id)
+                return False
+            self.notes.query.clear()
+            self.notes.color.setCurrentIndex(0)
+            if not self.notes.select_note(identifier):
+                return False
+            self.tabs.setCurrentWidget(self.notes)
+            if edit:
+                self.notes.editor.editor.setFocus()
+        elif record.kind == "document":
+            if not self.notes.confirm_discard():
+                return False
             if not self.documents.open_document(identifier):
                 self._select_tree_item(self.selected_content_id or self.selected_id)
                 return False
@@ -292,7 +305,7 @@ class MainWindow(QMainWindow):
         dialog.deleteLater()
 
     def asset_workspace(self) -> None:
-        if not self.project or not self.selected_id or not self.documents.confirm_discard():
+        if not self.project or not self.selected_id or not self.prepare_content_change():
             return
         def edit() -> None:
             dialog = AssetWorkspace(AssetService(self.project), self.selected_id, self)
@@ -354,13 +367,13 @@ class MainWindow(QMainWindow):
 
     def new_project(self, directory: Path, title: str,
                     roots: dict[str, Path] | None = None) -> bool:
-        if not self.documents.confirm_discard():
+        if not self.prepare_content_change():
             return False
         self._bind(ProjectService.new(directory, title, roots))
         return True
 
     def open_project(self, directory: Path) -> bool:
-        if not self.documents.confirm_discard():
+        if not self.prepare_content_change():
             return False
         self._bind(ProjectService.open(directory))
         return True
@@ -453,6 +466,8 @@ class MainWindow(QMainWindow):
                 self.open_content(identifier)
             elif self.select_card(identifier):
                 self.selected_content_id = None
+                if self.project.catalog.get(identifier).kind == "note":
+                    self.tabs.setCurrentWidget(self.notes)
 
     def _canvas_selected(self, identifier: str) -> None:
         # Keep the camera fixed while Qt still tracks a press/drag on the card.
@@ -467,16 +482,13 @@ class MainWindow(QMainWindow):
 
     def open_canvas_content(self, identifier: str) -> None:
         record = self.project.catalog.get(identifier)
-        if record.kind == "note" or is_note(record):
-            if not self.select_card(record.id if record.kind == "note" else record.owner_id):
+        if record.kind == "note":
+            if not self.select_card(record.id):
                 return
             self.tabs.setCurrentWidget(self.notes)
             self.notes.query.clear()
             self.notes.color.setCurrentIndex(0)
             self.notes.refresh()
-            if is_note(record):
-                self.notes.select_note(record.id)
-                self.notes.edit_note()
         else:
             self.open_content(identifier, edit=True)
 
@@ -485,6 +497,9 @@ class MainWindow(QMainWindow):
             return False
         if identifier == self.selected_id:
             return True
+        if not self.notes.confirm_discard():
+            self._select_tree_item(self.selected_content_id or self.selected_id)
+            return False
         if not self.documents.show_card(identifier):
             self.canvas.focus_card(self.selected_id, center=center)
             self._select_tree_item(self.selected_content_id or self.selected_id)
@@ -644,6 +659,10 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def undo(self, redo: bool) -> None:
+        if self.tabs.currentWidget() is self.notes and self.notes.editor.editor.hasFocus():
+            editor = self.notes.editor.editor
+            editor.redo() if redo else editor.undo()
+            return
         if self.tabs.currentWidget() is self.documents and self.documents.editor.hasFocus():
             if redo:
                 self.documents.editor.redo()
@@ -707,7 +726,7 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def prepare_content_change(self) -> bool:
-        if not self.documents.confirm_discard():
+        if not self.documents.confirm_discard() or not self.notes.confirm_discard():
             return False
         if self.documents.dirty:
             self.documents.refresh_documents(self.documents.current.id)
@@ -730,10 +749,11 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Zuordnung gespeichert · Strg+Z: rückgängig", 7000)
 
     def sync_document_owner(self) -> None:
-        current = self.documents.current
-        if current and not self.documents.dirty:
-            self.documents.owner_id = self.project.catalog.get(current.id).owner_id
-            self.documents.refresh_documents(current.id)
+        for editor in (self.documents, self.notes.editor):
+            current = editor.current
+            if current and not editor.dirty:
+                editor.owner_id = self.project.catalog.get(current.id).owner_id
+                editor.refresh_documents(current.id)
 
     def archive_dialog(self) -> None:
         if not self.project or not self.selected_id:
@@ -802,7 +822,7 @@ class MainWindow(QMainWindow):
         self.search.query.setFocus()
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if not self.documents.confirm_discard():
+        if not self.prepare_content_change():
             event.ignore()
             return
         self.settings.setValue("geometry", self.saveGeometry())

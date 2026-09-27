@@ -4,9 +4,9 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets")
 
-from PySide6.QtCore import QPointF, QSettings, Qt
+from PySide6.QtCore import QPointF, QSettings, Qt, QTimer
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox, QPushButton
+from PySide6.QtWidgets import QApplication, QFileDialog, QInputDialog, QMessageBox, QPushButton
 
 from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.issue_service import IssueService
@@ -29,6 +29,7 @@ def window(qt_app, tmp_path):
     qt_app.processEvents()
     yield value
     value.documents.dirty = False
+    value.notes.editor.dirty = False
     value.close()
     qt_app.processEvents()
 
@@ -63,16 +64,17 @@ def test_documentation_button_creates_document_not_post_it(window, qt_app, monke
     assert window.notes.findChild(QPushButton, "new_note").text() == "+ Notiz"
 
 
-def test_context_note_still_offers_only_note_templates(window, monkeypatch):
-    monkeypatch.setattr(QInputDialog, "getText", lambda *a: ("Kontextnotiz", True))
-
-    def choose(parent, caption, label, choices, index, editable):
-        assert choices == ["Freie Notiz", "Testnotiz"]
-        return choices[index], True
-
-    monkeypatch.setattr(QInputDialog, "getItem", choose)
+def test_context_note_opens_notes_dashboard(window):
+    def fill():
+        editor = QApplication.activeModalWidget()
+        editor.title.setText("Kontextnotiz")
+        editor.body.setPlainText("Notiztext")
+        editor.save()
+    QTimer.singleShot(0, fill)
     window.navigation.new_note()
-    assert is_note(window.documents.current)
+    assert window.tabs.currentWidget() == window.notes
+    assert is_note(window.notes.editor.current)
+    assert window.documents.current is None
     assert window.notes.notes.count() == 1
 
 

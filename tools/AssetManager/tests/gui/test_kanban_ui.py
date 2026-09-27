@@ -93,8 +93,8 @@ def test_tabs_search_shortcut_and_filters_are_independent(window, qt_app):
     assert set(window.tasks.records) == {rows["hero"].id}
     window.search.show_record(doc.id)
     window.search.edit_current()
-    assert window.documents.current.id == doc.id
-    assert window.tabs.currentWidget() == window.documents
+    assert window.notes.editor.current.id == doc.id
+    assert window.tabs.currentWidget() == window.notes
 
 
 def test_scope_groups_card_click_and_explicit_navigation(window, qt_app):

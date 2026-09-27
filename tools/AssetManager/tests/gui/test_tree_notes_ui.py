@@ -31,6 +31,7 @@ def window(qt_app, tmp_path):
     qt_app.processEvents()
     yield value
     value.documents.dirty = False
+    value.notes.editor.dirty = False
     value.close()
     qt_app.processEvents()
 
@@ -223,9 +224,9 @@ def test_postit_create_edit_filter_pin_and_restart_use_existing_documents(window
     window.notes.query.setText("STAND")
     assert window.notes.notes.count() == 1
     window.notes.select_note(record.id)
-    QTest.mouseClick(window.notes.open_button, Qt.LeftButton)
-    assert window.tabs.currentWidget() == window.documents
-    assert window.documents.current == record
+    QTest.mouseClick(window.notes.edit_button, Qt.LeftButton)
+    assert window.tabs.currentWidget() == window.notes
+    assert window.notes.editor.current == record
     window.open_project(window.project.catalog.path.parent)
     window.notes.query.clear()
     window.notes.select_note(record.id)
@@ -251,12 +252,13 @@ def test_note_editor_conflict_cancel_and_document_draft_guard(window, qt_app, mo
     editor.reject()
     editor.deleteLater()
     window.open_document(note.id)
-    window.documents.editor.setPlainText("Nicht verlieren")
+    window.notes.editor.editor.setPlainText("Nicht verlieren")
     window.notes.refresh()
     window.notes.select_note(note.id)
     monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Cancel)
     window.notes.edit_note()
-    assert window.documents.dirty and window.documents.editor.toPlainText() == "Nicht verlieren"
+    assert window.notes.editor.dirty
+    assert window.notes.editor.editor.toPlainText() == "Nicht verlieren"
 
 
 @pytest.mark.parametrize("scale", [0.25, 1.0, 2.5])
@@ -298,24 +300,15 @@ def test_canvas_note_double_click_and_content_arrow_reassign(window, qt_app):
     ids = window.ids
     note = NoteService(window.project).write(ids["one"], "Notiz", "Text")
     window.refresh()
-    opened = []
-
-    def close_editor():
-        editor = QApplication.activeModalWidget()
-        assert isinstance(editor, NoteEditor)
-        opened.append(editor.record.id)
-        editor.reject()
-
     canvas = window.canvas
     canvas.centerOn(canvas.items_by_id[note.id])
     qt_app.processEvents()
     icon = canvas.items_by_id[note.id]
     point = canvas.mapFromScene(icon.mapToScene(icon.rect().center()))
-    QTimer.singleShot(20, close_editor)
     QTest.mouseClick(canvas.viewport(), Qt.LeftButton, pos=point)
-    QTest.mouseDClick(canvas.viewport(), Qt.LeftButton, pos=point)
     QTest.qWait(50)
-    assert opened == [note.id] and window.tabs.currentWidget() == window.notes
+    assert window.notes.editor.current.id == note.id
+    assert window.tabs.currentWidget() == window.notes
     window.reconnect_cards("content:" + note.id, note.id, ids["two"])
     assert window.project.catalog.get(note.id).owner_id == ids["two"]
     assert window.canvas.edges_by_id["content:" + note.id].target == ids["two"]

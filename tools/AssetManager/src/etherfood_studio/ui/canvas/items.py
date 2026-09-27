@@ -156,6 +156,7 @@ class IconCardItem(CardItem):
     def __init__(self, identifier: str, title: str, kind: str, summary: str,
                  view: "Canvas", color: str = "#e3effb") -> None:
         super().__init__(identifier, title, kind, summary, view, 144, 62)
+        self.kind = kind
         self.grip.hide()
         self.setBrush(QColor(color))
         self.icon.setPixmap(kind_icon(kind).pixmap(26, 26))
@@ -169,3 +170,9 @@ class IconCardItem(CardItem):
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         self.view.open_requested.emit(self.identifier)
         event.accept()
+
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        clicked = self.pos() == self.before
+        super().mouseReleaseEvent(event)
+        if clicked and self.kind == "note":
+            self.view.open_requested.emit(self.identifier)

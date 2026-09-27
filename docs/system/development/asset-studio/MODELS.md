@@ -62,8 +62,9 @@ Zwischenpaket 6c ergänzt **Notizen** zwischen Kanban und Dokumentation. Das
 Dashboard zeigt dieselben manuellen Dokumente der Vorlagen Freie Notiz und
 Testnotiz als Post-its. Optionale Felder `note_color` (sechs definierte Farben)
 und `note_pinned` (Boolean) steuern nur die Darstellung. Alte Datensätze ohne
-diese Felder sind gelb und nicht angeheftet. Dokumenteditor und Dashboard
-schreiben revisioniert auf dieselben IDs; Markdown und Anhänge bleiben erhalten.
+diese Felder sind gelb und nicht angeheftet. Der eingebettete Notizeditor im
+Dashboard schreibt revisioniert auf dieselben IDs; Markdown und Anhänge bleiben
+erhalten. Die Dokumentationsauswahl zeigt keine Notizen mehr an.
 Aufgaben, Issues und Notizen erscheinen zusätzlich als kleine Canvas-Symbole.
 
 `ProjectService.content_scope` löst für Aufgaben, Suche und Notizen einheitlich
