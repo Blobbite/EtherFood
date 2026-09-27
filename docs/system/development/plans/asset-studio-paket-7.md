@@ -28,9 +28,9 @@ Originalablage. Bereits vorhandene Game-/Control-Änderungen bleiben unberührt.
 
 1. [x] Vorgänger, Schutzregeln und Issue-Verträge prüfen.
 2. [x] Notiznavigation und eingebettete Bearbeitung korrigieren.
-3. [ ] Notiz-Regressionen prüfen, dokumentieren, committen und pushen.
-4. [ ] T017: Jobverträge, Ablage und Adapter implementieren.
-5. [ ] T017: Core-/Qt-Prozesssteuerung, Abbruch und Recovery implementieren.
+3. [x] Notiz-Regressionen prüfen, dokumentieren, committen und pushen (`8c3a561`).
+4. [x] T017: Jobverträge, Ablage und Adapter implementieren.
+5. [x] T017: Core-/Qt-Prozesssteuerung, Abbruch und Recovery implementieren.
 6. [ ] T017: GUI/CLI einbinden, testen, dokumentieren, committen und pushen.
 7. [ ] T018: Graph, Fingerprints und verifizierten Cache implementieren.
 8. [ ] T018: Asset-Dry-run und Plan-/Ausführungsvergleich einbinden.
@@ -51,6 +51,13 @@ Notizkorrektur: 267 Studio-Tests bestanden, darunter alle vier Einstiege,
 eingebettetes Speichern mit Strg+S, Anhänge, Konflikte und Entwurfsschutz.
 Qt-Offscreen-Ansicht mit einem synthetischen Projekt tatsächlich geöffnet.
 Notizen erscheinen nicht mehr in der Dokumentationsauswahl.
+
+T017: 12 echte Prozess-/Qt-Prüfungen bestanden; gesamter Studio-Lauf 279
+bestanden. 103 Quell-/Testdateien ohne Stilbefund. Abbruch mit Kindprozess,
+Exit 7, Exit 0 ohne Datei, Zeitlimit, Startfehler, Elternabsturz, Recovery,
+Schreibergrenzen, Originalschutz und echter FramReduce-Help-Aufruf geprüft.
+Sichere Prozessgruppen zunächst Linux mit /proc; andere Plattformen werden
+ehrlich abgewiesen. Kein unkontrollierter Ausweichstart.
 
 ## Wiederholbarkeit und Schutz
 

@@ -45,6 +45,19 @@ MIGRATIONS = {
             id TEXT PRIMARY KEY, local_path TEXT NOT NULL UNIQUE
         )""",
     ),
+    4: (
+        """CREATE TABLE jobs (
+            id TEXT PRIMARY KEY, request TEXT NOT NULL, status TEXT NOT NULL,
+            resource_key TEXT NOT NULL, owner_pid INTEGER NOT NULL, owner_stamp TEXT NOT NULL,
+            result TEXT, created_at TEXT NOT NULL
+        )""",
+        """CREATE UNIQUE INDEX active_job_writer ON jobs(resource_key)
+            WHERE status IN ('running','cancelling')""",
+        """CREATE TABLE job_events (
+            job_id TEXT NOT NULL REFERENCES jobs(id), seq INTEGER NOT NULL,
+            data TEXT NOT NULL, PRIMARY KEY(job_id,seq)
+        )""",
+    ),
 }
 
 CURRENT_VERSION = max(MIGRATIONS)

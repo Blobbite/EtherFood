@@ -54,6 +54,9 @@ class ProjectService:
         service = cls(catalog, config)
         try:
             service.validate_structure()
+            from ..storage.job_store import JobStore
+
+            JobStore(catalog).recover()
         except Exception:
             catalog.close()
             raise

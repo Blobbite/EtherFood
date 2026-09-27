@@ -1,7 +1,7 @@
 # EtherFood Asset Studio
 
 Lokales Verwaltungswerkzeug neben PyGameTools. Der Implementierungsauftrag
-umfasst Pakete 1–6; Bildpipelines und Godot-Bereitstellung folgen
+umfasst Pakete 1–7; produktive Bildpipelines und Godot-Bereitstellung folgen
 erst in späteren, gesondert freizugebenden Paketen.
 
 - [Bestandsaufnahme](BASELINE.md)
@@ -12,6 +12,8 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Projektbaum, Inhaltssymbole und Notiz-Dashboard](NOTIZEN_UND_ZUORDNUNG.md)
 - [Asset-Anforderungen und lesende Bestandserfassung](INVENTORY.md)
 - [Quellenimport und aktive Lieferungen](SOURCES.md)
+- [Aufträge und sichere Werkzeugprüfung](JOBS.md)
+- [Arbeitsplan Paket 7: Notizen, Aufträge und Buildplan](../plans/asset-studio-paket-7.md)
 - [Erste Sichtprüfung nach Paket 4](SICHTPRUEFUNG.md)
 - [Briefing und Nachprüfung von Zwischenpaket 4a](SICHTPRUEFUNG_4A.md)
 - [Briefing nach Paket 5](SICHTPRUEFUNG_5.md)

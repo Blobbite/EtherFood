@@ -35,6 +35,7 @@ from .project_tree import EDGE_ROLE, ProjectTree
 from .notes import NotesPanel
 from .tasks.panel import TasksPanel
 from .tasks.kanban import KanbanPanel
+from .jobs import JobsDialog
 
 
 class MainWindow(QMainWindow):
@@ -50,6 +51,8 @@ class MainWindow(QMainWindow):
         self.selected_id: str | None = None
         self.selected_content_id: str | None = None
         self._refreshing = False
+        self.job_dialog = None
+        self._close_after_jobs = False
         self._build_ui()
         self.navigation = Navigation(self)
         geometry = self.settings.value("geometry")
@@ -72,7 +75,8 @@ class MainWindow(QMainWindow):
                                         "Ctrl+Z", "undo")
         self.redo_action = self._action(toolbar, "Wiederholen", lambda: self.undo(True),
                                         "Ctrl+Shift+Z", "redo")
-        for text in ("Pipeline starten (später)", "Godot bereitstellen (später)"):
+        self._action(toolbar, "Aufträge …", self.show_jobs, "", "show_jobs")
+        for text in ("Bildpipeline (später)", "Godot bereitstellen (später)"):
             action = toolbar.addAction(text)
             action.setEnabled(False)
             action.setToolTip("Nicht Bestandteil der Pakete 1–4; kein simulierter Erfolg.")
@@ -212,7 +216,7 @@ class MainWindow(QMainWindow):
         self.tabs.currentChanged.connect(lambda index: property_scroll.setVisible(
             self.tabs.widget(index) not in {self.tasks, self.notes}))
         outer.addWidget(self.splitter, 1)
-        self.jobs = label("Keine Aufträge. Pipeline- und Godot-Aktionen sind noch nicht verfügbar.",
+        self.jobs = label("Keine Aufträge. Diagnose über Aufträge …; keine Asset-Freigabe.",
                           "job_status")
         outer.addWidget(self.jobs)
         self.setCentralWidget(center)
@@ -337,6 +341,10 @@ class MainWindow(QMainWindow):
             self.recent_menu.addAction("Noch keine Projekte").setEnabled(False)
 
     def _bind(self, project: ProjectService) -> None:
+        if self.job_dialog:
+            self.job_dialog.close()
+            self.job_dialog.deleteLater()
+            self.job_dialog = None
         if self.project:
             self.project.catalog.close()
         self.project = project
@@ -367,13 +375,13 @@ class MainWindow(QMainWindow):
 
     def new_project(self, directory: Path, title: str,
                     roots: dict[str, Path] | None = None) -> bool:
-        if not self.prepare_content_change():
+        if not self.jobs_idle() or not self.prepare_content_change():
             return False
         self._bind(ProjectService.new(directory, title, roots))
         return True
 
     def open_project(self, directory: Path) -> bool:
-        if not self.prepare_content_change():
+        if not self.jobs_idle() or not self.prepare_content_change():
             return False
         self._bind(ProjectService.open(directory))
         return True
@@ -822,6 +830,15 @@ class MainWindow(QMainWindow):
         self.search.query.setFocus()
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        if self.job_dialog and self.job_dialog.runner.active:
+            event.ignore()
+            if QMessageBox.question(self, "Laufende Aufträge",
+                                    "Aufträge abbrechen und nach dem sicheren Ende schließen?") \
+                    == QMessageBox.StandardButton.Yes:
+                self._close_after_jobs = True
+                for identifier in tuple(self.job_dialog.runner.active):
+                    self.job_dialog.runner.cancel(identifier)
+            return
         if not self.prepare_content_change():
             event.ignore()
             return
@@ -831,6 +848,29 @@ class MainWindow(QMainWindow):
             self.project.catalog.close()
             self.project = None
         event.accept()
+
+    def jobs_idle(self) -> bool:
+        if self.job_dialog and self.job_dialog.runner.active:
+            self.statusBar().showMessage("Erst Aufträge beenden/abbrechen, dann Projekt wechseln.")
+            return False
+        return True
+
+    def show_jobs(self) -> None:
+        if not self.project:
+            return
+        if self.job_dialog is None:
+            self.job_dialog = JobsDialog(self.project, self)
+            self.job_dialog.changed.connect(self._jobs_changed)
+        self.job_dialog.owner_id = self.selected_id or self.project.project().id
+        self.job_dialog.show()
+        self.job_dialog.raise_()
+
+    def _jobs_changed(self) -> None:
+        count = len(self.job_dialog.runner.active)
+        self.jobs.setText(f"{count} laufende Aufträge · Details unter Aufträge …")
+        if self._close_after_jobs and not count:
+            self._close_after_jobs = False
+            QTimer.singleShot(0, self.close)
 
 
 def launch(project: Path | None = None) -> int:

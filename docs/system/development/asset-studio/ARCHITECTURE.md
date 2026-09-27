@@ -10,7 +10,7 @@ Der bestehende `g2dtool`-Start und die PyGameTools-Starter bleiben erhalten.
 | domain | Typen, Relationen, Statusregeln | Python-Standardbibliothek |
 | application | Anwendungsdienste, Befehle, Konflikte | domain, storage-Schnittstellen |
 | storage | SQLite, sichere Pfade, Blobs, Journale | domain, Standardbibliothek; Pillow bei Bildimport |
-| pipelines | spätere Adapter der Bestandswerkzeuge | application/domain; kein Qt |
+| pipelines | registrierte Adapter, Auftragsverträge und Supervisor | domain/storage; kein Qt |
 | godot | späterer Export/Deployment-Adapter | application/domain; kein Qt |
 | ui | PySide6-Desktop | application; kein SQL in Widgets |
 
@@ -90,3 +90,12 @@ einer bestehenden Wurzel erfassen, legt dort aber nichts an. Diese Lesewurzeln
 sind in Migration 3 separat lokal gebunden und fehlen im portablen Snapshot.
 Qt-Lesearbeiter schreiben nicht in SQLite; die kurze, explizite Übernahme
 erfolgt nach erneuter Datei-/Revisionsprüfung über den Anwendungsdienst.
+
+## Ergänzung T017
+
+Migration 4 und [Auftragsverwaltung](JOBS.md) halten lokale Ausführungsnachweise
+von transportierten Metadaten getrennt. CLI und QProcess benutzen denselben
+Supervisor und den eingefrorenen Vertrag `studio-job-v1`. Registrierung,
+Hashprüfung und sichere Argumentlisten ersetzen keine Sandbox für fremde
+Werkzeuge. Anfangs sind ausschließlich Diagnose und lesender Help-Aufruf
+freigegeben. Produktive Bildverarbeitung und Godot bleiben separat gesperrt.

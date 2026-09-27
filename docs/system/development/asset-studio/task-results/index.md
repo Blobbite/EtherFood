@@ -22,6 +22,7 @@ Der ursprüngliche Aufgabenplan unter
 | 6b | Aufgaben-Kanban, Bereiche und getrennte Suche | [Kanban-Bericht](6b.md) |
 | 6c | Baum-Drag-and-drop, Canvas-Symbole und Notiz-Dashboard | [Notiz-Bericht](6c.md) |
 | 6d | Dokumentanlage, Dokumente im Canvas und grüner Aufgabenhaken | [Dokumentationsbericht](6d.md) |
+| 7, Teil 1 | Kontrollierte Hintergrundaufträge und Adapter | [T017](T017.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien

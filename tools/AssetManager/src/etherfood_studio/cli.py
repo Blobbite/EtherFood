@@ -2,6 +2,7 @@
 
 import argparse
 import importlib
+import json
 from pathlib import Path
 import shutil
 from typing import Sequence
@@ -38,8 +39,32 @@ def main(argv: Sequence[str] | None = None) -> int:
     diagnose.add_argument("--config", type=Path)
     gui = commands.add_parser("gui", help="Lokalen Desktop öffnen")
     gui.add_argument("--project", type=Path)
+    jobs = commands.add_parser("jobs", help="Aufträge anzeigen oder sichere Diagnose starten")
+    jobs.add_argument("--project", type=Path, required=True)
+    jobs.add_argument("--run", choices=("diagnostic", "framreduce-help"))
+    jobs.add_argument("--mode", choices=("success", "exit7", "missing", "slow", "child"),
+                      default="success")
+    jobs.add_argument("--timeout", type=float, default=30)
     args = parser.parse_args(argv)
     try:
+        if args.command == "jobs":
+            from .application.job_service import JobService
+            from .application.project_service import ProjectService
+
+            project = ProjectService.open(args.project)
+            try:
+                service = JobService(project)
+                if args.run:
+                    parameters = {"mode": args.mode} if args.run == "diagnostic" else {}
+                    request = service.prepare(project.project().id, args.run, parameters,
+                                               timeout=args.timeout)
+                    result = service.run(request, on_event=lambda event: print(json.dumps(event)))
+                    print(json.dumps(result))
+                    return 0 if result["status"] == "succeeded" else 1
+                print(json.dumps(service.store.rows(), ensure_ascii=False, indent=2))
+                return 0
+            finally:
+                project.catalog.close()
         if args.command == "doctor":
             config = Configuration.load(args.config) if args.config else Configuration()
             results = doctor(config)
