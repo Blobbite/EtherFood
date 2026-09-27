@@ -51,7 +51,7 @@ def test_create_check_search_and_reopen_shared_asset_task(workspace, qt_app, mon
     panel = workspace.tasks
     assert panel.results.count() == 0 and not panel.scope.isVisible()
     errors = []
-    monkeypatch.setattr("etherfood_studio.ui.tasks.panel.show_error",
+    monkeypatch.setattr("etherfood_studio.ui.tasks.base.show_error",
                         lambda parent, error: errors.append(str(error)))
 
     def create_task():
@@ -99,6 +99,7 @@ def test_create_check_search_and_reopen_shared_asset_task(workspace, qt_app, mon
     panel.show_record(record.id)
     panel.checklist.items.setCurrentRow(1)
     QTest.keyClick(panel.checklist.items, Qt.Key_Space)
+    panel.new_status.setCurrentIndex(panel.new_status.findData("done"))
     panel.change_status()
     assert window.project.catalog.get(record.id).data["status"] == "done"
     workspace.documents.save()

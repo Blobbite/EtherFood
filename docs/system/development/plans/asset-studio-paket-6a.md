@@ -110,3 +110,7 @@ bereits importierten, nun optionalen Richtung sowohl **Nicht erforderlich** als
 auch ihr tatsächlicher Lieferstand sichtbar. Keine Änderung ihrer Revision.
 Erneuter vollständiger Studio-Lauf danach: **190 bestanden**, Stilprüfung
 weiterhin **75 Dateien ohne Befund**.
+
+Nachtrag 27.09.2026: Der Benutzer bestätigt alle sieben persönlichen Nachtests
+von 6a. Die darin nicht geprüften älteren Kriterien bleiben separat offen.
+Neuer Auftrag: [Zwischenpaket 6b – Kanban und getrennte Suche](asset-studio-kanban.md).

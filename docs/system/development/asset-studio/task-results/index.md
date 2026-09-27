@@ -4,7 +4,8 @@ Die technischen Kriterien von T001–T016 sind umgesetzt. Pakete 1–4 samt 4a
 sowie die verkürzte Anforderungs-/Canvas-Prüfrunde sind vom Benutzer abgenommen.
 Zurückgestellte Bestandsprüfungen aus [Paket 5](../SICHTPRUEFUNG_5.md) bleiben
 offen; der Quellenbutton und 1×16-/4×4-Import aus Paket 6 sind bestätigt.
-Aktuell folgt das [Nachbriefing 6a](../SICHTPRUEFUNG_6A.md).
+Die sieben Nachtests von 6a sind inzwischen bestätigt; aktuell folgt das
+[Kanban-Nachbriefing 6b](../SICHTPRUEFUNG_6B.md).
 Der ursprüngliche Aufgabenplan unter
 `tools/AssetManager/works/` bleibt unveränderte Eingangsreferenz.
 
@@ -17,6 +18,7 @@ Der ursprüngliche Aufgabenplan unter
 | 5 | Asset-Anforderungen, lesender Bestand | [T013](T013.md), [T014](T014.md) |
 | 6 | Quellenimport, Vorlagen und Asset-Menü | [T015](T015.md), [T016](T016.md) |
 | 6a | Raster/Bündel, zentraler Einstieg, Aufgaben/To-dos | [Nachbesserungsbericht](6a.md) |
+| 6b | Aufgaben-Kanban, Bereiche und getrennte Suche | [Kanban-Bericht](6b.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien
@@ -38,5 +40,8 @@ Pipeline-Tests bestanden**, **70 Studio-Dateien ohne Stilbefund**. Geprüfte
 synthetische Quellenimporte, NPC-Anlage und Neustart; keine Game-Bilder
 verändert. Ausführliche Nachweise und verbleibende Grenzen: [T016](T016.md).
 
-Aktuell Zwischenpaket 6a: **190 Studio-Tests + 171 Pipeline-Tests bestanden**,
+Zwischenpaket 6a: **190 Studio-Tests + 171 Pipeline-Tests bestanden**,
 **75 Studio-Dateien ohne Stilbefund**. [Nachweise und offene Punkte](6a.md).
+
+Aktuell Zwischenpaket 6b: **210 Studio-Tests + 171 Pipeline-Tests bestanden**,
+**81 Studio-Dateien ohne Stilbefund**. [Nachweise und offene Punkte](6b.md).

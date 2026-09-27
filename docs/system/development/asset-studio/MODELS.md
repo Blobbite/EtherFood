@@ -38,6 +38,13 @@ Suche ist auf das ausgewählte Asset begrenzt; im Hauptfenster bleibt die
 projektweite Suche erhalten. Es gibt keine zweite Aufgabenablage oder kopierte
 Aufgaben-ID. Notizen/Anhänge bleiben daneben in ihrem eigenen Reiter.
 
+Seit Zwischenpaket 6b sind **Aufgaben-Kanban** und **Suche** im Hauptfenster
+getrennt. Das Board folgt der ausgewählten Karte, gruppiert vorhandene Aufgaben
+und Issues nach Herkunft und erlaubt Statuswechsel per Ziehen oder Schaltfläche.
+Projektwurzel zeigt alle aktiven Aufgaben; verwendete Assets/Pakete und ihre
+Unterkarten werden ohne Kopien berücksichtigt. Archivierte Eigentümerzweige
+bleiben ausgeblendet. [Bedienung und Bereichsregeln](KANBAN.md).
+
 Aufgaben und Issues können eine To-do-Liste besitzen. Im Anlage-/Bearbeitendialog
 Punkte ergänzen, per Doppelklick umbenennen oder gezielt entfernen. Häkchen in
 der Detailansicht speichern unmittelbar über denselben Revisionsdienst.

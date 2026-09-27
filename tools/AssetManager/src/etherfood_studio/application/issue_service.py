@@ -97,16 +97,13 @@ class IssueService:
     def search(self, query: str = "", *, scope_id: str | None = None,
                status: str | None = None, kind: str | None = None,
                asset_type: str | None = None) -> list[Record]:
-        scope = self.project.descendants(scope_id) if scope_id else None
-        if scope is not None:
-            scope.update(edge["target_id"] for edge in self.catalog.relations()
-                         if edge["kind"] == "uses" and edge["source_id"] in scope)
+        scope = self._owner_scope(scope_id)
         results = []
         for row in self.catalog.records():
             if row.kind not in {"task", "issue"} or (kind is not None and row.kind != kind):
                 continue
             owner = self.catalog.get(row.owner_id)
-            if (scope is not None and row.owner_id not in scope) or owner.archived:
+            if row.owner_id not in scope:
                 continue
             if status and row.data["status"] != status:
                 continue
@@ -116,3 +113,31 @@ class IssueService:
             if query.casefold() in (row.title + "\n" + row.data["body"] + "\n" + text).casefold():
                 results.append(row)
         return results
+
+    def _owner_scope(self, scope_id: str | None) -> set[str]:
+        """Active ownership subtree plus used assets/packages; never dependencies."""
+        children: dict[str, list[str]] = {}
+        for card in self.project.cards():
+            children.setdefault(card.owner_id, []).append(card.id)
+        root = self.project.project().id
+        visible: set[str] = set()
+        pending = [root]
+        while pending:
+            identifier = pending.pop()
+            if identifier not in visible:
+                visible.add(identifier)
+                pending.extend(children.get(identifier, []))
+        # A non-archived child of an archived ancestor is not a live task scope.
+        references: dict[str, list[str]] = {}
+        for edge in self.catalog.relations():
+            if edge["kind"] == "uses":
+                references.setdefault(edge["source_id"], []).append(edge["target_id"])
+        scope: set[str] = set()
+        pending = [scope_id or root]
+        while pending:
+            identifier = pending.pop()
+            if identifier in visible and identifier not in scope:
+                scope.add(identifier)
+                pending.extend(children.get(identifier, []))
+                pending.extend(references.get(identifier, []))
+        return scope

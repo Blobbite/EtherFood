@@ -30,6 +30,7 @@ from .project_dialog import ProjectDialog
 from .navigation import Navigation
 from .presentation import KIND_NAMES, kind_icon
 from .tasks.panel import TasksPanel
+from .tasks.kanban import KanbanPanel
 
 
 class MainWindow(QMainWindow):
@@ -124,14 +125,18 @@ class MainWindow(QMainWindow):
             "Strg+Mausrad: Zoom · Doppelklick: Gruppe klappen."
         ))
         self.tabs.addTab(canvas_page, "Projekt-Canvas")
+        self.tasks = KanbanPanel()
+        self.tasks.focus_requested.connect(self.select_card)
+        self.tasks.changed.connect(self.refresh)
+        self.tabs.addTab(self.tasks, "Aufgaben-Kanban")
         self.documents = DocumentEditor()
         self.documents.saved.connect(self._document_saved)
-        self.tabs.addTab(self.documents, "Dokumente && Anhänge")
-        self.tasks = TasksPanel()
-        self.tasks.focus_requested.connect(self.select_card)
-        self.tasks.document_requested.connect(self.open_document)
-        self.tasks.changed.connect(self.refresh)
-        self.tabs.addTab(self.tasks, "Aufgaben && Suche")
+        self.tabs.addTab(self.documents, "Dokumentation && Anhänge")
+        self.search = TasksPanel(search_only=True)
+        self.search.focus_requested.connect(self.select_card)
+        self.search.document_requested.connect(self.open_document)
+        self.search.changed.connect(self.refresh)
+        self.tabs.addTab(self.search, "Suche")
         self.splitter.addWidget(self.tabs)
         properties = QWidget()
         property_layout = QVBoxLayout(properties)
@@ -192,6 +197,10 @@ class MainWindow(QMainWindow):
         property_scroll.setMinimumWidth(270)
         self.splitter.addWidget(property_scroll)
         self.splitter.setSizes([250, 880, 290])
+        self.splitter.setStretchFactor(1, 1)
+        # Canvas geometry/relations are not task controls; give the board their space.
+        self.tabs.currentChanged.connect(lambda index: property_scroll.setVisible(
+            self.tabs.widget(index) is not self.tasks))
         outer.addWidget(self.splitter, 1)
         self.jobs = label("Keine Aufträge. Pipeline- und Godot-Aktionen sind noch nicht verfügbar.",
                           "job_status")
@@ -312,6 +321,7 @@ class MainWindow(QMainWindow):
         self.selected_content_id = None
         self.documents.bind(DocumentService(project))
         self.tasks.bind(project)
+        self.search.bind(project)
         missing = project.unavailable_roots()
         self.root_notice.setText("Nicht verfügbare Wurzeln: " + ", ".join(missing) if missing
                                  else "Lokaler Katalog geöffnet · Keine produktive Asset-Freigabe")
@@ -413,6 +423,7 @@ class MainWindow(QMainWindow):
         self.canvas.render(self.project, self.selected_id)
         self._refreshing = False
         self.tasks.refresh_scopes()
+        self.search.refresh_scopes()
         self._properties()
         self.undo_action.setEnabled(bool(self.commands.done))
         self.redo_action.setEnabled(bool(self.commands.undone))
@@ -441,7 +452,8 @@ class MainWindow(QMainWindow):
             return False
         self.selected_id = identifier
         self.selected_content_id = None
-        self.tasks.current_card = identifier
+        self.tasks.set_scope(identifier)
+        self.search.current_card = identifier
         self.breadcrumb.setText(self.project.breadcrumb(identifier))
         current = self.tree.currentItem()
         if current is None or current.data(0, Qt.ItemDataRole.UserRole) != identifier:
@@ -697,8 +709,8 @@ class MainWindow(QMainWindow):
         self.refresh()
 
     def _focus_search(self) -> None:
-        self.tabs.setCurrentWidget(self.tasks)
-        self.tasks.query.setFocus()
+        self.tabs.setCurrentWidget(self.search)
+        self.search.query.setFocus()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         if not self.documents.confirm_discard():

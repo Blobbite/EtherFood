@@ -143,20 +143,20 @@ def test_search_filters_focus_and_preserve_ids(window, tmp_path, qt_app):
     ids = window.project.demo()
     window.refresh()
     task = IssueService(window.project).create(ids["one"], "Suchen", "Text", issue=True)
-    window.tabs.setCurrentWidget(window.tasks)
-    QTest.keyClicks(window.tasks.query, "Suchen")
+    window.tabs.setCurrentWidget(window.search)
+    QTest.keyClicks(window.search.query, "Suchen")
     qt_app.processEvents()
-    assert window.tasks.results.count() == 1
-    item = window.tasks.results.item(0)
-    QTest.mouseClick(window.tasks.results.viewport(), Qt.MouseButton.LeftButton,
-                     pos=window.tasks.results.visualItemRect(item).center())
+    assert window.search.results.count() == 1
+    item = window.search.results.item(0)
+    QTest.mouseClick(window.search.results.viewport(), Qt.MouseButton.LeftButton,
+                     pos=window.search.results.visualItemRect(item).center())
     assert window.selected_id == ids["one"]
     window.project.rename(ids["one"], "Umbenannt",
                           window.project.catalog.get(ids["one"]).revision_no)
-    window.tasks.refresh_scopes()
+    window.search.refresh_scopes()
     assert window.project.catalog.get(task.id).owner_id == ids["one"]
-    window.tasks.state.setCurrentIndex(window.tasks.state.findData("done"))
-    assert window.tasks.results.count() == 0
+    window.search.state.setCurrentIndex(window.search.state.findData("done"))
+    assert window.search.results.count() == 0
 
 
 def test_corrupt_project_missing_drive_and_broken_preview(window, tmp_path, monkeypatch):

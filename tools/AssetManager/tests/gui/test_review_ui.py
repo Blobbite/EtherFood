@@ -34,9 +34,10 @@ def test_task_details_edit_conflict_cancel_and_save(window, qt_app, monkeypatch)
                           finding=Finding(direction="SW", frame_index=0))
     window.tasks.show_record(item.id)
     window.tabs.setCurrentWidget(window.tasks)
-    result = window.tasks.results.currentItem()
-    QTest.mouseClick(window.tasks.results.viewport(), Qt.LeftButton,
-                     pos=window.tasks.results.visualItemRect(result).center())
+    column = window.tasks.columns["open"]
+    result = column.currentItem()
+    QTest.mouseClick(column.viewport(), Qt.LeftButton,
+                     pos=column.visualItemRect(result).center())
     assert "Gespeicherte Beschreibung" in window.tasks.details.toPlainText()
     assert "direction: SW" in window.tasks.details.toPlainText()
     editor = TaskEditor(service, item, window)
@@ -60,7 +61,7 @@ def test_task_details_edit_conflict_cancel_and_save(window, qt_app, monkeypatch)
     QTest.mouseClick(editor.buttons.button(QDialogButtonBox.Save), Qt.LeftButton)
     window.tasks.refresh()
     assert "Korrekt gespeichert" in window.tasks.details.toPlainText()
-    assert window.tasks.results.currentItem().data(Qt.UserRole) == item.id
+    assert window.tasks.selected_record.id == item.id
 
 
 def test_search_document_open_preserves_unsaved_content(window, monkeypatch):
@@ -73,8 +74,8 @@ def test_search_document_open_preserves_unsaved_content(window, monkeypatch):
     assert window.documents.current.id == first.id
     assert window.documents.editor.toPlainText() == "Ungespeichert"
     monkeypatch.setattr(QMessageBox, "question", lambda *a: QMessageBox.Save)
-    window.tasks.show_record(second.id)
-    window.tasks.edit_current()
+    window.search.show_record(second.id)
+    window.search.edit_current()
     assert service.catalog.get(first.id).data["body"] == "Ungespeichert"
     assert window.documents.current.id == second.id
     assert window.tabs.currentWidget() == window.documents

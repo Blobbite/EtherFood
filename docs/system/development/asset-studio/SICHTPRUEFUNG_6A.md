@@ -1,5 +1,8 @@
 # Nachbriefing 6a – Quellenübersicht und Aufgaben am Asset
 
+**Abgenommen:** Der Benutzer hat Punkte 1–7 am 27.09.2026 bestätigt.
+Die nächste kurze Prüfrunde betrifft nur [Aufgaben-Kanban und Suche](SICHTPRUEFUNG_6B.md).
+
 Der Bericht aus Paket 6 bestätigt Quellenbutton und Import mit 1×16/4×4.
 Dieses Zwischenpaket setzt die konkreten Bedienwünsche um; eine endgültige
 Abnahme aller übrigen Paket-5-/Paket-6-Kriterien wird nicht daraus abgeleitet.
