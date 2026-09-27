@@ -3,13 +3,17 @@
 Ein Asset benötigt zuerst gespeicherte Anforderungen. **Asset-Menü → Posen**
 öffnet über den Quellenbutton neben **Anker Y** die Mehrfachauswahl für PNG-Dateien.
 Das importiert geprüfte Kopien, nicht die späteren Grafik-/Framevarianten.
-Das Asset-Menü ist der gemeinsame Einstieg in Toolbar und Rechtsklick-Menü.
+Das Asset-Menü öffnet sich per Rechtsklick auf ein Asset unter **Projekt und
+Verwendungen** oder im Projekt-Canvas → **Asset-Menü öffnen …**. Die obere
+Projekt-Toolbar enthält keine zusätzlichen Asset-/NPC- oder Asset-Menü-Buttons.
 Der Zähler zeigt die Lieferung der gespeicherten
 Anforderungen. Vor dem Import noch nicht gespeicherte Änderungen werden nur
 nach ausdrücklicher Bestätigung übernommen.
 
-**Neues Asset / NPC …** führt über Name, Besitzer, Vorlage und Anforderungen
-zur Zusammenfassung. Erst **Asset jetzt anlegen** schreibt Metadaten.
+Unter **Projekt und Verwendungen** auf Projektweit, einen Akt, ein Kapitel
+oder ein Paket rechtsklicken → **Neues Asset …**. Derselbe Assistent für Assets
+und NPCs führt über Name, Besitzer, Vorlage und Anforderungen zur Zusammenfassung.
+Erst **Asset jetzt anlegen** schreibt Metadaten.
 **Nur Konfiguration** kopiert Einstellungen mit neuen Pose-/Asset-IDs, keine
 Quellen, Nachweise oder Freigaben. Bestehende Quellen lassen sich später ergänzen.
 Im Asset-Menü sind Übersicht, Quellen/Revisionen, Posen und Dokumentation

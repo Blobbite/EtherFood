@@ -78,8 +78,6 @@ class MainWindow(QMainWindow):
         self._action(toolbar, "Öffnen …", self.open_dialog, "Ctrl+O", "open_project")
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
         self._action(toolbar, "Demo anlegen", self.demo_dialog, "", "create_demo")
-        self._action(toolbar, "Neues Asset / NPC …", self.create_asset, "", "new_asset")
-        self._action(toolbar, "Asset-Menü …", self.asset_workspace, "", "asset_workspace")
         toolbar.addSeparator()
         self.undo_action = self._action(toolbar, "Rückgängig", lambda: self.undo(False),
                                         "Ctrl+Z", "undo")

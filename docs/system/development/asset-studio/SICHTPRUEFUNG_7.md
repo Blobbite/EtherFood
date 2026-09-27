@@ -1,6 +1,20 @@
 # Briefing Paket 7 – Notizen, Aufträge und Buildplan
 
-Status: technische Tests durchgeführt, **deine Bedienabnahme noch offen**.
+## Aktueller Status: Bedienprüfung zurückgestellt
+
+Nach dem UI-Feinschliff wurde die vorgeschlagene Auftrags-/Buildplan-/Cache-
+Prüfrunde vom Benutzer zurückgestellt: Die separaten technischen Dialoge sind
+als Bedienablauf zu kompliziert. Eine stärker servicebasierte Pipeline-
+Integration soll gemeinsam besprochen werden, bevor weitere Pipeline-Pakete
+oder eine neue Bedienoberfläche umgesetzt werden.
+
+T017/T018 sind technisch implementiert, aber **nicht persönlich abgenommen**.
+Die bestehenden Aufträge, Daten und technischen Dienste bleiben unverändert.
+Die folgenden Punkte sind historische Prüfreferenz, keine aktuelle Testaufgabe.
+Insbesondere die Notizpunkte wurden durch spätere UI-Pakete ersetzt.
+
+## Bisherige Prüfreferenz
+
 Ein vorhandenes Testprojekt reicht; ein neues Projekt ist nicht erforderlich.
 Die Anwendung nach Aktualisierung vollständig neu starten.
 
@@ -34,6 +48,6 @@ manuelles Beschädigen des Caches, echte Masken-/Farbbearbeitung, Godot-Export
 und Laufzeitfreigaben. Cache-Schäden, Kindprozessende und transitive Veraltung
 sind automatisiert geprüft. Künstlerische Freigaben werden dadurch nicht ersetzt.
 
-Bitte zurückmelden: `1 ✅ … 6 ✅` oder Punkt + Beobachtung. Erst danach die
-nächsten Issues auswählen; naheliegend sind **T019 Masterreferenzen/Profilversionen**
-und anschließend **T020 Materialmasken**. Diese sind hier nicht mit umgesetzt.
+Der frühere Vorschlag für das Folgepaket war **T019 Masterreferenzen/Profilversionen**
+und **T020 Materialmasken**. Diese sind nicht umgesetzt und werden nicht automatisch
+gestartet; zuerst das Bedien- und Servicekonzept gemeinsam klären.

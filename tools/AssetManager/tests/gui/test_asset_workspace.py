@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QPushButto
 from etherfood_studio.application.asset_service import AssetService
 from etherfood_studio.application.source_import import SourceImportService
 from etherfood_studio.domain.assets import default_definition, new_pose
+from etherfood_studio.ui.appearance import appearance
 from etherfood_studio.ui.asset_wizard import AssetWizard
 from etherfood_studio.ui.asset_workspace import AssetWorkspace
 from etherfood_studio.ui.asset_settings import AssetSettingsDialog
@@ -46,8 +47,27 @@ def wait_worker(dialog):
     assert dialog.worker is None
 
 
+def trigger_tree_action(window, identifier, name):
+    menu = window.navigation.menu(identifier)
+    action = next(action for action in menu.actions() if action.objectName() == name)
+    action.trigger()
+    menu.deleteLater()
+
+
+def test_asset_actions_stay_out_of_project_toolbar_in_all_display_modes(window, qt_app):
+    for mode in ("text", "icons", "text_icons"):
+        appearance().set_preferences("light", mode, persist=False)
+        qt_app.processEvents()
+        names = {action.objectName() for action in window.project_toolbar.actions()}
+        assert not {"new_asset", "asset_workspace"}.intersection(names)
+        assert {"new_project", "open_project", "create_demo", "undo", "redo",
+                "show_jobs", "show_build_plan"}.issubset(names)
+
+
 def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         window, qt_app, tmp_path, monkeypatch):
+    owner = next(card.id for card in window.project.cards() if card.kind == "global")
+
     def create_npc():
         wizard = QApplication.activeModalWidget()
         assert isinstance(wizard, AssetWizard)
@@ -60,8 +80,9 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         QTest.mouseClick(wizard.commit, Qt.MouseButton.LeftButton)
 
     QTimer.singleShot(0, create_npc)
-    window.findChild(QAction, "new_asset").trigger()
+    trigger_tree_action(window, owner, "context_card_asset")
     identifier = window.selected_id
+    assert window.project.catalog.get(identifier).owner_id == owner
     assets = AssetService(window.project)
     definition = assets.definition(identifier)
     assert definition.directions == ("N", "O", "S", "W")
@@ -110,7 +131,7 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         workspace.reject()
 
     QTimer.singleShot(0, use_workspace)
-    window.findChild(QAction, "asset_workspace").trigger()
+    trigger_tree_action(window, identifier, "context_asset_workspace")
     revision, = SourceImportService(assets).revisions(identifier)
     assert revision.owner_id == identifier
     window.open_project(root)
@@ -225,7 +246,8 @@ def test_only_asset_menu_exposes_data_actions_and_inventory(window, qt_app):
     record = assets.create("Zentral", owner, default_definition().to_data())
     window.refresh()
     window.select_card(record.id)
-    for name in ("asset_settings", "asset_sources", "asset_inventory"):
+    for name in ("new_asset", "asset_workspace", "asset_settings", "asset_sources",
+                 "asset_inventory"):
         assert window.findChild(QAction, name) is None
     menu = window.navigation.menu(record.id)
     names = [action.objectName() for action in menu.actions()]

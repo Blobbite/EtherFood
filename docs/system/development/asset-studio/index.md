@@ -4,6 +4,10 @@ Lokales Verwaltungswerkzeug neben PyGameTools. Der Implementierungsauftrag
 umfasst Pakete 1–7; produktive Bildpipelines und Godot-Bereitstellung folgen
 erst in späteren, gesondert freizugebenden Paketen.
 
+Aktuell ist die Bedienabnahme der Auftrags-/Buildplan-Dialoge zurückgestellt.
+Vor weiterer Pipeline-Umsetzung wird eine servicebasierte Integration gemeinsam
+besprochen; siehe [Status von Paket 7](SICHTPRUEFUNG_7.md).
+
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)
 - [Entwicklung, Tests und lokale Ablage](DEVELOPMENT.md)
