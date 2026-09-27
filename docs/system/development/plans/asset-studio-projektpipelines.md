@@ -52,7 +52,7 @@ die vorhandenen CLI-Einstiege bleiben bestehen.
 4. [x] Echte Bildadapter, Snapshot-Graphen, Timing und selektiven Cache integrieren.
 5. [x] Erweiterungsvertrag, Vertrauensablauf und Import/Export einschließlich Legacy ergänzen.
 6. [x] Synthetische End-to-End-, Fehler-, Migrations- und UI-Tests ausführen.
-7. [ ] Bedienung/Grenzen dokumentieren, eigene Änderungen prüfen, committen/pushen.
+7. [x] Bedienung/Grenzen dokumentieren, eigene Änderungen prüfen, committen/pushen.
 
 Die Paketgrenzen dienen der nachvollziehbaren Integration, nicht der Ausgabe
 unfertiger Diagnosefunktionen als produktive Pipeline. Jede Teilumsetzung muss
@@ -125,8 +125,10 @@ von Bildern durch technische Tests. Persönliche Abnahme bleibt separat.
   Ausgeschaltete Zielprofile werden auch im Einzelassetdialog ausgeschlossen.
 - Die Bedienung, acht Sichtprüfpunkte und konkreten Grenzen stehen in
   [Projektpipelines](../asset-studio/PIPELINES.md). Offen bleibt die persönliche
-  Abnahme, nicht eine simulierte Bilderzeugung. Commit/Push des fokussierten
-  Pakets steht als letzter Übergabeschritt aus.
+  Abnahme, nicht eine simulierte Bilderzeugung. Das fokussierte Paket ist als
+  `2286d2f` (`✨ Add project-local canvas image pipelines`) nach `main` gepusht.
+  Bereits vorhandene fremde Game-, Control-, README- und Asset-Änderungen bleiben
+  unverändert und wurden nicht in diesen Commit aufgenommen.
 
 ## Wiederholbare Abschlussprüfungen
 
