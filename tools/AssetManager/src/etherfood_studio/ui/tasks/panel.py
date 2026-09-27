@@ -1,6 +1,6 @@
 """Independent project search and the asset-local task list."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QComboBox, QHBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QSplitter, QVBoxLayout,
 )
@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 from ...application.document_service import DocumentService
 from ...application.issue_service import IssueService
 from ..common import label
-from ..presentation import KIND_NAMES, kind_icon
+from ..presentation import KIND_NAMES, kind_icon, record_icon
 from .base import STATE_NAMES, TaskPanel
 
 
@@ -52,6 +52,7 @@ class TasksPanel(TaskPanel):
         layout.addLayout(filters)
         self.results = QListWidget()
         self.results.setObjectName("task_results")
+        self.results.setIconSize(QSize(40, 20))
         self.results.itemActivated.connect(self._focus)
         self.results.itemClicked.connect(self._focus)
         self.results.currentItemChanged.connect(self._show_details)
@@ -109,7 +110,7 @@ class TasksPanel(TaskPanel):
                         == self.asset_type.currentData())
         for row in rows:
             state = STATE_NAMES.get(row.data.get("status"), row.data.get("document_type", ""))
-            item = QListWidgetItem(kind_icon(row.kind),
+            item = QListWidgetItem(record_icon(row),
                                    f"{KIND_NAMES[row.kind]} · {row.title} · {state}")
             item.setData(Qt.ItemDataRole.UserRole, row.id)
             item.setData(Qt.ItemDataRole.UserRole + 1, row.owner_id)

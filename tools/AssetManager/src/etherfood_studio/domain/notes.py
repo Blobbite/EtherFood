@@ -8,6 +8,20 @@ NOTE_COLORS = {
     "orange": ("Orange", "#ffe0b3"), "purple": ("Lila", "#e4d7fc"),
 }
 NOTE_TEMPLATES = {"Freie Notiz", "Testnotiz"}
+NOTE_WORD_LIMIT = 100
+
+
+def note_word_count(body: str) -> int:
+    """Count whitespace-separated words, ignoring standalone bullet markers."""
+    return sum(word not in {"-", "*", "+", "[x]", "[X]", "#", "##"}
+               for word in body.replace("[ ]", "[x]").split())
+
+
+def validate_note_length(body: str, previous: str | None = None) -> None:
+    """Keep legacy text intact while bounding new and edited post-it contents."""
+    if body != previous and note_word_count(body) > NOTE_WORD_LIMIT:
+        raise StudioError("validation", "Notizen sind auf 100 Wörter begrenzt. "
+                          "Längere Texte bitte in der Dokumentation aufbewahren.")
 
 
 def is_note(record: Record) -> bool:

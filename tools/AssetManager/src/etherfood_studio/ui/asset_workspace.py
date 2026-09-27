@@ -16,7 +16,7 @@ from .documents.editor import DocumentEditor
 from .notes import NotesPanel
 from .inventory import InventoryDialog
 from .sources import SourcesPanel
-from .tasks.panel import TasksPanel
+from .tasks.kanban import KanbanPanel
 from .build_plan import BuildPlanDialog
 
 
@@ -76,14 +76,14 @@ class AssetWorkspace(QDialog):
         self.documentation = QTabWidget()
         self.documentation.setObjectName("asset_documentation_tabs")
         self.documentation.addTab(self.documents, "Dokumente && Anhänge")
-        self.notes = NotesPanel(self.documents.confirm_discard)
+        self.notes = NotesPanel(self.documents.confirm_discard, stacked=True)
         self.notes.bind(assets.project)
         self.notes.set_scope(identifier)
         self.notes.findChild(QWidget, "notes_project").hide()
         self.notes.owner_button.hide()
         self.notes.changed.connect(self.did_change)
         self.documentation.addTab(self.notes, "Notizen")
-        self.tasks = TasksPanel(owner_id=identifier)
+        self.tasks = KanbanPanel(owner_id=identifier, compact=True)
         self.tasks.bind(assets.project)
         self.tasks.changed.connect(self.did_change)
         self.documentation.addTab(self.tasks, "Aufgaben && Issues")
@@ -113,7 +113,7 @@ class AssetWorkspace(QDialog):
             if self.documentation.currentWidget() is self.documents:
                 self.documents.save()
             elif self.documentation.currentWidget() is self.notes:
-                self.notes.editor.save()
+                self.notes.save()
         elif self.tabs.currentIndex() == 2:
             self.save_requirements()
 

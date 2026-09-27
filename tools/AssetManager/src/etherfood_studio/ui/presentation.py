@@ -11,6 +11,8 @@ DOCUMENT_COLOR = "#eee4f8"
 
 
 def kind_icon(kind: str) -> QIcon:
+    if kind in {"task", "issue"}:
+        return status_icon("open", issue=kind == "issue")
     if kind in {"asset", "note", "document", "task"}:
         return drawn_icon(kind)
     names = {"project": "SP_ComputerIcon", "global": "SP_DriveNetIcon", "act": "SP_DirIcon",
@@ -18,6 +20,51 @@ def kind_icon(kind: str) -> QIcon:
              "issue": "SP_MessageBoxWarning"}
     icon = getattr(QStyle.StandardPixmap, names.get(kind, "SP_FileIcon"))
     return QApplication.style().standardIcon(icon)
+
+
+def record_icon(record) -> QIcon:
+    """Use the same persisted status in trees, search, Canvas and task boards."""
+    if record.kind in {"task", "issue"}:
+        return status_icon(record.data["status"], issue=record.kind == "issue")
+    from ..domain.notes import is_note
+    return kind_icon("note" if is_note(record) else record.kind)
+
+
+def status_icon(status: str, *, issue: bool = False) -> QIcon:
+    result = QIcon()
+    for size in (16, 24, 32, 48, 64):
+        pixmap = QPixmap(size * (2 if issue else 1), size)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.scale(size / 32, size / 32)
+        if issue:
+            painter.setPen(QPen(QColor("#b47709"), 5, Qt.SolidLine, Qt.RoundCap))
+            painter.drawLine(16, 5, 16, 18)
+            painter.drawPoint(16, 26)
+            painter.translate(32, 0)
+        colors = {"open": "#65778b", "in_progress": "#2878c8",
+                  "blocked": "#b43a46", "done": "#21844a"}
+        color = QColor(colors.get(status, colors["open"]))
+        painter.setPen(QPen(color, 4, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        if status == "done":
+            painter.setPen(QPen(color, 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            path = QPainterPath(QPointF(5, 17))
+            path.lineTo(12, 24)
+            path.lineTo(27, 7)
+            painter.drawPath(path)
+        elif status == "blocked":
+            painter.drawLine(7, 7, 25, 25)
+            painter.drawLine(25, 7, 7, 25)
+        elif status == "in_progress":
+            painter.setBrush(color)
+            painter.drawEllipse(7, 7, 18, 18)
+        else:
+            painter.setBrush(Qt.NoBrush)
+            painter.drawEllipse(6, 6, 20, 20)
+        painter.end()
+        result.addPixmap(pixmap)
+    return result
 
 
 def drawn_icon(kind: str) -> QIcon:

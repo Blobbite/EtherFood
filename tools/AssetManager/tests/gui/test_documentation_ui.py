@@ -13,7 +13,7 @@ from etherfood_studio.application.issue_service import IssueService
 from etherfood_studio.application.note_service import NoteService
 from etherfood_studio.domain.notes import is_note
 from etherfood_studio.ui.main_window import MainWindow
-from etherfood_studio.ui.presentation import DOCUMENT_COLOR, kind_icon
+from etherfood_studio.ui.presentation import DOCUMENT_COLOR, kind_icon, status_icon
 
 
 @pytest.fixture
@@ -60,18 +60,17 @@ def test_documentation_button_creates_document_not_post_it(window, qt_app, monke
     assert not is_note(record) and record.data["template"] == template
     assert record.owner_id == window.ids["one"]
     assert record.id in window.canvas.items_by_id
-    assert window.notes.notes.count() == 0
+    assert NoteService(window.project).notes(window.ids["one"]) == []
+    assert window.notes.editor.current is None  # Empty yellow writing card, not a saved note.
     assert window.notes.findChild(QPushButton, "new_note").text() == "+ Notiz"
 
 
 def test_context_note_opens_notes_dashboard(window):
-    def fill():
-        editor = QApplication.activeModalWidget()
-        editor.title.setText("Kontextnotiz")
-        editor.body.setPlainText("Notiztext")
-        editor.save()
-    QTimer.singleShot(0, fill)
     window.navigation.new_note()
+    editor = window.notes.editor
+    editor.title.setText("Kontextnotiz")
+    editor.editor.setPlainText("Notiztext")
+    editor.save()
     assert window.tabs.currentWidget() == window.notes
     assert is_note(window.notes.editor.current)
     assert window.documents.current is None
@@ -89,7 +88,8 @@ def test_markdown_button_kept_and_import_appears_on_canvas(window, tmp_path, qt_
     record = window.documents.current
     assert not is_note(record)
     assert record.data["body"] == path.read_text(encoding="utf-8")
-    assert record.id in window.canvas.items_by_id and window.notes.notes.count() == 0
+    assert record.id in window.canvas.items_by_id
+    assert NoteService(window.project).notes(window.ids["one"]) == []
 
 
 @pytest.mark.parametrize("scale", [0.3, 1.0, 2.5])
@@ -200,8 +200,8 @@ def test_document_draft_layout_and_attachment_survive_switch_and_restart(
 
 
 @pytest.mark.parametrize("size", [16, 32])
-def test_task_icon_is_a_thick_green_check_with_transparent_background(qt_app, size):
-    image = kind_icon("task").pixmap(size, size).toImage()
+def test_done_icon_is_a_thick_green_check_with_transparent_background(qt_app, size):
+    image = status_icon("done").pixmap(size, size).toImage()
     assert image.width() == size and image.pixelColor(0, 0).alpha() == 0
     assert image.pixelColor(size - 1, size - 1).alpha() == 0
     painted = [image.pixelColor(x, y) for x in range(size) for y in range(size)

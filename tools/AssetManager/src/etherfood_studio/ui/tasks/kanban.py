@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QHBoxLayout, QLineEdit, QScrollArea, QSplitter, QVBoxLayout, QWidget,
+    QComboBox, QHBoxLayout, QLineEdit, QScrollArea, QSizePolicy, QSplitter, QVBoxLayout, QWidget,
 )
 
 from ...application.kanban_service import KanbanService
@@ -10,12 +10,13 @@ from ...domain.models import new_id
 from ..common import button, label
 from ..presentation import kind_icon
 from .base import STATE_NAMES, TaskPanel
-from .column import KanbanColumn, TASK_ROLE
+from .column import KanbanColumn, StatusHeader, TASK_ROLE
 
 
 class KanbanPanel(TaskPanel):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, owner_id: str | None = None, *, compact: bool = False) -> None:
+        super().__init__(owner_id)
+        self.compact = compact
         self.records = {}
         self.columns = {}
         self.headings = {}
@@ -39,45 +40,66 @@ class KanbanPanel(TaskPanel):
             if key:
                 self.kind.setItemIcon(self.kind.count() - 1, kind_icon(key))
         filters.addWidget(self.kind)
-        filters.addWidget(button("Gesamtes Projekt", "kanban_project", self.show_project))
+        project_button = button("Gesamtes Projekt", "kanban_project", self.show_project)
+        project_button.setVisible(not compact)
+        filters.addWidget(project_button)
         layout.addLayout(filters)
         board_page = QWidget()
-        board_layout = QHBoxLayout(board_page)
+        board_layout = QVBoxLayout(board_page) if compact else QHBoxLayout(board_page)
         board_layout.setContentsMargins(0, 0, 0, 0)
+        board_layout.setSpacing(4)
         colors = {"open": "#5a729a", "in_progress": "#2967a1",
                   "blocked": "#9d6825", "done": "#398155"}
         for status, title in STATE_NAMES.items():
             page = QWidget()
             column_layout = QVBoxLayout(page)
             column_layout.setContentsMargins(0, 0, 0, 0)
-            heading = label(title + " · 0", "kanban_heading_" + status)
+            heading = StatusHeader(self, status) if compact else label("")
+            heading.setObjectName("kanban_heading_" + status)
+            heading.setText(title + " · 0")
             heading.setStyleSheet(f"background: {colors[status]}; color: white; padding: 8px; "
                                   "border-radius: 5px; font-weight: bold;")
+            if compact:
+                heading.setStyleSheet(f"background: {colors[status]}; color: white; "
+                                      "padding: 2px 6px; text-align: left; border-radius: 3px;")
+                heading.setFixedHeight(26)
+                heading.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+                page.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
             column_layout.addWidget(heading)
             column = KanbanColumn(self, status)
             column.setAccessibleName(title + " – Aufgaben und Issues")
             column_layout.addWidget(column, 1)
-            board_layout.addWidget(page, 1)
+            board_layout.addWidget(page, 0 if compact else 1)
             self.columns[status] = column
             self.headings[status] = heading
+            if compact:
+                column.setMinimumHeight(70)
+                column.setMaximumHeight(240)
+                heading.toggled.connect(column.setVisible)
+                heading.toggled.connect(lambda expanded, control=heading:
+                                        control.setArrowType(Qt.DownArrow if expanded
+                                                             else Qt.RightArrow))
+                heading.setChecked(status != "done")
+                column.setVisible(heading.isChecked())
+        if compact:
+            board_layout.addStretch(1)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setWidget(board_page)
         scroll.setMinimumHeight(180)
-        splitter = QSplitter(Qt.Orientation.Vertical)
+        self.board_scroll = scroll
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.board_splitter = splitter
         splitter.addWidget(scroll)
-        # Details below the columns avoid a fifth narrow column on laptops.
-        self.details.setMinimumHeight(75)
-        self.checklist.setMinimumHeight(70)
-        detail_layout = self.detail_page.layout()
-        detail_layout.removeWidget(self.details)
-        detail_layout.removeWidget(self.checklist)
-        detail_row = QHBoxLayout()
-        detail_row.addWidget(self.details, 2)
-        detail_row.addWidget(self.checklist, 1)
-        detail_layout.addLayout(detail_row)
+        self.detail_page.setMinimumWidth(270)
+        self.detail_page.setMaximumWidth(380)
+        self.checklist.items.setMaximumHeight(16777215)
+        self.checklist.setMinimumHeight(160)
         splitter.addWidget(self.detail_page)
-        splitter.setSizes([420, 170])
+        splitter.setCollapsible(1, False)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
+        splitter.setSizes([620, 310])
         layout.addWidget(splitter, 1)
         self.empty = label("Klick: Inhalt · Doppelklick: bearbeiten · Ziehen: Status wechseln.",
                            "kanban_summary")
@@ -90,7 +112,7 @@ class KanbanPanel(TaskPanel):
         self.kind.currentIndexChanged.connect(self.refresh)
 
     def bind(self, project) -> None:
-        self.current_card = project.project().id
+        self.current_card = self.fixed_owner or project.project().id
         self.selected_record = None
         self.dragged_record = None
         self.drag_token = new_id()
@@ -150,6 +172,8 @@ class KanbanPanel(TaskPanel):
         self.refresh()
         for column in self.columns.values():
             if identifier in column.items_by_id:
+                if self.compact:
+                    self.headings[column.status].setChecked(True)
                 item = column.items_by_id[identifier]
                 parent = item.parent()
                 while parent:
@@ -159,3 +183,8 @@ class KanbanPanel(TaskPanel):
                 column.scrollToItem(item)
                 self.select_item(column)
                 break
+
+    def apply_status(self, record, status: str) -> None:
+        super().apply_status(record, status)
+        if self.compact and record.id in self.records:
+            self.headings[self.records[record.id].data["status"]].setChecked(True)

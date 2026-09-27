@@ -185,15 +185,12 @@ def test_context_note_tree_navigation_rename_and_icons(window, qt_app, monkeypat
     window.refresh()
     monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Kontextnotiz", True))
     monkeypatch.setattr(QInputDialog, "getItem", lambda *a, **k: ("Freie Notiz", True))
-    def fill_note():
-        editor = QApplication.activeModalWidget()
-        editor.title.setText("Kontextnotiz")
-        editor.save()
-    QTimer.singleShot(50, fill_note)
     # Choose an action from the real popup's event loop.
     choose_popup_action("context_new_note")
     position = window.tree.visualItemRect(tree_item(window, ids["one"])).center()
     window.tree.customContextMenuRequested.emit(position)
+    window.notes.editor.title.setText("Kontextnotiz")
+    window.notes.editor.save()
     doc = window.notes.editor.current
     assert doc.title == "Kontextnotiz" and doc.owner_id == ids["one"]
     window.notes.editor.editor.setPlainText("Notiz mit Inhalt")

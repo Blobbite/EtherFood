@@ -1,7 +1,7 @@
 """Post-its are existing manual documents, with optional presentation metadata."""
 
 from ..domain.models import Record, StudioError
-from ..domain.notes import is_note, validate_note_style
+from ..domain.notes import is_note, validate_note_length, validate_note_style
 from .document_service import DocumentService
 
 
@@ -25,6 +25,7 @@ class NoteService(DocumentService):
                 self.project._check_revision(record, expected_revision)
                 if not is_note(record) or record.archived or record.owner_id != owner_id:
                     raise StudioError("validation", "Keine bearbeitbare Notiz in diesem Bereich.")
+                validate_note_length(body, record.data["body"])
                 if any(row.id != record.id and row.title.casefold() == title.strip().casefold()
                        for row in self.documents(owner_id)):
                     raise StudioError("conflict", "Dokumenttitel existiert bereits.")
@@ -32,5 +33,6 @@ class NoteService(DocumentService):
                 if data == record.data and title.strip() == record.title:
                     return record
                 return self.catalog.save(record, title=title, data=data)
+            validate_note_length(body)
             record = self.create(owner_id, title, body)
             return self.catalog.save(record, data=record.data | style | {"body": body})

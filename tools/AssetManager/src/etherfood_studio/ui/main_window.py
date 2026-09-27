@@ -5,7 +5,7 @@ import sqlite3
 import sys
 from typing import Callable
 
-from PySide6.QtCore import QSettings, Qt, QTimer
+from PySide6.QtCore import QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QMainWindow,
@@ -24,13 +24,14 @@ from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
 from ..domain.notes import is_note
 from .canvas.view import Canvas
+from .canvas.actions import CanvasActions
 from .asset_wizard import AssetWizard
 from .asset_workspace import AssetWorkspace
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
 from .project_dialog import ProjectDialog
 from .navigation import Navigation
-from .presentation import KIND_NAMES, kind_icon
+from .presentation import KIND_NAMES, kind_icon, record_icon
 from .project_tree import EDGE_ROLE, ProjectTree
 from .notes import NotesPanel
 from .tasks.panel import TasksPanel
@@ -95,6 +96,7 @@ class MainWindow(QMainWindow):
         outer.addWidget(self.root_notice)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         self.tree = ProjectTree(self)
+        self.tree.setIconSize(QSize(40, 20))
         self.tree.drop_requested.connect(self.tree_drop, Qt.ConnectionType.QueuedConnection)
         self.tree.setObjectName("project_tree")
         self.tree.setAccessibleName("Projektbaum; Verweise öffnen dieselbe Asset-Karte")
@@ -125,6 +127,11 @@ class MainWindow(QMainWindow):
         self.canvas.open_requested.connect(self.open_canvas_content,
                                             Qt.ConnectionType.QueuedConnection)
         self.canvas.moved.connect(self.move_card, Qt.ConnectionType.QueuedConnection)
+        self.canvas_actions = CanvasActions(self)
+        self.canvas.moved_many.connect(self.canvas_actions.move_many,
+                                       Qt.ConnectionType.QueuedConnection)
+        self.canvas.create_requested.connect(self.canvas_actions.create_at,
+                                             Qt.ConnectionType.QueuedConnection)
         self.canvas.toggle_requested.connect(self.toggle_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.resized.connect(self.resize_canvas_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.connection_requested.connect(self.connect_cards,
@@ -217,7 +224,7 @@ class MainWindow(QMainWindow):
         self.splitter.setStretchFactor(1, 1)
         # Canvas geometry/relations are not task controls; give the board their space.
         self.tabs.currentChanged.connect(lambda index: property_scroll.setVisible(
-            self.tabs.widget(index) not in {self.tasks, self.notes}))
+            self.tabs.widget(index) not in {self.tasks, self.notes, self.documents}))
         outer.addWidget(self.splitter, 1)
         self.jobs = label("Keine Aufträge. Diagnose über Aufträge …; keine Asset-Freigabe.",
                           "job_status")
@@ -225,7 +232,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(center)
         save = QAction("Dokument speichern", self)
         save.setShortcut(QKeySequence.StandardKey.Save)
-        save.triggered.connect(lambda: (self.notes.editor if self.tabs.currentWidget() is self.notes
+        save.triggered.connect(lambda: (self.notes if self.tabs.currentWidget() is self.notes
                                         else self.documents).save())
         self.addAction(save)
         search = QAction("Suche", self)
@@ -439,7 +446,7 @@ class MainWindow(QMainWindow):
                 item = QTreeWidgetItem([KIND_NAMES[display_kind] + " · " + record.title])
                 item.setData(0, Qt.ItemDataRole.UserRole, record.id)
                 item.setData(0, Qt.ItemDataRole.UserRole + 1, record.kind)
-                item.setIcon(0, kind_icon(display_kind))
+                item.setIcon(0, record_icon(record))
                 item.setToolTip(0, "Inhalt öffnen · Rechtsklick: bearbeiten")
                 items[record.owner_id].addChild(item)
                 items[record.id] = item
@@ -482,6 +489,8 @@ class MainWindow(QMainWindow):
 
     def _canvas_selected(self, identifier: str) -> None:
         # Keep the camera fixed while Qt still tracks a press/drag on the card.
+        if self.canvas.selected_ids() != {identifier}:
+            return
         record = self.project.catalog.get(identifier)
         if record.kind in {"document", "task", "issue"}:
             if self.select_card(record.owner_id, center=False):

@@ -6,7 +6,7 @@ pytest.importorskip("PySide6.QtWidgets")
 
 from PySide6.QtCore import QSettings, Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QFileDialog, QMessageBox, QPushButton
+from PySide6.QtWidgets import QMessageBox, QPushButton
 
 from etherfood_studio.application.note_service import NoteService
 from etherfood_studio.ui.main_window import MainWindow
@@ -60,6 +60,10 @@ def test_all_note_entry_points_open_inline_dashboard(window, qt_app, entry):
 
 def test_inline_note_save_colors_attachment_conflict_and_restart(window, qt_app,
                                                               tmp_path, monkeypatch):
+    path = tmp_path / "Anhang.txt"
+    path.write_text("Sicherer Altanhang", encoding="utf-8")
+    service = NoteService(window.project)
+    service.attach(window.note.id, path, window.note.revision_no)
     window.open_content(window.note.id)
     editor = window.notes.editor
     editor.title.setText("Umbenannte Notiz")
@@ -72,11 +76,9 @@ def test_inline_note_save_colors_attachment_conflict_and_restart(window, qt_app,
     record = window.project.catalog.get(window.note.id)
     assert record.title == "Umbenannte Notiz" and record.data["note_color"] == "pink"
     assert record.data["note_pinned"] and record.data["body"] == "Im Dashboard bearbeitet"
-    path = tmp_path / "Anhang.txt"
-    path.write_text("Sicherer Anhang", encoding="utf-8")
-    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a: (str(path), ""))
-    QTest.mouseClick(editor.findChild(QPushButton, "note_inline_add_attachment"), Qt.LeftButton)
-    assert editor.attachments.count() == 1
+    assert editor.findChild(QPushButton, "note_inline_add_attachment") is None
+    assert not hasattr(editor, "attachments")
+    assert service.attachment_text(record.id, 0) == "Sicherer Altanhang"
     editor.editor.setPlainText("Lokaler Entwurf")
     record = editor.service.save(record.id, "Parallel", editor.current.revision_no)
     errors = []
@@ -91,7 +93,7 @@ def test_inline_note_save_colors_attachment_conflict_and_restart(window, qt_app,
     assert window.open_project(window.project.catalog.path.parent)
     window.open_content(record.id)
     assert window.notes.editor.editor.toPlainText() == "Parallel"
-    assert window.notes.editor.attachments.count() == 1
+    assert NoteService(window.project).attachment_text(record.id, 0) == "Sicherer Altanhang"
 
 
 def test_selecting_another_postit_guards_inline_draft(window, monkeypatch):

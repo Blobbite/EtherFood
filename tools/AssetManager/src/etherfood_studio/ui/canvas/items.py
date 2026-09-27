@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QGraphicsSimpleTextItem, QStyleOptionGraphicsItem, QWidget,
 )
 
-from ..presentation import KIND_NAMES, kind_icon
+from ..presentation import KIND_NAMES, kind_icon, status_icon
 
 if TYPE_CHECKING:
     from .view import Canvas
@@ -22,7 +22,8 @@ class Port(QGraphicsEllipseItem):
         self.setBrush(QColor("#d6eff8"))
         self.setPen(QPen(QColor("#187e93"), 1.5))
         self.setCursor(Qt.CursorShape.CrossCursor)
-        self.setToolTip("Verbindung von hier auf eine andere Karte ziehen; danach Typ wählen.")
+        self.setToolTip("Auf eine Karte ziehen: verbinden · "
+                        "Auf freie Fläche ziehen: zugeordneten Inhalt anlegen")
         self.setZValue(3)
         self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
 
@@ -80,6 +81,7 @@ class CardItem(QGraphicsRectItem):
         super().__init__(0, 0, width, height)
         self.identifier, self.view = identifier, view
         self.before = QPointF()
+        self.drag_origins = {}
         self.setData(0, identifier)
         self.setFlags(QGraphicsItem.GraphicsItemFlag.ItemIsMovable
                       | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
@@ -139,10 +141,18 @@ class CardItem(QGraphicsRectItem):
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         self.before = self.pos()
         super().mousePressEvent(event)
+        self.drag_origins = {key: self.view.items_by_id[key].pos()
+                             for key in self.view.selected_ids()}
 
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         super().mouseReleaseEvent(event)
-        if self.pos() != self.before:
+        positions = {key: {"x": item.x(), "y": item.y()}
+                     for key, before in self.drag_origins.items()
+                     if (item := self.view.items_by_id.get(key)) is not None
+                     and item.pos() != before}
+        if len(positions) > 1:
+            self.view.moved_many.emit(positions)
+        elif self.pos() != self.before:
             self.view.moved.emit(self.identifier, self.pos().x(), self.pos().y())
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
@@ -154,15 +164,17 @@ class IconCardItem(CardItem):
     """Small content handle, not another workflow/asset card."""
 
     def __init__(self, identifier: str, title: str, kind: str, summary: str,
-                 view: "Canvas", color: str = "#e3effb") -> None:
+                 view: "Canvas", color: str = "#e3effb", status: str = "open") -> None:
         super().__init__(identifier, title, kind, summary, view, 144, 62)
         self.kind = kind
         self.grip.hide()
         self.setBrush(QColor(color))
-        self.icon.setPixmap(kind_icon(kind).pixmap(26, 26))
+        icon = status_icon(status, issue=kind == "issue") if kind in {"task", "issue"} \
+            else kind_icon(kind)
+        self.icon.setPixmap(icon.pixmap(52 if kind == "issue" else 26, 26))
         self.icon.setPos(10, 17)
-        self.texts[0][0].setPos(45, 9)
-        self.texts[1][0].setPos(45, 30)
+        self.texts[0][0].setPos(69 if kind == "issue" else 45, 9)
+        self.texts[1][0].setPos(69 if kind == "issue" else 45, 30)
         self.texts[2][0].hide()
         self.resize(144, 62)
         self.setToolTip(title + "\n" + summary + "\nDoppelklick: öffnen · Port ziehen: zuordnen")
@@ -174,5 +186,7 @@ class IconCardItem(CardItem):
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         clicked = self.pos() == self.before
         super().mouseReleaseEvent(event)
-        if clicked and self.kind == "note":
+        if clicked and event.button() == Qt.LeftButton and self.kind == "note" \
+                and len(self.view.selected_ids()) == 1 \
+                and not event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             self.view.open_requested.emit(self.identifier)

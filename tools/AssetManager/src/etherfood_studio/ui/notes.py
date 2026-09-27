@@ -1,11 +1,10 @@
-"""Scoped sticky-note dashboard and conflict-safe editor over existing documents."""
+"""Scoped, directly editable post-its over the shared revisioned note service."""
 
-from PySide6.QtCore import QPointF, QRectF, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QPen
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLineEdit,
-    QListView, QListWidget, QListWidgetItem, QMessageBox, QPlainTextEdit, QStyledItemDelegate,
-    QSplitter, QStyle, QVBoxLayout, QWidget,
+    QListView, QListWidget, QListWidgetItem, QMessageBox, QPlainTextEdit, QVBoxLayout, QWidget,
 )
 
 from ..application.note_service import NoteService
@@ -16,45 +15,6 @@ from .note_details import NoteDetails
 
 NOTE_ROLE = Qt.ItemDataRole.UserRole
 LOCATION_ROLE = Qt.ItemDataRole.UserRole + 1
-
-
-class NoteDelegate(QStyledItemDelegate):
-    def sizeHint(self, option, index) -> QSize:
-        return QSize(230, 178)
-
-    def paint(self, painter, option, index) -> None:
-        note = index.data(NOTE_ROLE)
-        if not note:
-            return
-        box = QRectF(option.rect).adjusted(5, 5, -7, -7)
-        painter.save()
-        painter.setClipRect(box)
-        painter.setBrush(QColor(NOTE_COLORS[note.data.get("note_color", "yellow")][1]))
-        selected = bool(option.state & QStyle.StateFlag.State_Selected)
-        painter.setPen(QPen(QColor("#2472ab" if selected else "#a0a0a0"), 2 if selected else 1))
-        painter.drawRoundedRect(box, 7, 7)
-        painter.setPen(QColor("#263238"))
-        font = QFont(option.font)
-        font.setBold(True)
-        painter.setFont(font)
-        inset = 10
-        if note.data.get("note_pinned"):
-            # Draw a pin without depending on an installed emoji font.
-            painter.setBrush(QColor("#536d80"))
-            painter.drawEllipse(QPointF(box.left() + 14, box.top() + 13), 3, 3)
-            painter.drawLine(QPointF(box.left() + 14, box.top() + 16),
-                             QPointF(box.left() + 11, box.top() + 23))
-            inset = 23
-        painter.drawText(box.adjusted(inset, 8, -10, -112), Qt.TextWordWrap, note.title)
-        font.setBold(False)
-        painter.setFont(font)
-        painter.drawText(box.adjusted(10, 48, -10, -32), Qt.TextWordWrap,
-                         note.data.get("body", "")[:350] or "Leere Notiz · Doppelklick: schreiben")
-        painter.setPen(QColor("#52606a"))
-        location = painter.fontMetrics().elidedText(index.data(LOCATION_ROLE), Qt.ElideLeft,
-                                                     int(box.width() - 20))
-        painter.drawText(box.adjusted(10, 0, -10, -9), Qt.AlignLeft | Qt.AlignBottom, location)
-        painter.restore()
 
 
 class NoteEditor(QDialog):
@@ -123,115 +83,214 @@ class NoteEditor(QDialog):
         super().reject()
 
 
+class NoteItem(QListWidgetItem):
+    def __lt__(self, other) -> bool:
+        def key(item):
+            record = item.data(NOTE_ROLE)
+            return ((not record.data.get("note_pinned", False), record.title.casefold(), record.id)
+                    if record else (True, "\uffff", ""))
+        return key(self) < key(other)
+
+
 class NotesPanel(QWidget):
     changed = Signal()
     focus_requested = Signal(str)
 
-    def __init__(self, before_edit) -> None:
+    def __init__(self, before_edit, *, stacked: bool = False) -> None:
         super().__init__()
         self.before_edit = before_edit
         self.project = None
         self.current_card = None
+        self._selecting = False
+        self._empty_editor = NoteDetails(self)
+        self._empty_editor.hide()
         layout = QVBoxLayout(self)
         self.scope_label = label("Projekt öffnen, um Notizen zu sehen.", "notes_scope")
         layout.addWidget(self.scope_label)
         filters = QHBoxLayout()
         self.query = QLineEdit()
         self.query.setObjectName("notes_search")
-        self.query.setPlaceholderText("Notizen in diesem Bereich durchsuchen …")
+        self.query.setPlaceholderText("Notizen durchsuchen …")
         filters.addWidget(self.query, 1)
         self.color = QComboBox()
         self.color.setObjectName("notes_color_filter")
         self.color.addItem("Alle Farben", None)
-        for key, (name, value) in NOTE_COLORS.items():
+        for key, (name, _) in NOTE_COLORS.items():
             self.color.addItem(name, key)
         filters.addWidget(self.color)
+        filters.addWidget(button("+ Notiz", "new_note", self.new_note))
         filters.addWidget(button("Gesamtes Projekt", "notes_project", self.show_project))
+        self.owner_button = button("Zum Bezug", "note_owner", self.focus_owner)
+        filters.addWidget(self.owner_button)
         layout.addLayout(filters)
         self.notes = QListWidget()
         self.notes.setObjectName("notes_board")
         self.notes.setViewMode(QListView.IconMode)
         self.notes.setResizeMode(QListView.Adjust)
         self.notes.setMovement(QListView.Static)
-        self.notes.setWrapping(True)
-        self.notes.setGridSize(QSize(230, 178))
-        self.notes.setItemDelegate(NoteDelegate(self.notes))
-        self.notes.itemDoubleClicked.connect(lambda item: self.edit_note())
-        self.editor = NoteDetails()
-        self.editor.saved.connect(self._saved)
-        split = QSplitter(Qt.Orientation.Vertical)
-        split.addWidget(self.notes)
-        split.addWidget(self.editor)
-        split.setSizes([300, 340])
-        layout.addWidget(split, 1)
-        self.summary = label("Freie Notizen und Testnotizen; Dokumentation bleibt separat.")
-        layout.addWidget(self.summary)
-        actions = QHBoxLayout()
-        actions.addWidget(button("+ Notiz", "new_note", self.new_note))
-        self.edit_button = button("Notiz bearbeiten", "edit_note", self.edit_note)
-        self.owner_button = button("Zum Bezug", "note_owner", self.focus_owner)
-        for widget in (self.edit_button, self.owner_button):
-            actions.addWidget(widget)
-        layout.addLayout(actions)
+        self.notes.setFlow(QListView.TopToBottom if stacked else QListView.LeftToRight)
+        self.notes.setWrapping(not stacked)
+        self.notes.setGridSize(QSize(334, 284))
+        self.notes.setSpacing(4)
+        self.notes.setStyleSheet("QListWidget { background: #f3f5f7; border: none; }"
+                                "QListWidget::item:selected { background: transparent; }")
         self.notes.currentItemChanged.connect(self._selection)
+        layout.addWidget(self.notes, 1)
         self.query.textChanged.connect(self.refresh)
         self.color.currentIndexChanged.connect(self.refresh)
-        self.update_actions()
         self.setEnabled(False)
 
+    @property
+    def editor(self) -> NoteDetails:
+        item = self.notes.currentItem()
+        if item:
+            return self.notes.itemWidget(item)
+        if self.notes.count():
+            return self.notes.itemWidget(self.notes.item(0))
+        return self._empty_editor
+
+    def _cards(self) -> list:
+        return [(self.notes.item(i), self.notes.itemWidget(self.notes.item(i)))
+                for i in range(self.notes.count())]
+
+    def _remove(self, item, card) -> None:
+        card.timer.stop()
+        self.notes.removeItemWidget(item)
+        self.notes.takeItem(self.notes.row(item))
+        card.deleteLater()
+
     def bind(self, project) -> None:
+        self.notes.blockSignals(True)
+        for item, card in self._cards():
+            self._remove(item, card)
+        self.notes.blockSignals(False)
         self.project = project
         self.current_card = project.project().id
-        self.editor.bind(NoteService(project))
-        self.editor.refresh_documents()
+        self._empty_editor.bind(NoteService(project), self.current_card)
         self.setEnabled(True)
         self.refresh()
 
-    def set_scope(self, identifier: str) -> None:
-        if identifier != self.current_card and not self.editor.dirty:
+    def set_scope(self, identifier: str) -> bool:
+        if identifier != self.current_card:
+            if not self.confirm_discard():
+                return False
             self.notes.blockSignals(True)
-            self.notes.clear()
+            for item, card in self._cards():
+                self._remove(item, card)
             self.notes.blockSignals(False)
-            self.editor.owner_id = identifier
-            self.editor.refresh_documents()
-        self.current_card = identifier
+            self.current_card = identifier
+            for field in (self.query, self.color):
+                field.blockSignals(True)
+            self.query.clear()
+            self.color.setCurrentIndex(0)
+            for field in (self.query, self.color):
+                field.blockSignals(False)
         self.refresh()
+        return True
 
     def selected(self):
         item = self.notes.currentItem()
         return item.data(NOTE_ROLE) if item else None
 
-    def update_actions(self, *args) -> None:
-        for widget in (self.edit_button, self.owner_button):
-            widget.setEnabled(self.selected() is not None)
+    def _append(self, record=None):
+        item = NoteItem()
+        item.setSizeHint(QSize(334, 284))
+        item.setData(NOTE_ROLE, record)
+        card = NoteDetails()
+        card.bind(NoteService(self.project), self.current_card, record)
+        self.notes.addItem(item)
+        self.notes.setItemWidget(item, card)
+        card.activated.connect(lambda: self.notes.setCurrentItem(item))
+        card.saved.connect(lambda: self._saved(item, card))
+        return item
 
     def refresh(self, *args) -> None:
         if not self.project or not self.current_card:
             return
-        selected = self.selected() or self.editor.current
         rows = NoteService(self.project).notes(self.current_card, self.query.text(),
                                                self.color.currentData())
+        wanted = {row.id: row for row in rows}
+        present = set()
         self.notes.blockSignals(True)
-        self.notes.clear()
+        for item, card in self._cards():
+            record = card.current
+            if record and record.id in wanted:
+                latest = wanted[record.id]
+                if not card.dirty and latest.revision_no != record.revision_no:
+                    card.load(latest)
+                item.setData(NOTE_ROLE, card.current)
+                present.add(record.id)
+            elif not card.dirty and (record or self.query.text() or self.color.currentData()):
+                self._remove(item, card)
         for row in rows:
-            item = QListWidgetItem(row.title)
-            item.setData(NOTE_ROLE, row)
-            location = self.project.breadcrumb(row.owner_id)
-            item.setData(LOCATION_ROLE, location)
-            item.setToolTip(("Angeheftet · " if row.data.get("note_pinned") else "")
-                            + row.title + "\n" + location)
-            self.notes.addItem(item)
-            if selected and row.id == selected.id:
-                self.notes.setCurrentItem(item)
+            if row.id not in present:
+                self._append(row)
+        if not self.notes.count() and not self.query.text() and self.color.currentData() is None:
+            self._append()
+        self.notes.sortItems()
+        if self.notes.currentItem() is None and self.notes.count():
+            self.notes.setCurrentRow(0)
         self.notes.blockSignals(False)
-        if self.editor.current and not self.editor.dirty:
-            self.editor.owner_id = self.project.catalog.get(self.editor.current.id).owner_id
-            self.editor.refresh_documents(self.editor.current.id)
-        self.scope_label.setText("Bereich / neue Notizen: "
-                                 + self.project.breadcrumb(self.current_card))
-        self.summary.setText(f"{len(rows)} Notizen · Anklicken: unten lesen und bearbeiten · "
-                             "Speichern: Strg+S")
-        self.update_actions()
+        self.scope_label.setText("Bereich: " + self.project.breadcrumb(self.current_card)
+                                 + " · Direkt schreiben · Rechtsklick: Farbe")
+        self.owner_button.setEnabled(self.selected() is not None)
+
+    def _selection(self, item, previous) -> None:
+        if self._selecting:
+            return
+        self._selecting = True
+        try:
+            previous_card = self.notes.itemWidget(previous) if previous else None
+            if previous_card and not previous_card.confirm_discard():
+                self.notes.blockSignals(True)
+                self.notes.setCurrentItem(previous)
+                self.notes.blockSignals(False)
+            self.owner_button.setEnabled(self.selected() is not None)
+        finally:
+            self._selecting = False
+
+    def _saved(self, item, card) -> None:
+        item.setData(NOTE_ROLE, card.current)
+        self.owner_button.setEnabled(self.selected() is not None)
+        self.changed.emit()
+
+    def confirm_discard(self) -> bool:
+        return all(card.confirm_discard() for _, card in self._cards())
+
+    def save(self) -> bool:
+        return all(card.save() for _, card in self._cards())
+
+    def new_note(self) -> None:
+        if not self.project or not self.before_edit() or not self.confirm_discard():
+            return
+        self.query.clear()
+        self.color.setCurrentIndex(0)
+        draft = next((item for item, card in self._cards() if card.current is None), None)
+        if draft is None:
+            draft = self._append()
+        self.notes.setCurrentItem(draft)
+        self.notes.scrollToItem(draft)
+        self.notes.itemWidget(draft).editor.setFocus()
+
+    def edit_note(self, *, new: bool = False) -> None:
+        if new:
+            self.new_note()
+        else:
+            self.editor.editor.setFocus()
+
+    def select_note(self, identifier: str) -> bool:
+        same = self.selected() is not None and self.selected().id == identifier
+        if not self.project or (not same and not self.confirm_discard()):
+            return False
+        self.query.clear()
+        self.color.setCurrentIndex(0)
+        self.refresh()
+        for item, card in self._cards():
+            if card.current and card.current.id == identifier:
+                self.notes.setCurrentItem(item)
+                self.notes.scrollToItem(item)
+                return self.selected() is not None and self.selected().id == identifier
+        return False
 
     def show_project(self) -> None:
         if self.project:
@@ -240,62 +299,3 @@ class NotesPanel(QWidget):
     def focus_owner(self) -> None:
         if self.selected():
             self.focus_requested.emit(self.selected().owner_id)
-
-    def _selection(self, item, previous) -> None:
-        if item:
-            identifier = item.data(NOTE_ROLE).id
-            if self.editor.open_document(identifier):
-                self.select_note(identifier)
-            else:
-                self.notes.blockSignals(True)
-                self.notes.setCurrentItem(previous)
-                self.notes.blockSignals(False)
-        self.update_actions()
-
-    def _saved(self) -> None:
-        self.refresh()
-        self.changed.emit()
-
-    def confirm_discard(self) -> bool:
-        if not self.editor.confirm_discard():
-            return False
-        if self.editor.dirty:
-            self.editor.refresh_documents(self.editor.current.id)
-        return True
-
-    def new_note(self) -> None:
-        self.edit_note(new=True)
-
-    def edit_note(self, *, new: bool = False) -> None:
-        record = None if new else self.selected()
-        if not self.project or (not new and not record):
-            return
-        if not new:
-            if self.editor.open_document(record.id):
-                self.editor.editor.setFocus()
-            return
-        if not self.before_edit() or not self.confirm_discard():
-            return
-        # Saving a pending document may have changed this exact note revision.
-        if record:
-            record = self.project.catalog.get(record.id)
-        editor = NoteEditor(NoteService(self.project), record.owner_id if record
-                            else self.current_card, record, self)
-        if editor.exec() == QDialog.Accepted:
-            self.query.clear()
-            self.color.setCurrentIndex(0)
-            self.refresh()
-            self.select_note(editor.saved_record.id)
-            self.changed.emit()
-        editor.deleteLater()
-
-    def select_note(self, identifier: str) -> bool:
-        if not self.editor.open_document(identifier):
-            return False
-        for index in range(self.notes.count()):
-            item = self.notes.item(index)
-            if item.data(NOTE_ROLE).id == identifier:
-                self.notes.setCurrentItem(item)
-                self.notes.scrollToItem(item)
-                break
-        return True

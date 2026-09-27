@@ -33,6 +33,11 @@ class Navigation:
             menu = self.menu(card.identifier)
             menu.exec(self.window.canvas.viewport().mapToGlobal(point))
             menu.deleteLater()
+        elif len(self.window.canvas.selected_ids()) > 1:
+            menu = QMenu(self.window)
+            self.window.canvas_actions.add_arrangements(menu)
+            menu.exec(self.window.canvas.viewport().mapToGlobal(point))
+            menu.deleteLater()
 
     def _on_card(self, identifier: str, call: Callable) -> None:
         if self.window.select_card(identifier):
@@ -42,6 +47,7 @@ class Navigation:
         window = self.window
         record = window.project.catalog.get(identifier)
         menu = QMenu(window)
+        window.canvas_actions.add_arrangements(menu, identifier)
 
         def action(title: str, name: str, kind: str, call: Callable) -> None:
             item = menu.addAction(kind_icon(kind), title)
@@ -88,6 +94,9 @@ class Navigation:
         return menu
 
     def open_notes(self) -> None:
+        if self.window.project.catalog.get(self.window.selected_id).kind == "note":
+            self.window.tabs.setCurrentWidget(self.window.notes)
+            return
         self.window.tabs.setCurrentWidget(self.window.documents)
         if not self.window.documents.current:
             self.window.documents.new_document()

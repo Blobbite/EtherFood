@@ -22,7 +22,8 @@ Bereich steht oberhalb der Spalten; neue Aufgaben/Issues gehören genau dorthin.
   `depends_on` erweitert den Aufgabenbereich nicht.
 
 **Gesamtes Projekt** wählt die Projektwurzel. Ein einfacher Aufgabenklick zeigt
-Beschreibung, Fundstelle und To-dos unter dem Board, ohne den Bereich zu wechseln.
+To-dos im festen rechten Detailbereich und darunter Beschreibung/Fundstelle
+in einem kleinen Informationsfeld, ohne den Bereich zu wechseln.
 **Zum Bezug** navigiert ausdrücklich zur Eigentümerkarte. Doppelklick oder
 Eingabetaste öffnet den vorhandenen Bearbeitungsdialog genau einmal.
 
@@ -49,7 +50,20 @@ Neuanlage bleiben mit **Asset-Menü → Dokumentation → Aufgaben & Issues** ve
 
 Die kartenspezifische Eigenschaftenleiste wird im Kanban ausgeblendet, damit die
 vier Spalten Platz haben; im Canvas bleibt sie unverändert verfügbar. Bei sehr
-wenig Platz ist das Board horizontal scrollbar. Details/Board sind höhenverstellbar.
+wenig Platz ist das Board horizontal scrollbar. Die vier Spalten liegen mit
+kleinem Abstand nebeneinander; der rechte Detailbereich bleibt zwischen
+270 und 380 Pixel breit und lässt sich nicht vollständig einklappen.
+
+Statussymbole gelten im Kanban, Canvas, Baum und in der Suche gleichermaßen:
+**Offen: offener Kreis · In Arbeit: blauer Punkt · Blockiert: rotes X ·
+Erledigt: grüner Haken**. Issues tragen davor ein zusätzliches Ausrufezeichen.
+Der grüne Haken bedeutet nicht mehr nur den Typ Aufgabe.
+
+Im **Asset-Menü → Dokumentation → Aufgaben & Issues** sind die vier Status
+schmale, aufklappbare Zeilen untereinander. Darunter trennen Gruppen Aufgaben
+und Issues. Ziehen in eine andere Gruppe oder auf deren eingeklappte Statuszeile
+ändert den Status; To-do-/Abnahmeschutz gelten unverändert. To-dos und
+Zusatzinformationen stehen auch hier rechts. Es gibt keine zweite Aufgabenablage.
 
 ## Suche, Notizen und interne Dateien
 

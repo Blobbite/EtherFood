@@ -180,10 +180,10 @@ def test_corrupt_project_missing_drive_and_broken_preview(window, tmp_path, monk
         window.open_project(other)
     assert window.project.project().id == identifier
 
-    def fail(text):
+    def fail(self, text):
         raise ValueError("broken preview")
 
-    monkeypatch.setattr(window.documents.preview, "preview", fail)
+    monkeypatch.setattr(SafePreview, "preview", fail)
     window.documents.create_document("Vorschaufehler")
     assert window.tree.topLevelItemCount() == 1
     assert "nicht verfügbar" in window.documents.preview.toPlainText()

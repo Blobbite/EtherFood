@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 from ...application.issue_service import Finding, IssueService, PRIORITIES
 from ...application.project_service import ProjectService
 from ...domain.models import Record, StudioError
-from ..common import button, show_error
+from ..common import button, label, show_error
 from .editor import TaskEditor
 from .checklist import ChecklistEditor
 
@@ -37,10 +37,16 @@ class TaskPanel(QWidget):
         self.detail_page = QWidget()
         detail_layout = QVBoxLayout(self.detail_page)
         detail_layout.setContentsMargins(0, 0, 0, 0)
-        detail_layout.addWidget(self.details, 1)
+        self.detail_title = label("Aufgabe oder Issue auswählen", "task_detail_title")
+        self.detail_title.setStyleSheet("font-weight: bold;")
+        detail_layout.addWidget(self.detail_title)
         self.checklist = ChecklistEditor(editable=False)
         self.checklist.changed.connect(self.save_checklist)
-        detail_layout.addWidget(self.checklist)
+        detail_layout.addWidget(self.checklist, 1)
+        detail_layout.addWidget(label("Zusatzinformationen", "task_information_heading"))
+        self.details.setMaximumHeight(185)
+        self.details.setMinimumHeight(85)
+        detail_layout.addWidget(self.details)
         self.actions = QHBoxLayout()
         self.create_task = button("+ Aufgabe", "new_task", lambda: self.new_item(False))
         self.create_issue = button("+ Issue", "new_issue", lambda: self.new_item(True))
@@ -70,6 +76,7 @@ class TaskPanel(QWidget):
         raise NotImplementedError
 
     def show_details(self, row: Record | None) -> None:
+        self.detail_title.setText(row.title if row else "Aufgabe oder Issue auswählen")
         self.edit_button.setEnabled(row is not None)
         self.selected_record = row
         is_task = row is not None and row.kind in {"task", "issue"}
@@ -80,8 +87,7 @@ class TaskPanel(QWidget):
         if row is None or not self.project:
             self.details.clear()
             return
-        lines = [row.title, self.project.breadcrumb(row.owner_id),
-                 f"Revision {row.revision_no} · ID {row.id}"]
+        lines = [row.title, "", row.data.get("body", "") or "Noch keine Beschreibung.", ""]
         if row.kind in {"task", "issue"}:
             self.new_status.setCurrentIndex(self.new_status.findData(row.data["status"]))
             self.checklist.fill(row.data.get("checklist", []))
@@ -97,7 +103,8 @@ class TaskPanel(QWidget):
             if finding:
                 lines.append("Fundstelle: " + "; ".join(f"{key}: {value}"
                                                      for key, value in finding.items()))
-        lines.extend(["", row.data.get("body", "") or "Noch keine Beschreibung."])
+        lines.extend(["", self.project.breadcrumb(row.owner_id),
+                      f"Revision {row.revision_no} · ID {row.id}"])
         self.details.setPlainText("\n".join(lines))
 
     def save_checklist(self) -> None:

@@ -49,7 +49,8 @@ Seit Zwischenpaket 6a stehen dieselben Aufgaben/Issues direkt unter
 **Asset-Menü → Dokumentation → Aufgaben & Issues** zur Verfügung. Die dortige
 Suche ist auf das ausgewählte Asset begrenzt; im Hauptfenster bleibt die
 projektweite Suche erhalten. Es gibt keine zweite Aufgabenablage oder kopierte
-Aufgaben-ID. Notizen/Anhänge bleiben daneben in ihrem eigenen Reiter.
+Aufgaben-ID. Notizen bleiben daneben im eigenen Reiter; Anhänge gehören zur
+Dokumentation. Bereits vorhandene Notizanhänge werden nicht entfernt.
 
 Seit Zwischenpaket 6b sind **Aufgaben-Kanban** und **Suche** im Hauptfenster
 getrennt. Das Board folgt der ausgewählten Karte, gruppiert vorhandene Aufgaben
@@ -63,8 +64,10 @@ Dashboard zeigt dieselben manuellen Dokumente der Vorlagen Freie Notiz und
 Testnotiz als Post-its. Optionale Felder `note_color` (sechs definierte Farben)
 und `note_pinned` (Boolean) steuern nur die Darstellung. Alte Datensätze ohne
 diese Felder sind gelb und nicht angeheftet. Der eingebettete Notizeditor im
-Dashboard schreibt revisioniert auf dieselben IDs; Markdown und Anhänge bleiben
-erhalten. Die Dokumentationsauswahl zeigt keine Notizen mehr an.
+Dashboard schreibt direkt auf den Post-its revisioniert auf dieselben IDs;
+Alttexte und alte Anhänge bleiben erhalten. Neue/geänderte Notiztexte sind
+auf 100 Wörter begrenzt. Farbe/Titel/Anheften können auch für unveränderte
+lange Alttexte gespeichert werden. Die Dokumentationsauswahl zeigt keine Notizen mehr an.
 Aufgaben, Issues und Notizen erscheinen zusätzlich als kleine Canvas-Symbole.
 
 `ProjectService.content_scope` löst für Aufgaben, Suche und Notizen einheitlich

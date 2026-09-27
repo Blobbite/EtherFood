@@ -1,15 +1,39 @@
 """Grouped Kanban column; dragging requests a status change, never a tree move."""
 
-from PySide6.QtCore import QMimeData, Qt, QTimer
+from PySide6.QtCore import QMimeData, QSize, Qt, QTimer
 from PySide6.QtGui import QDrag
-from PySide6.QtWidgets import QAbstractItemView, QTreeWidget, QTreeWidgetItem
+from PySide6.QtWidgets import QAbstractItemView, QToolButton, QTreeWidget, QTreeWidgetItem
 
-from ..presentation import KIND_NAMES, kind_icon
+from ...application.kanban_service import TaskGroup
+from ..presentation import KIND_NAMES, kind_icon, record_icon, status_icon
 
 TASK_ROLE = Qt.ItemDataRole.UserRole
 GROUP_ROLE = Qt.ItemDataRole.UserRole + 1
 MIME_TYPE = "application/x-etherfood-kanban-task"
 PRIORITY_NAMES = {"low": "Niedrig", "normal": "Normal", "high": "Hoch", "critical": "Kritisch"}
+
+
+class StatusHeader(QToolButton):
+    """Allow dropping onto a collapsed status group as well as its task list."""
+
+    def __init__(self, board, status: str) -> None:
+        super().__init__()
+        self.board, self.status = board, status
+        self.setCheckable(True)
+        self.setAcceptDrops(True)
+        self.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.setArrowType(Qt.DownArrow)
+
+    def dragEnterEvent(self, event) -> None:
+        self.board.columns[self.status].dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        self.dragEnterEvent(event)
+
+    def dropEvent(self, event) -> None:
+        if self.board.columns[self.status].accepts_drag(event):
+            self.setChecked(True)
+        self.board.columns[self.status].dropEvent(event)
 
 
 class KanbanColumn(QTreeWidget):
@@ -23,7 +47,8 @@ class KanbanColumn(QTreeWidget):
         self.setHeaderHidden(True)
         self.setIndentation(12)
         self.setWordWrap(False)
-        self.setMinimumWidth(185)
+        self.setMinimumWidth(140)
+        self.setIconSize(QSize(40, 20))
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(False)
@@ -62,14 +87,19 @@ class KanbanColumn(QTreeWidget):
                 continue
             parent = self.invisibleRootItem()
             key = ()
-            for group in entry.groups:
+            groups = (TaskGroup("kind:" + entry.record.kind,
+                                "Issues" if entry.record.kind == "issue" else "Aufgaben",
+                                entry.record.kind),) if self.board.compact else entry.groups
+            for group in groups:
                 key += (group.id,)
                 if key not in self.groups:
                     title = (group.title if group.kind == "global" or group.id == "shared"
+                             or group.id.startswith("kind:")
                              else KIND_NAMES[group.kind] + " · " + group.title)
                     item = QTreeWidgetItem(parent, [title])
                     item.setData(0, GROUP_ROLE, key)
-                    item.setIcon(0, kind_icon(group.kind))
+                    item.setIcon(0, status_icon(self.status, issue=group.kind == "issue")
+                                 if group.id.startswith("kind:") else kind_icon(group.kind))
                     item.setToolTip(0, title)
                     item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                     font = item.font(0)
@@ -87,7 +117,7 @@ class KanbanColumn(QTreeWidget):
             if record.data.get("approval_needed"):
                 info += " · Abnahme"
             item = QTreeWidgetItem(parent, [f"{KIND_NAMES[record.kind]} · {record.title}\n{info}"])
-            item.setIcon(0, kind_icon(record.kind))
+            item.setIcon(0, record_icon(record))
             item.setData(0, TASK_ROLE, record.id)
             item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
                           | Qt.ItemFlag.ItemIsDragEnabled)

@@ -4,7 +4,8 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets")
 
-from PySide6.QtCore import QSettings, Qt, QTimer
+from PySide6.QtCore import QMimeData, QPoint, QPointF, QSettings, Qt, QTimer
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
     QApplication, QDialogButtonBox, QLineEdit, QMessageBox, QPlainTextEdit, QPushButton,
@@ -19,6 +20,8 @@ from etherfood_studio.ui.asset_workspace import AssetWorkspace
 from etherfood_studio.ui.main_window import MainWindow
 from etherfood_studio.ui.tasks.checklist import ChecklistEditor
 from etherfood_studio.ui.tasks.editor import TaskEditor
+from etherfood_studio.ui.presentation import record_icon, status_icon
+from etherfood_studio.ui.tasks.column import MIME_TYPE
 
 
 @pytest.fixture
@@ -49,7 +52,7 @@ def workspace(qt_app, tmp_path):
 def test_create_check_search_and_reopen_shared_asset_task(workspace, qt_app, monkeypatch):
     window, workspace = workspace
     panel = workspace.tasks
-    assert panel.results.count() == 0 and not panel.scope.isVisible()
+    assert len(panel.records) == 0 and panel.fixed_owner == workspace.identifier
     errors = []
     monkeypatch.setattr("etherfood_studio.ui.tasks.base.show_error",
                         lambda parent, error: errors.append(str(error)))
@@ -73,7 +76,7 @@ def test_create_check_search_and_reopen_shared_asset_task(workspace, qt_app, mon
 
     QTimer.singleShot(0, create_task)
     QTest.mouseClick(panel.findChild(QPushButton, "new_task"), Qt.LeftButton)
-    assert panel.results.count() == 1 and panel.selected_record.owner_id == workspace.identifier
+    assert len(panel.records) == 1 and panel.selected_record.owner_id == workspace.identifier
     record = panel.selected_record
     assert record.data["finding"]["asset_id"] == workspace.identifier
     assert len(record.data["checklist"]) == 2
@@ -93,9 +96,9 @@ def test_create_check_search_and_reopen_shared_asset_task(workspace, qt_app, mon
     panel.change_status()
     assert "To-do" in errors[-1] and window.project.catalog.get(record.id).data["status"] == "open"
     panel.query.setText("Raster kontrollieren")
-    assert panel.results.count() == 1
+    assert len(panel.records) == 1
     panel.query.setText("Nicht hier anzeigen")
-    assert panel.results.count() == 0
+    assert len(panel.records) == 0
     panel.show_record(record.id)
     panel.checklist.items.setCurrentRow(1)
     QTest.keyClick(panel.checklist.items, Qt.Key_Space)
@@ -135,9 +138,9 @@ def test_asset_issue_creation_and_cancel_make_no_second_task_store(workspace, qt
     issue = panel.selected_record
     assert issue.kind == "issue" and issue.owner_id == workspace.identifier
     panel.kind.setCurrentIndex(panel.kind.findData("task"))
-    assert panel.results.count() == 0
+    assert len(panel.records) == 0
     panel.kind.setCurrentIndex(panel.kind.findData("issue"))
-    assert panel.results.count() == 1
+    assert len(panel.records) == 1
     window.tasks.show_record(issue.id)
     assert window.tasks.selected_record.id == issue.id
 
@@ -163,3 +166,62 @@ def test_checklist_edit_conflict_cancel_and_preserved_pending_input(workspace, m
     monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Discard)
     editor.reject()
     editor.deleteLater()
+
+
+@pytest.mark.parametrize("issue", [False, True])
+def test_compact_status_headers_accept_drops_and_icons_match_all_views(workspace, qt_app, issue):
+    window, workspace = workspace
+    service = IssueService(window.project)
+    record = service.create(workspace.identifier, "Gemeinsame Statussymbole", issue=issue)
+    board = workspace.tasks
+    assert board.compact and board.board_splitter.orientation() == Qt.Horizontal
+    assert board.board_splitter.widget(1) is board.detail_page
+    assert board.detail_page.maximumWidth() == 380
+    board.show_record(record.id)
+    assert ("kind:" + record.kind,) in board.columns["open"].groups
+    for status in ("in_progress", "blocked", "done", "open"):
+        board.show_record(record.id)
+        header = board.headings[status]
+        header.setChecked(False)
+        assert header.height() == 26 and not board.columns[status].isVisible()
+        board.dragged_record = record
+        mime = board.columns[record.data["status"]].drag_mime(record.id)
+        enter = QDragEnterEvent(QPoint(10, 10), Qt.MoveAction, mime, Qt.LeftButton, Qt.NoModifier)
+        QApplication.sendEvent(header, enter)
+        drop = QDropEvent(QPointF(10, 10), Qt.MoveAction, mime, Qt.LeftButton, Qt.NoModifier)
+        QApplication.sendEvent(header, drop)
+        assert drop.isAccepted()
+        qt_app.processEvents()
+        board.dragged_record = None
+        record = window.project.catalog.get(record.id)
+        assert record.data["status"] == status
+        assert header.isChecked() and board.columns[status].isVisible()
+        expected = status_icon(status, issue=issue).pixmap(40, 20).toImage()
+        icon = board.columns[status].items_by_id[record.id].icon(0)
+        assert icon.pixmap(40, 20).toImage() == expected
+        assert record_icon(record).pixmap(40, 20).toImage() == expected
+        window.refresh()
+        tree_item = next(i for i in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
+                         if i.data(0, Qt.UserRole) == record.id)
+        assert tree_item.icon(0).pixmap(40, 20).toImage() == expected
+        width = 52 if issue else 26
+        assert window.canvas.items_by_id[record.id].icon.pixmap().toImage() \
+            == status_icon(status, issue=issue).pixmap(width, 26).toImage()
+
+
+def test_compact_collapsed_header_rejects_foreign_drop_and_preserves_scope(workspace, qt_app):
+    window, workspace = workspace
+    board = workspace.tasks
+    record = IssueService(window.project).create(workspace.identifier, "Gesperrter Fremddrop")
+    board.refresh()
+    board.dragged_record = record
+    mime = QMimeData()
+    mime.setData(MIME_TYPE, ("another-board:" + record.id).encode())
+    header = board.headings["done"]
+    header.setChecked(False)
+    event = QDragEnterEvent(QPoint(10, 10), Qt.MoveAction, mime, Qt.LeftButton, Qt.NoModifier)
+    QApplication.sendEvent(header, event)
+    assert not event.isAccepted() and not header.isChecked()
+    board.dragged_record = None
+    assert window.project.catalog.get(record.id) == record
+    assert board.current_card == workspace.identifier

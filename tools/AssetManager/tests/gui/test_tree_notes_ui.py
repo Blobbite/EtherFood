@@ -202,17 +202,13 @@ def test_postit_create_edit_filter_pin_and_restart_use_existing_documents(window
     window.select_card(ids["one"])
     window.tabs.setCurrentWidget(window.notes)
 
-    def fill():
-        editor = QApplication.activeModalWidget()
-        assert isinstance(editor, NoteEditor)
-        editor.title.setText("Raster besprechen")
-        editor.body.setPlainText("Walk und Stand prüfen")
-        editor.color.setCurrentIndex(editor.color.findData("blue"))
-        editor.pinned.setChecked(True)
-        QTest.mouseClick(editor.buttons.button(QDialogButtonBox.Save), Qt.LeftButton)
-
-    QTimer.singleShot(0, fill)
     QTest.mouseClick(window.notes.findChild(QPushButton, "new_note"), Qt.LeftButton)
+    editor = window.notes.editor
+    editor.title.setText("Raster besprechen")
+    editor.editor.setPlainText("Walk und Stand prüfen")
+    editor.color.setCurrentIndex(editor.color.findData("blue"))
+    editor.pinned.setChecked(True)
+    assert editor.save()
     assert window.notes.notes.count() == 1
     record = window.notes.selected()
     assert record.kind == "document" and record.owner_id == ids["one"]
@@ -224,7 +220,7 @@ def test_postit_create_edit_filter_pin_and_restart_use_existing_documents(window
     window.notes.query.setText("STAND")
     assert window.notes.notes.count() == 1
     window.notes.select_note(record.id)
-    QTest.mouseClick(window.notes.edit_button, Qt.LeftButton)
+    window.notes.edit_note()
     assert window.tabs.currentWidget() == window.notes
     assert window.notes.editor.current == record
     window.open_project(window.project.catalog.path.parent)
@@ -362,4 +358,5 @@ def test_asset_icon_is_not_a_document_icon_and_archived_contents_hide(window, qt
                             window.project.catalog.get(window.ids["act"]).revision_no)
     window.refresh()
     assert note.id not in window.canvas.items_by_id
-    assert window.notes.notes.count() == 0
+    assert NoteService(window.project).notes(window.notes.current_card) == []
+    assert window.notes.editor.current is None

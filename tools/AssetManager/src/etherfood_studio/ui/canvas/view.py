@@ -22,6 +22,8 @@ class Canvas(QGraphicsView):
     selected = Signal(str)
     open_requested = Signal(str)
     moved = Signal(str, float, float)
+    moved_many = Signal(object)
+    create_requested = Signal(str, float, float)
     toggle_requested = Signal(str)
     resized = Signal(str, float, float)
     connection_requested = Signal(str, str)
@@ -34,7 +36,9 @@ class Canvas(QGraphicsView):
         self.setScene(QGraphicsScene(self))
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.setBackgroundBrush(QColor("#f0f4f7"))
-        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        self.setToolTip("Strg+Klick oder Auswahlrahmen: mehrere Karten · "
+                        "Mittlere Maustaste: verschieben · Strg+Mausrad: zoomen")
         self.items_by_id: dict[str, CardItem] = {}
         self.edges_by_id: dict[str, EdgeItem] = {}
         self.label_rects = []
@@ -52,6 +56,19 @@ class Canvas(QGraphicsView):
         selected = [item for item in self.scene().selectedItems() if isinstance(item, CardItem)]
         if selected:
             self.selected.emit(str(selected[0].data(0)))
+
+    def selected_ids(self) -> set[str]:
+        return {item.identifier for item in self.scene().selectedItems()
+                if isinstance(item, CardItem)}
+
+    def select_many(self, identifiers: set[str]) -> None:
+        self.scene().blockSignals(True)
+        self.scene().clearSelection()
+        for identifier in identifiers:
+            if identifier in self.items_by_id:
+                self.items_by_id[identifier].setSelected(True)
+        self.scene().blockSignals(False)
+        self.update_edges()
 
     @staticmethod
     def default_positions(project: ProjectService) -> dict[str, dict]:
@@ -155,7 +172,7 @@ class Canvas(QGraphicsView):
             elif record.data.get("document_type") == "generated":
                 summary += "\nBericht (nur lesen)"
             item = IconCardItem(record.id, record.title, "note" if note else record.kind,
-                                summary, self, color)
+                                summary, self, color, record.data.get("status", "open"))
             layout = defaults[record.id] | project.catalog.layout(record.id)
             item.setPos(layout["x"], layout["y"])
             self.scene().addItem(item)
@@ -239,9 +256,13 @@ class Canvas(QGraphicsView):
         connection = self.connection
         card = self.card_at(point)
         self.cancel_connection()
-        if not connection or not card:
+        if not connection:
             return
         fixed, _, edge_id, moving = connection
+        if not card:
+            if edge_id is None:
+                self.create_requested.emit(fixed, point.x(), point.y())
+            return
         source, target = ((card.identifier, fixed) if moving == "source"
                           else (fixed, card.identifier))
         if edge_id:

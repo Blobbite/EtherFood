@@ -51,10 +51,26 @@ blendet auch seine Inhalte aus. Alte Notiz-Karten bleiben kleine Sammelcontainer
 ein Doppelklick zeigt ihre enthaltenen Notizdokumente im Dashboard.
 
 Assets erhalten einen blauen Würfel, Notizen ein gelbes Haftnotizsymbol und
-Dokumentation ein violettes Blatt. Aufgaben zeigen einen kräftigen grünen Haken
-ohne Rahmen oder Hintergrund. Der Haken kennzeichnet den Typ Aufgabe, nicht
-deren Erledigungsstatus. Alle vier Icons werden in Qt gezeichnet; keine
-zusätzlichen Bilddateien oder Schriftfonts sind nötig.
+Dokumentation ein violettes Blatt. Aufgaben zeigen ihren gespeicherten Status:
+offener Kreis (Offen), blauer Punkt (In Arbeit), rotes X (Blockiert), kräftiger
+grüner Haken (Erledigt). Issues besitzen zusätzlich ein gelbes Ausrufezeichen.
+Die Symbole stimmen mit Baum, Suche und Kanban überein. Sie werden in Qt
+gezeichnet; zusätzliche Bilddateien oder Schriftfonts sind nicht nötig.
+
+Eine Anschlussstelle auf freie Canvas-Fläche ziehen bietet **Notiz,
+Dokumentation, Aufgabe, Issue** sowie hierarchisch passende **Assets,
+Ordner/Pakete, Kapitel oder Akte** an. Der Menü-Kopf nennt den Eigentümer.
+Von einem Inhaltssymbol aus entstehen Geschwister unter dessen Eigentümer,
+keine erfundene Unterhierarchie innerhalb eines Dokuments. Anlegen, Zuordnung
+und Position sind ein rückgängig machbarer Schritt. Abbruch verändert nichts;
+beim Umhängen einer bestehenden Verbindung auf freie Fläche entsteht keine Karte.
+Neue Assets erhalten die bisherigen Standardanforderungen, anpassbar im Asset-Menü.
+
+**Strg+Klick** oder ein Auswahlrahmen markiert mehrere Karten. Rechtsklick auf
+die Ankerkarte → **Auswahl anordnen → Kreis / Linie** ordnet die ausgewählten
+Nachbarkarten an. Die Ankerkarte und nicht ausgewählte Karten bleiben stehen;
+die Auswahl kann auch gemeinsam verschoben werden. **Strg+Z** nimmt den ganzen
+Layoutschritt zurück. Verschieben der Ansicht bleibt auf der mittleren Maustaste.
 
 ## Dokumentation anlegen und importieren
 
@@ -69,7 +85,10 @@ Quelltext (auch leerer Inhalt), Originaldatei und Herkunft bleiben erhalten.
 Ein ausdrücklicher Revisionsimport in eine vorhandene Notiz oder Dokumentation
 behält deren Typ, ID und Anhänge. Bestehende Notizen und frühere Importe werden
 nicht rückwirkend umklassifiziert. Die Dokumentauswahl blendet Notizen aus;
-deren Markdown und Anhänge werden direkt im Notiz-Dashboard bearbeitet.
+deren Text wird direkt auf den Notizkarten bearbeitet. Alte Anhänge bleiben
+im Katalog erhalten; das Notiz-Dashboard bietet keine Anhangsaktionen mehr.
+Die neue [Markdown-Einzelansicht](DOKUMENTATION.md) gilt für Dokumentation
+im Hauptfenster und Asset-Menü.
 
 ## Post-its im Notiz-Dashboard
 
@@ -77,16 +96,25 @@ Das Dashboard zeigt vorhandene manuelle Dokumente der Vorlagen **Freie Notiz**
 und **Testnotiz**. Andere Dokumentvorlagen und generierte Berichte bleiben in
 der Dokumentation. Alte freie Notizen ohne explizite Vorlage bleiben lesbar.
 
-- **+ Notiz** erstellt einen Eintrag an der ausgewählten Karte. Ein Klick auf
-  ein Post-it lädt darunter den eingebetteten Editor mit Titel, Markdown,
-  Vorschau, sechs Farben, **Oben anheften** und Anhängen. Doppelklick oder
-  **Notiz bearbeiten** fokussiert diesen Editor, ohne Reiterwechsel.
+- Ein leerer Bereich, auch eine alte leere Notiz-Sammelkarte, zeigt sofort
+  eine gelbe Schreibkarte. Bloßes Öffnen schreibt noch keinen Datensatz.
+  **+ Notiz** bietet eine weitere leere Karte an; Titel und Text werden direkt
+  in der 320 × 270 Pixel großen Karte bearbeitet. Es gibt keinen unteren
+  Zweiteditor, keine separate Vorschau und keine Anhangsschaltflächen.
+- Neue/geänderte Notiztexte sind auf **100 Wörter** begrenzt. Zähler und
+  Speicherzustand stehen in der Karte. Überlange Entwürfe bleiben sichtbar,
+  werden aber nicht gespeichert. Längere Texte gehören in die Dokumentation.
+  Bestehende lange Notizen werden niemals abgeschnitten; Farbe, Titel und
+  Anheften lassen sich bei unverändertem Alttext weiterhin speichern.
+- Rechtsklick bietet sechs Farben und **Oben anheften** an. Im Asset-Menü
+  werden dieselben bearbeitbaren Notizkarten untereinander angezeigt.
 - Angeheftete Notizen stehen zuerst, danach wird nach Titel sortiert. Die Farbe
   ist unabhängig von Aufgabenstatus oder Asset-Freigabe.
 - Bereich und Herkunft bleiben sichtbar. Text-/Farbfilter sowie **Gesamtes
   Projekt** helfen bei größeren Sammlungen. Akt/Kapitel berücksichtigen auch
   verwendete Assets/Pakete und deren Unterkarten, ohne doppelte Notizen.
-- **Speichern** oder **Strg+S** speichert die aktive Notiz revisioniert.
+- Nach etwa 0,9 Sekunden Schreibpause wird revisioniert gespeichert.
+  **Strg+S** oder **Jetzt speichern** im Kontextmenü speichert sofort.
   Baum, Canvas, Suche und Kontextmenü öffnen denselben Datensatz im Dashboard.
   Im Asset-Menü gibt es dafür einen eigenen Unterreiter **Notizen**.
 - Abbrechen/Schließen mit geändertem Text fragt nach Speichern oder Verwerfen.

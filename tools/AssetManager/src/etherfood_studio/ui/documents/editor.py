@@ -2,11 +2,10 @@
 
 from pathlib import Path
 
-from PySide6.QtCore import QByteArray, Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices, QTextDocument
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QListWidget, QMessageBox,
-    QPlainTextEdit, QSplitter, QTextBrowser, QVBoxLayout, QWidget,
+    QPlainTextEdit, QVBoxLayout, QWidget,
 )
 
 from ...application.document_service import DocumentService, TEMPLATES
@@ -14,32 +13,8 @@ from ...domain.models import Record, StudioError
 from ...domain.notes import NOTE_TEMPLATES, is_note
 from ..common import button, label, show_error
 from ..presentation import kind_icon
-
-
-class SafePreview(QTextBrowser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.setObjectName("markdown_preview")
-        self.setAccessibleName("Sichere Markdown-Vorschau ohne externe Inhalte")
-        self.setOpenLinks(False)
-        self.setOpenExternalLinks(False)
-        self.anchorClicked.connect(self._open_link)
-
-    def loadResource(self, resource_type: int, name: QUrl) -> object:
-        return QByteArray()  # No file://, HTTP, data URI or relative resource loading.
-
-    def preview(self, text: str) -> None:
-        self.document().setMarkdown(text, QTextDocument.MarkdownFeature.MarkdownNoHTML)
-
-    def _open_link(self, url: QUrl) -> None:
-        if url.scheme() not in {"https", "http"}:
-            return
-        answer = QMessageBox.question(self, "Externen Link öffnen?", url.toString(),
-                                      QMessageBox.StandardButton.Yes
-                                      | QMessageBox.StandardButton.No,
-                                      QMessageBox.StandardButton.No)
-        if answer == QMessageBox.StandardButton.Yes:
-            QDesktopServices.openUrl(url)
+from .preview import SafePreview
+from .live_markdown import LiveMarkdownEditor
 
 
 class DocumentEditor(QWidget):
@@ -65,16 +40,12 @@ class DocumentEditor(QWidget):
         layout.addLayout(top)
         self.state = label("Karte auswählen und Dokumentation anlegen.", "document_state")
         layout.addWidget(self.state)
-        self.editor = QPlainTextEdit()
+        self.editor = LiveMarkdownEditor()
         self.editor.setObjectName("markdown_editor")
         self.editor.setAccessibleName("Markdown-Text bearbeiten")
         self.editor.setPlaceholderText("Noch kein Dokument. Über + Dokumentation anlegen.")
         self.editor.textChanged.connect(self._changed)
-        self.preview = SafePreview()
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.addWidget(self.editor)
-        splitter.addWidget(self.preview)
-        layout.addWidget(splitter, 1)
+        layout.addWidget(self.editor, 1)
         bottom = QHBoxLayout()
         self.save_button = button("Speichern · Strg+S", "save_document", self.save)
         bottom.addWidget(self.save_button)
@@ -153,11 +124,11 @@ class DocumentEditor(QWidget):
         generated = bool(self.current and self.current.data["document_type"] == "generated")
         self.editor.setReadOnly(self.current is None or generated)
         self.save_button.setEnabled(self.current is not None and not generated)
-        self._update_preview()
         self.attachments.clear()
         if self.current:
             for attachment in self.current.data["attachments"]:
                 self.attachments.addItem(attachment["original_name"])
+        self.attachments.setVisible(self.attachments.count() > 0)
         self.dirty = False
         self._loading = False
         self.state.setText(f"Revision {self.current.revision_no} · "
@@ -177,13 +148,10 @@ class DocumentEditor(QWidget):
             return
         self.dirty = self.editor.toPlainText() != self.current.data["body"]
         self.state.setText("Ungespeicherte Änderungen" if self.dirty else "Gespeichert")
-        self._update_preview()
 
-    def _update_preview(self) -> None:
-        try:
-            self.preview.preview(self.editor.toPlainText())
-        except (RuntimeError, ValueError):
-            self.preview.setPlainText("Vorschau nicht verfügbar; Text bleibt bearbeitbar.")
+    @property
+    def preview(self) -> SafePreview:
+        return self.editor.blocks[0].view
 
     def save(self) -> bool:
         if self.current is None or not self.service or not self.dirty:

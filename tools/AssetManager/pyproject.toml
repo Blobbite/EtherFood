@@ -11,7 +11,7 @@ dependencies = []
 
 [project.optional-dependencies]
 images = ["Pillow==12.1.1"]
-gui = ["PySide6==6.10.2", "Pillow==12.1.1"]
+gui = ["PySide6==6.10.2", "Pillow==12.1.1", "markdown-it-py==4.0.0"]
 test = ["pytest==8.4.2", "jsonschema==4.26.0", "Pillow==12.1.1"]
 
 [project.scripts]

@@ -1,79 +1,202 @@
-"""Embedded note editor with shared safe preview/attachments, never a documentation tab."""
+"""Edit a revision-aware post-it in place without attachments or a second editor."""
 
-from PySide6.QtWidgets import QCheckBox, QComboBox, QHBoxLayout, QLineEdit, QPushButton, QWidget
+import sqlite3
+
+from PySide6.QtCore import QEvent, Qt, QTimer, Signal
+from PySide6.QtWidgets import (
+    QCheckBox, QComboBox, QFrame, QLineEdit, QMenu, QMessageBox, QPlainTextEdit, QVBoxLayout,
+)
 
 from ..domain.models import StudioError
-from ..domain.notes import NOTE_COLORS
-from .common import show_error
-from .documents.editor import DocumentEditor
+from ..domain.notes import NOTE_COLORS, NOTE_WORD_LIMIT, note_word_count
+from .common import label, show_error
 
 
-class NoteDetails(DocumentEditor):
-    def __init__(self) -> None:
-        super().__init__(notes_only=True)
-        self.setObjectName("note_details")
-        self.documents.hide()
-        for name in ("new_document", "import_markdown"):
-            self.findChild(QPushButton, name).hide()
-        for widget in self.findChildren(QWidget):
-            if widget.objectName():
-                widget.setObjectName("note_inline_" + widget.objectName())
-        fields = QHBoxLayout()
+class NoteDetails(QFrame):
+    saved = Signal()
+    activated = Signal()
+    SIZE = (320, 270)
+
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.service = None
+        self.owner_id = None
+        self.current = None
+        self.dirty = False
+        self._loading = False
+        self.setObjectName("note_card")
+        self.setFixedSize(*self.SIZE)
+        layout = QVBoxLayout(self)
         self.title = QLineEdit()
         self.title.setObjectName("note_inline_title")
-        self.title.setPlaceholderText("Titel der Notiz")
-        self.color = QComboBox()
-        self.color.setObjectName("note_inline_color")
-        for key, (label, _) in NOTE_COLORS.items():
-            self.color.addItem(label, key)
-        self.pinned = QCheckBox("Anheften")
-        self.pinned.setObjectName("note_inline_pinned")
-        fields.addWidget(self.title, 1)
-        fields.addWidget(self.color)
-        fields.addWidget(self.pinned)
-        self.layout().insertLayout(0, fields)
-        self.title.textChanged.connect(self._changed)
+        self.title.setPlaceholderText("Überschrift …")
+        self.editor = QPlainTextEdit()
+        self.editor.setObjectName("note_inline_markdown_editor")
+        self.editor.setPlaceholderText("Hier klicken und eine kurze Notiz schreiben …")
+        self.editor.setTabChangesFocus(True)
+        self.color = QComboBox(self)
+        for key, (name, _) in NOTE_COLORS.items():
+            self.color.addItem(name, key)
+        self.color.hide()
+        self.pinned = QCheckBox("Anheften", self)
+        self.pinned.hide()
+        self.state = label("0 / 100 Wörter", "note_word_count")
+        self.state.setWordWrap(True)
+        layout.addWidget(self.title)
+        layout.addWidget(self.editor, 1)
+        layout.addWidget(self.state)
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(900)
+        self.timer.timeout.connect(lambda: self.save(quiet=True))
+        for field in (self.title, self.editor):
+            field.installEventFilter(self)
+            field.textChanged.connect(self._changed)
+            field.setContextMenuPolicy(Qt.CustomContextMenu)
+            field.customContextMenuRequested.connect(
+                lambda point, widget=field: self.show_context(widget, point))
         self.color.currentIndexChanged.connect(self._changed)
         self.pinned.toggled.connect(self._changed)
-        self.editor.setPlaceholderText("Eine Notiz im Dashboard auswählen oder + Notiz verwenden.")
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(lambda point: self.show_context(self, point))
+        self._style()
 
-    def _load(self, identifier) -> None:
-        super()._load(identifier)
+    def eventFilter(self, watched, event) -> bool:
+        if event.type() == QEvent.FocusIn:
+            self.activated.emit()
+        return super().eventFilter(watched, event)
+
+    def bind(self, service, owner_id=None, record=None) -> None:
+        self.timer.stop()
+        self.service, self.owner_id = service, owner_id
+        self.load(record)
+
+    def load(self, record) -> None:
+        self.timer.stop()
         self._loading = True
-        record = self.current
+        self.current = record
+        if record:
+            self.owner_id = record.owner_id
         self.title.setText(record.title if record else "")
+        self.editor.setPlainText(record.data.get("body", "") if record else "")
         self.color.setCurrentIndex(self.color.findData(
             record.data.get("note_color", "yellow") if record else "yellow"))
         self.pinned.setChecked(bool(record and record.data.get("note_pinned")))
-        for field in (self.title, self.color, self.pinned):
-            field.setEnabled(record is not None)
-        if not record:
-            self.state.setText("Notiz auswählen; Text, Farbe und Anhänge hier bearbeiten.")
         self._loading = False
         self.dirty = False
+        self._style()
+        self._caption()
+
+    def refresh_documents(self, identifier=None) -> None:
+        if not self.dirty and self.service:
+            self.load(self.service.catalog.get(identifier) if identifier else None)
+
+    def _style(self) -> None:
+        color = NOTE_COLORS[self.color.currentData() or "yellow"][1]
+        self.setStyleSheet(
+            f"QFrame#note_card {{ background: {color}; border: 1px solid #aa9868; "
+            "border-radius: 9px; }"
+            "QLineEdit, QPlainTextEdit { background: transparent; color: #263238; "
+            "border: none; selection-background-color: #b3d6f5; }"
+            "QLineEdit { font-weight: bold; } QLabel { color: #52606a; background: transparent; }"
+        )
+
+    def _caption(self, message: str = "") -> None:
+        count = note_word_count(self.editor.toPlainText())
+        legacy = self.current and self.editor.toPlainText() == self.current.data["body"]
+        too_long = "Alttext bleibt erhalten" if legacy else "Zu lang – bitte kürzen"
+        suffix = message or (too_long if count > NOTE_WORD_LIMIT
+                             else "Ungespeichert · speichert automatisch" if self.dirty
+                             else "Gespeichert" if self.current else "Direkt schreiben")
+        self.state.setText(f"{'Angeheftet · ' if self.pinned.isChecked() else ''}"
+                           f"{count} / {NOTE_WORD_LIMIT} Wörter · {suffix}")
 
     def _changed(self, *args) -> None:
-        super()._changed()
-        if self._loading or not self.current:
+        if self._loading:
             return
-        self.dirty |= (self.title.text() != self.current.title
-                       or self.color.currentData() != self.current.data.get("note_color", "yellow")
-                       or self.pinned.isChecked() != self.current.data.get("note_pinned", False))
-        self.state.setText("Ungespeicherte Notiz" if self.dirty else "Gespeichert")
+        self._style()
+        if self.current:
+            self.dirty = (self.title.text() != self.current.title
+                          or self.editor.toPlainText() != self.current.data["body"]
+                          or self.color.currentData() != self.current.data.get(
+                              "note_color", "yellow")
+                          or self.pinned.isChecked() != self.current.data.get("note_pinned", False))
+        else:
+            self.dirty = bool(self.title.text().strip() or self.editor.toPlainText().strip())
+        self._caption()
+        if self.dirty and self.service:
+            self.timer.start()
+        else:
+            self.timer.stop()
 
-    def save(self) -> bool:
-        if not self.current or not self.dirty:
+    def save(self, *, quiet: bool = False) -> bool:
+        self.timer.stop()
+        if not self.service or not self.owner_id or not self.dirty:
             return True
+        title = self.title.text().strip()
+        if not title:
+            existing = {row.title.casefold() for row in self.service.documents(self.owner_id)
+                        if not self.current or row.id != self.current.id}
+            title, counter = "Notiz", 1
+            while title.casefold() in existing:
+                counter += 1
+                title = f"Notiz {counter}"
         try:
             self.current = self.service.write(
-                self.current.owner_id, self.title.text(), self.editor.toPlainText(),
-                identifier=self.current.id, expected_revision=self.current.revision_no,
+                self.owner_id, title, self.editor.toPlainText(),
+                identifier=self.current.id if self.current else None,
+                expected_revision=self.current.revision_no if self.current else None,
                 color=self.color.currentData(), pinned=self.pinned.isChecked(),
             )
-        except (StudioError, OSError) as error:
-            show_error(self, error)
+        except (StudioError, OSError, sqlite3.Error) as error:
+            self._caption(str(error))
+            if not quiet:
+                show_error(self, error)
             return False
+        self._loading = True
+        self.title.setText(self.current.title)
+        self._loading = False
         self.dirty = False
-        self.state.setText(f"Gespeichert · Revision {self.current.revision_no}")
+        self._caption()
         self.saved.emit()
         return True
+
+    def confirm_discard(self) -> bool:
+        if not self.dirty:
+            return True
+        self.timer.stop()
+        answer = QMessageBox.question(
+            self, "Notiz noch nicht gespeichert", "Notiz vor dem Wechsel speichern?",
+            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, QMessageBox.Cancel,
+        )
+        if answer == QMessageBox.Cancel:
+            return False
+        if answer == QMessageBox.Save:
+            return self.save()
+        self.load(self.service.catalog.get(self.current.id) if self.current else None)
+        return True
+
+    def context_menu(self, field=None) -> QMenu:
+        menu = (field.createStandardContextMenu() if field in (self.title, self.editor)
+                else QMenu(self))
+        menu.addSeparator()
+        colors = QMenu("Farbe", menu)
+        menu.addMenu(colors)
+        for key, (name, _) in NOTE_COLORS.items():
+            action = colors.addAction(name)
+            action.setObjectName("note_color_" + key)
+            action.setCheckable(True)
+            action.setChecked(self.color.currentData() == key)
+            action.triggered.connect(lambda checked=False, value=key:
+                                     self.color.setCurrentIndex(self.color.findData(value)))
+        pinned = menu.addAction("Oben anheften")
+        pinned.setCheckable(True)
+        pinned.setChecked(self.pinned.isChecked())
+        pinned.triggered.connect(self.pinned.setChecked)
+        menu.addAction("Jetzt speichern · Strg+S", lambda: self.save())
+        return menu
+
+    def show_context(self, field, point) -> None:
+        menu = self.context_menu(field)
+        menu.exec(field.mapToGlobal(point))
+        menu.deleteLater()
