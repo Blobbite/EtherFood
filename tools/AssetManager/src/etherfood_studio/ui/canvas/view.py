@@ -200,7 +200,7 @@ class Canvas(QGraphicsView):
         else:
             super().keyPressEvent(event)
 
-    def focus_card(self, identifier: str) -> None:
+    def focus_card(self, identifier: str, *, center: bool = True) -> None:
         item = self.items_by_id.get(identifier)
         if item is not None:
             self.scene().blockSignals(True)
@@ -208,7 +208,8 @@ class Canvas(QGraphicsView):
             item.setSelected(True)
             self.scene().blockSignals(False)
             self.update_edges()
-            self.centerOn(item)
+            if center:
+                self.centerOn(item)
 
     def zoom(self, factor: float) -> None:
         if 0.25 <= self.transform().m11() * factor <= 2.5:

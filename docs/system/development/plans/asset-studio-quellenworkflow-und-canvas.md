@@ -123,5 +123,63 @@ Abgeschlossen sind die Planpräzisierung und die Canvas-Implementierung.
 Die präzisierte Bedienung wurde bei den vorhandenen Issues #22/#23 als
 Planung ergänzt; beide bleiben offen. Der Quellenbutton und die automatische
 Erzeugung wurden nicht implementiert und werden nicht als testbereit ausgegeben.
-Die persönliche Canvas-Sichtprüfung und zurückgestellte Paket-5-Punkte bleiben
-offen. Kein bestehender Benutzerstand, Originalbild oder fremder Git-Diff entfernt.
+Bei dieser Übergabe waren persönliche Canvas-Sichtprüfung und zurückgestellte
+Paket-5-Punkte noch offen; die neuere Rückmeldung steht im nächsten Abschnitt.
+Kein bestehender Benutzerstand, Originalbild oder fremder Git-Diff entfernt.
+
+## Nachprüfung: Positionssprung nach Zoom
+
+27.09.2026, Basis `1d2eb0e`: Der Benutzer bestätigt die vier kurzen Prüfpunkte
+mit Haken, meldet aber einen zusätzlichen Fehler: Je nach Zoom verschieben
+sich Karten beim Anklicken gegeneinander. Die bestätigten Punkte bleiben
+angenommen; nur der neue Auswahl-/Bewegungsfehler benötigt einen Nachtest.
+Die zurückgestellten Bestands- und Pipelineprüfungen bleiben zurückgestellt.
+
+### Schritte und Fortschritt
+
+- [x] Auswahl, Zentrierung, Mausbewegung und bisherige Tests untersuchen.
+- [x] Fehler mit echten Qt-Mausereignissen bei mehreren Zoomstufen nachstellen.
+- [x] Ursache gezielt korrigieren; bewusste Navigation und Drag/Undo erhalten.
+- [x] Regressionen und Studio-Prüfungen ausführen, Ergebnis dokumentieren.
+- [x] Nachtest und nächstes Paket dokumentieren; nur eigene Dateien für Commit/Push bereitstellen.
+
+Ursache durch acht fehlschlagende Qt-Regressionen vor der Korrektur belegt:
+Die Canvas-Auswahl verwendet denselben zentrierenden Navigationspfad wie
+der Projektbaum. Eine Zentrierung zwischen Mausklick und Mausbewegung
+verändert den Bezugspunkt des laufenden Drags. Bei Zoom 0,25 wurden im
+Test nach 40 Pixel Mausweg x=195 statt x=455 gespeichert. Auch ein reiner
+Klick verschob unbeabsichtigt den Sichtausschnitt. Gezielte Trennung:
+Canvas-Auswahl ohne Zentrierung; Navigation über den Baum oder die Suche
+darf weiterhin die Zielkarte ins Bild holen. Die verzögerte Verarbeitung
+zum Schutz beim Speichern einer offenen Notiz bleibt erhalten.
+
+Nur Canvas-Auswahl und die zugehörigen Prüfungen ändern. Kein automatisches
+Neuanordnen bestehender Projekte, keine Originalbilder oder fremden Änderungen
+übernehmen. Als Nächstes bleibt Abschnitt A (T015/#22, T016/#23) vorgesehen;
+Quellenimport und Varianten-Erzeugung werden in dieser Fehlerkorrektur nicht
+zusätzlich implementiert.
+
+### Tatsächlich ausgeführte Nachprüfungen
+
+- Vor der Korrektur: acht reproduzierbare Fehler in
+  `tests/gui/test_canvas_selection.py`, jeweils bei Zoom 0,25/0,8/1/2,5.
+- Nach der Korrektur: 16 neue Qt-Fälle für reinen Klick, kleine und größere
+  Bewegung nach gedrückter Auswahl, Undo/Redo, unveränderte Asset-Daten,
+  Wiederöffnen, Baum-/Suchnavigation sowie Speichern/Abbrechen offener Notizen.
+- Fokussierter Lauf mit `test_canvas_selection.py`, `test_canvas_workspace.py`,
+  `test_review_ui.py` und `test_dashboard.py`: **44 bestanden**.
+- `QT_QPA_PLATFORM=offscreen .venv/bin/python -X faulthandler -m pytest -q
+  tools/AssetManager/tests`: **133 bestanden**; vorhandene temporäre
+  Qt-Systembibliotheken über `LD_LIBRARY_PATH` verwendet.
+- Stilprüfung der Studio-Quellen und -Tests: **59 Dateien, keine Befunde**.
+  `git diff --check` ohne Befund.
+- `python3 tools/control.py check` erneut ausgeführt: **257 bestanden,
+  37 übersprungen, zwei Dokumentationstests fehlgeschlagen**. Weiterhin fehlen
+  Godot 4 und die bekannten Dokumentationsziele; 1907 vorhandene Stilbefunde
+  in jetzt 225 geprüften Dateien. Kein neuer Studio-Befund.
+
+Die Nachtestliste trennt drei kleine manuelle Prüfungen von den bereits
+bestätigten vier Punkten und nennt Quellenimport/Asset-Anlage als nächstes
+Paket. Die persönliche Nachprüfung des Fixes bleibt offen. Bestehende
+Anordnungen werden nicht automatisch verändert oder nachträglich repariert;
+nur bewusstes Ziehen darf künftig neue Positionswerte speichern.

@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         canvas_layout.addLayout(actions)
         self.canvas = Canvas()
         # Saving a dirty note can rebuild the scene; finish the pointer event first.
-        self.canvas.selected.connect(self.select_card, Qt.ConnectionType.QueuedConnection)
+        self.canvas.selected.connect(self._canvas_selected, Qt.ConnectionType.QueuedConnection)
         self.canvas.moved.connect(self.move_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.toggle_requested.connect(self.toggle_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.resized.connect(self.resize_canvas_card, Qt.ConnectionType.QueuedConnection)
@@ -416,13 +416,17 @@ class MainWindow(QMainWindow):
             elif self.select_card(identifier):
                 self.selected_content_id = None
 
-    def select_card(self, identifier: str) -> bool:
+    def _canvas_selected(self, identifier: str) -> None:
+        # Keep the camera fixed while Qt still tracks a press/drag on the card.
+        self.select_card(identifier, center=False)
+
+    def select_card(self, identifier: str, *, center: bool = True) -> bool:
         if not self.project or self._refreshing:
             return False
         if identifier == self.selected_id:
             return True
         if not self.documents.show_card(identifier):
-            self.canvas.focus_card(self.selected_id)
+            self.canvas.focus_card(self.selected_id, center=center)
             self._select_tree_item(self.selected_content_id or self.selected_id)
             return False
         self.selected_id = identifier
@@ -449,7 +453,7 @@ class MainWindow(QMainWindow):
         if view_changes:
             self.commands.layouts(view_changes)
             self.canvas.render(self.project, identifier)
-        self.canvas.focus_card(identifier)
+        self.canvas.focus_card(identifier, center=center)
         self._properties()
         return True
 

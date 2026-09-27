@@ -6,11 +6,39 @@ Paket-5-Liste. Der gewünschte Quellenworkflow ist
 der Button neben Anker Y und die automatische Erzeugung sind noch nicht
 implementiert. Die Canvas-Anpassung gehört zum jetzigen Update.
 
-## Jetzt wirklich prüfen
+## Bestätigt und aktueller Nachtest
+
+Der Benutzer hat die vier ursprünglichen Punkte am 27.09.2026 mit **✅ 1–4**
+bestätigt. Zusätzlich wurde ein Positionssprung beim Anklicken nach Zoom
+gemeldet. Ursache: Der Klick zentrierte die Ansicht mitten in einem möglichen
+Drag und verfälschte dadurch den Verschiebeweg. Canvas-Auswahl und gezielte
+Navigation sind jetzt getrennt; ein Klick im Canvas zentriert nicht mehr.
 
 Studio neu starten: `python3 tools/control.py asset-manager run`.
 Das vorhandene Testprojekt mit Walk und Stand verwenden; kein neues Projekt
 und keine optionalen PyGameTools-/Archiv-/Godot-Wurzeln erforderlich.
+
+**Nur diese drei Punkte erneut prüfen:**
+
+1. **Zoomen und anklicken:** Weit herauszoomen, normal zoomen und weit
+   hineinzoomen. Jeweils mehrere unterschiedliche Karten nacheinander
+   anklicken, auch kurz gedrückt halten. Ohne bewusstes Ziehen dürfen weder
+   Karten noch Sichtausschnitt springen; ihre Abstände bleiben gleich.
+2. **Gezielt ziehen und zurücknehmen:** Eine noch nicht ausgewählte Karte
+   anklicken und ein Stück ziehen. Sie folgt ohne Sprung der Maus; die anderen
+   Karten bleiben stehen. Strg+Z nimmt genau diesen Weg zurück. Kurz mit
+   gedrücktem Mausrad verschieben: Nur die Ansicht bewegt sich.
+3. **Wieder öffnen und navigieren:** Eine Karte bewusst umsetzen und das
+   Projekt schließen/erneut öffnen. Die gewählte Anordnung bleibt erhalten.
+   Eine andere Karte über den Projektbaum oder die Suche auswählen: Dort
+   wird sie weiterhin gezielt ins Bild geholt, ohne ihre Position zu ändern.
+
+Rückmeldung genügt als `✅ Nachtest 1–3` oder `❗ Nachtest 1: …` mit kurzen
+Schritten und gegebenenfalls Screenshot. Die bisherigen Anforderungen,
+Grafikstufen, Rundungen und Bestandsimporte müssen nicht erneut durchlaufen
+werden. Die manuelle Bestätigung der Fehlerkorrektur steht noch aus.
+
+## Bereits bestätigte Punkte als Referenz
 
 1. **Anforderungen und Speichern:** Beide Posen als `spritesheet`, acht
    Richtungen, fünf Grafikprofile und Frames `8,10,12,14,16` ergeben **400**
@@ -30,9 +58,6 @@ und keine optionalen PyGameTools-/Archiv-/Godot-Wurzeln erforderlich.
    Fenster vergrößern/verkleinern. Punkt 3 kurz wiederholen: Der nutzbare
    Freiraum passt sich an und darf nicht auf den alten kleinen Rand schrumpfen
    oder beim wiederholten Verschieben endlos wachsen.
-
-Rückmeldung genügt als `✅ 1–4` oder `❗ 3: …` mit Screenshot/kurzen Schritten.
-Bereits bestätigte Punkte müssen nicht erneut vollständig durchgetestet werden.
 
 ## Für diese Runde überspringen beziehungsweise zurückstellen
 
@@ -54,8 +79,23 @@ Issues #20/#21 werden durch diese Planänderung nicht automatisch geschlossen.
 
 ## Nächste Kontrollpunkte
 
-Nach Umsetzung des Quellenimports: Button je Pose, mehrere Dateien/Richtungen,
-Rasterprüfung, unvollständige Lieferung, sichere Kopie, Abbruch und Neustart.
+Als nächstes zusammenhängendes Paket ist **Quellenimport und Asset-Anlage**
+vorgesehen (T015/#22 und T016/#23):
+
+- **Spritesheets hinzufügen …** direkt neben Anker Y je Pose; mehrere Dateien
+  auswählen, Pose, Richtung und Raster vor dem Import prüfen.
+- Geprüfte Quellkopien zentral im Studio-Projekt verwalten. Originale bleiben
+  unverändert; unvollständige Lieferungen, Konflikte und Herkunft bleiben
+  sichtbar. Quellen dürfen später ergänzt werden.
+- Asset-/NPC-Vorlagen und Held-Menü mit diesen Anforderungen und Lieferungen
+  verbinden. Danach folgt ein eigenes Briefing für Auswahl, Validierung,
+  sichere Kopie, Abbruch und erneutes Öffnen.
+
+Dieses Paket wird nicht in der Canvas-Fehlerkorrektur mit umgesetzt.
+Automatische Varianten-Erzeugung folgt danach mit den nötigen Auftrags-,
+Masken-/Farb- und Frame-/Grafikschritten; der Quellenbutton allein ist noch
+keine fertige Erzeugungspipeline.
+
 Nach Anbindung der tatsächlichen Erzeugung: angeforderte Frames/Grafikprofile,
 richtige Richtung und Pose, Anker/Timing, zentrale neue Version, unveränderte
 Originale und keine falschen Erfolgsanzeigen bei Abbruch/Fehler.
