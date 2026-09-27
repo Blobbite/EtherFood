@@ -18,9 +18,9 @@ Dokumentations- und Grafikänderungen bleiben erhalten und ungepusht.
 
 - [x] Regeln, aktuellen Canvas, Tests und nächste Planaufgaben prüfen.
 - [x] Nächsten Quellen-/Erzeugungsablauf und die Kontrollpunkte konkretisieren.
-- [ ] Karten runden; endlichen Freiraum und explizites Mitteltasten-Panning umsetzen.
-- [ ] Qt-Regressionsprüfungen, Grenzfälle und Ansichten tatsächlich prüfen.
-- [ ] Kurze neue Prüfliste, Ergebnisdokumentation, englische Emoji-Commits und Push.
+- [x] Karten runden; endlichen Freiraum und explizites Mitteltasten-Panning umsetzen.
+- [x] Qt-Regressionsprüfungen, Grenzfälle und Ansichten tatsächlich prüfen.
+- [x] Kurze neue Prüfliste, Ergebnisdokumentation, englische Emoji-Commits und Push.
 
 Keine Quellbilder bearbeiten, keine Freigabe übertragen, keine neuen
 Animationen erzeugen. Der Quellenbutton und die Pipeline werden in diesem
@@ -100,5 +100,28 @@ Befehle. Änderungen an der Ansicht lassen bestehende Katalogdaten kompatibel.
 
 ## Ergebnis und Rückblick
 
-In Arbeit. Die neue kurze Prüfliste trennt „jetzt prüfen“ von „zurückgestellt“;
+Die Plananpassung ist als `cbf2e8a` committed. Canvas-Code umgesetzt;
+8 neue Qt-Tests und 20 bestehende Qt-Bedienungstests bestanden. Getestet sind
+Rundung/Auswahl, Mitteltasten-Drag, vier Anschläge, Zoom 0,25/0,8/1/2,5,
+Fenstergrößenwechsel, leeres Board, Kartengröße/-position und Verbindungs-
+vorschau ohne unbegrenztes Wachstum. Vollständiger Studio-Lauf: **117 Tests
+bestanden**. **58 Studio-Quell-/Testdateien ohne Stilbefund** und `git diff
+--check` ohne Befund. Tatsächliche Qt-Screenshots von Board und Pan-Anschlag
+geprüft; nur temporäre synthetische Projektdateien, keine Spielgrafik geändert.
+
+`python3 tools/control.py check` tatsächlich ausgeführt: weiterhin **257
+bestanden, 37 übersprungen, 2 fehlgeschlagen** (bestehende Dokumentationslücken/
+13 Verweise), Godot 4 nicht vorhanden und 1907 bestehende Stilbefunde in
+224 geprüften Dateien. Kein neuer Studio-Stilbefund. Pipeline-Bestandstests
+werden bei dieser reinen Canvas-Änderung nicht als erneut ausgeführt behauptet.
+
+Die neue kurze Prüfliste trennt „jetzt prüfen“ von „zurückgestellt“;
 ausgelassene persönliche Prüfungen gelten ausdrücklich nicht als abgenommen.
+Aktuelle Benutzerübergabe: [vier Prüfpunkte](../asset-studio/SICHTPRUEFUNG_CANVAS.md).
+
+Abgeschlossen sind die Planpräzisierung und die Canvas-Implementierung.
+Die präzisierte Bedienung wurde bei den vorhandenen Issues #22/#23 als
+Planung ergänzt; beide bleiben offen. Der Quellenbutton und die automatische
+Erzeugung wurden nicht implementiert und werden nicht als testbereit ausgegeben.
+Die persönliche Canvas-Sichtprüfung und zurückgestellte Paket-5-Punkte bleiben
+offen. Kein bestehender Benutzerstand, Originalbild oder fremder Git-Diff entfernt.

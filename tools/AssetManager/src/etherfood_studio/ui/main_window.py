@@ -120,7 +120,8 @@ class MainWindow(QMainWindow):
         canvas_layout.addWidget(label(
             "Linien: ─ gehört zu · – – verwendet · · · benötigt. "
             "Kreise ziehen: verbinden · Linie anklicken: umhängen · ◢: Größe · "
-            "Strg+Z: zurück · Strg+Mausrad: Zoom · Doppelklick: Gruppe klappen."
+            "Mittlere Maustaste: Ansicht verschieben · Strg+Z: zurück · "
+            "Strg+Mausrad: Zoom · Doppelklick: Gruppe klappen."
         ))
         self.tabs.addTab(canvas_page, "Projekt-Canvas")
         self.documents = DocumentEditor()

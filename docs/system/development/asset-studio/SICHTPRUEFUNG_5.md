@@ -4,6 +4,11 @@ Stand: 26.09.2026. T013/#20 und T014/#21 sind technisch umgesetzt.
 Die persönliche Sichtprüfung steht aus; beide Issues bleiben bis zur
 Rückmeldung offen. Pakete 1–4 einschließlich 4a sind bereits abgenommen.
 
+Aktualisierung 27.09.2026: Für die aktuelle Benutzerrunde gilt die
+[verkürzte Prüfliste für Anforderungen und Canvas](SICHTPRUEFUNG_CANVAS.md).
+Die folgenden acht Punkte bleiben als vollständige Paket-5-Referenz erhalten;
+zurückgestellte Punkte sind ausdrücklich noch nicht persönlich abgenommen.
+
 ## Vorbereitung
 
 Studio schließen und mit `python3 tools/control.py asset-manager run` neu
@@ -59,7 +64,9 @@ keine `.import` löschen und keine Legacy-Pipeline hierfür ausführen.
 Bitte Rückmeldung mit Nummern, zum Beispiel `✅ 1–8` oder
 `❗ 5: falsche Zuordnung; gewählter Ordner …; Screenshot …`.
 Wenn alle Punkte passen, schließen wir #20/#21 nach deiner Abnahme ab.
-Danach kommt ein Vorschlag für T015/#22 und T016/#23; diese wurden nicht begonnen.
+Der nächste Quellen-/Erzeugungsablauf ist inzwischen
+[geplant](../plans/asset-studio-quellenworkflow-und-canvas.md);
+T015/#22 und T016/#23 wurden noch nicht implementiert.
 
 ## Zusatzfälle und Grenzen
 

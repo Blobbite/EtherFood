@@ -3,11 +3,11 @@
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QColor, QFontMetricsF, QPen
+from PySide6.QtGui import QColor, QFontMetricsF, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import (
     QGraphicsEllipseItem, QGraphicsItem, QGraphicsPixmapItem, QGraphicsRectItem,
     QGraphicsSceneMouseEvent,
-    QGraphicsSimpleTextItem,
+    QGraphicsSimpleTextItem, QStyleOptionGraphicsItem, QWidget,
 )
 
 from ..presentation import KIND_NAMES, kind_icon
@@ -73,6 +73,8 @@ class SizeGrip(QGraphicsRectItem):
 
 
 class CardItem(QGraphicsRectItem):
+    CORNER_RADIUS = 10.0
+
     def __init__(self, identifier: str, title: str, kind: str, summary: str,
                  view: "Canvas", width: float = 250, height: float = 100) -> None:
         super().__init__(0, 0, width, height)
@@ -100,6 +102,22 @@ class CardItem(QGraphicsRectItem):
         self.grip = SizeGrip(self)
         self.resize(width, height)
 
+    def shape(self) -> QPainterPath:
+        path = QPainterPath()
+        path.addRoundedRect(self.rect(), self.CORNER_RADIUS, self.CORNER_RADIUS)
+        return path
+
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem,
+              widget: QWidget | None = None) -> None:
+        painter.save()
+        pen = QPen(self.pen())
+        if self.isSelected():
+            pen.setColor(QColor("#147fb0"))
+        painter.setPen(pen)
+        painter.setBrush(self.brush())
+        painter.drawPath(self.shape())
+        painter.restore()
+
     def resize(self, width: float, height: float) -> None:
         self.setRect(0, 0, width, height)
         for child, text in self.texts:
@@ -110,7 +128,7 @@ class CardItem(QGraphicsRectItem):
                             "bottom": QPointF(width / 2, height),
                             "left": QPointF(0, height / 2)}.items():
             self.ports[side].setPos(point)
-        self.grip.setPos(width, height)
+        self.grip.setPos(width - 5, height - 5)
         self.view.update_edges()
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: object) -> object:

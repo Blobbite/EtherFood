@@ -1,7 +1,9 @@
 """Lazy-detail card canvas, independent from asset and workflow revisions."""
 
-from PySide6.QtCore import QPointF, Qt, Signal
-from PySide6.QtGui import QColor, QKeyEvent, QPainter, QPen, QWheelEvent
+from PySide6.QtCore import QPointF, QRectF, Qt, Signal
+from PySide6.QtGui import (
+    QColor, QFocusEvent, QKeyEvent, QMouseEvent, QPainter, QPen, QResizeEvent, QWheelEvent,
+)
 from PySide6.QtWidgets import (
     QGraphicsPathItem, QGraphicsScene, QGraphicsView,
 )
@@ -13,6 +15,8 @@ from .items import CardItem, KIND_NAMES
 
 
 class Canvas(QGraphicsView):
+    EDGE_PEEK_PIXELS = 48.0
+
     selected = Signal(str)
     moved = Signal(str, float, float)
     toggle_requested = Signal(str)
@@ -32,6 +36,9 @@ class Canvas(QGraphicsView):
         self.edges_by_id: dict[str, EdgeItem] = {}
         self.label_rects = []
         self.rendering = False
+        self._updating_bounds = False
+        self._pan_anchor: QPointF | None = None
+        self._pan_cursor = self.viewport().cursor()
         self.connection: tuple | None = None
         self.preview: QGraphicsPathItem | None = None
         self.scene().selectionChanged.connect(self._selection)
@@ -101,8 +108,32 @@ class Canvas(QGraphicsView):
                 self.edges_by_id[edge["id"]] = item
         self.rendering = False
         self.update_edges()
-        self.scene().setSceneRect(self.scene().itemsBoundingRect().adjusted(-60, -60, 100, 100))
         self.scene().blockSignals(False)
+
+    def content_rect(self) -> QRectF:
+        """Only cards define the board; a dragged connection preview cannot grow it."""
+        bounds = QRectF()
+        for item in self.items_by_id.values():
+            bounds = bounds.united(item.mapRectToScene(item.rect()))
+        return bounds if not bounds.isEmpty() else QRectF(0, 0, 1, 1)
+
+    def update_scene_rect(self) -> None:
+        if self.rendering or self._updating_bounds:
+            return
+        self._updating_bounds = True
+        try:
+            inverse, invertible = self.transform().inverted()
+            if not invertible:
+                return
+            viewport = inverse.mapRect(QRectF(self.viewport().rect()))
+            peek = inverse.mapRect(QRectF(0, 0, self.EDGE_PEEK_PIXELS, self.EDGE_PEEK_PIXELS))
+            horizontal = max(0.0, viewport.width() - peek.width())
+            vertical = max(0.0, viewport.height() - peek.height())
+            self.scene().setSceneRect(self.content_rect().adjusted(
+                -horizontal, -vertical, horizontal, vertical,
+            ))
+        finally:
+            self._updating_bounds = False
 
     def update_edges(self) -> None:
         if self.rendering:
@@ -113,6 +144,7 @@ class Canvas(QGraphicsView):
             item.mapRectToScene(item.rect()).adjusted(-10, -10, 10, 10)
             for item in self.items_by_id.values()
         ])
+        self.update_scene_rect()
         self.scene().update()
 
     def begin_connection(self, fixed_id: str, start: QPointF,
@@ -159,7 +191,10 @@ class Canvas(QGraphicsView):
         self.connection = None
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        if event.key() == Qt.Key.Key_Escape and self.connection:
+        if event.key() == Qt.Key.Key_Escape and self._pan_anchor is not None:
+            self._stop_panning()
+            event.accept()
+        elif event.key() == Qt.Key.Key_Escape and self.connection:
             self.cancel_connection()
             event.accept()
         else:
@@ -178,6 +213,50 @@ class Canvas(QGraphicsView):
     def zoom(self, factor: float) -> None:
         if 0.25 <= self.transform().m11() * factor <= 2.5:
             self.scale(factor, factor)
+            self.update_scene_rect()
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        super().resizeEvent(event)
+        if hasattr(self, "items_by_id"):
+            self.update_scene_rect()
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self._pan_anchor = event.position()
+            self._pan_cursor = self.viewport().cursor()
+            self.viewport().setCursor(Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        if self._pan_anchor is not None:
+            if event.buttons() & Qt.MouseButton.MiddleButton:
+                delta = event.position() - self._pan_anchor
+                self._pan_anchor = event.position()
+                horizontal, vertical = self.horizontalScrollBar(), self.verticalScrollBar()
+                horizontal.setValue(horizontal.value() - round(delta.x()))
+                vertical.setValue(vertical.value() - round(delta.y()))
+                event.accept()
+                return
+            self._stop_panning()
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.MiddleButton and self._pan_anchor is not None:
+            self._stop_panning()
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+    def _stop_panning(self) -> None:
+        if self._pan_anchor is not None:
+            self._pan_anchor = None
+            self.viewport().setCursor(self._pan_cursor)
+
+    def focusOutEvent(self, event: QFocusEvent) -> None:
+        self._stop_panning()
+        super().focusOutEvent(event)
 
     def wheelEvent(self, event: QWheelEvent) -> None:
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
