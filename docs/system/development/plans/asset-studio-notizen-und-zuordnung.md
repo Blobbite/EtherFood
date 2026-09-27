@@ -34,7 +34,7 @@ in einem eigenen Notizreiter, kompakte Inhaltssymbole und eindeutiges Asset-Icon
 5. [x] Kompakte Inhaltssymbole und Asset-Icon einbinden, Auslegung dokumentieren.
 6. [x] Gezielte Dienste-/Qt-Tests, Gesamtprüfung und echte Ansicht prüfen.
 7. [x] Abnahme 6b, Ergebnis und kurze Prüfliste 6c dokumentieren.
-8. [ ] Eigene Änderungen abschnittsweise englisch mit Emoji committen/pushen.
+8. [x] Eigene Änderungen abschnittsweise englisch mit Emoji committen/pushen.
 
 ## Prüfungen und Erkenntnisse
 
@@ -78,3 +78,10 @@ Implementierung technisch geprüft. [Bedienung](../asset-studio/NOTIZEN_UND_ZUOR
 [Ergebnisbericht](../asset-studio/task-results/6c.md) und
 [sieben kurze Nachtests](../asset-studio/SICHTPRUEFUNG_6C.md) angelegt.
 Keine persönliche Abnahme für die neue Bedienung vorwegnehmen.
+
+Implementierung, Tests und Briefing als **151561c** (`🗒️ Add tree reassignment
+and a shared sticky-note dashboard`) committed und nach `origin/main` gepusht.
+`git ls-remote origin refs/heads/main` bestätigte denselben vollständigen Hash
+wie das lokale HEAD. Die bestehende GitHub-Weiterleitung wurde akzeptiert,
+kein Force-Push oder Umbau des Remotes. Dieser Nachtrag dokumentiert die Übergabe.
+Fremde Game-/Control-Änderungen bleiben uncommitted im Arbeitsbaum erhalten.
