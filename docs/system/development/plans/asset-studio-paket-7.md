@@ -36,7 +36,7 @@ Originalablage. Bereits vorhandene Game-/Control-Änderungen bleiben unberührt.
 8. [x] T018: Asset-Dry-run und Plan-/Ausführungsvergleich einbinden.
 9. [x] T018: Veraltung, Cache-Schäden, Graphfehler und Wiederaufnahme testen.
 10. [x] Gesamtläufe, echte Qt-Ansicht, Dokumentation und Briefing abschließen.
-11. [ ] T018 gezielt committen/pushen und Remote-Stand prüfen.
+11. [x] T018 gezielt committen/pushen und Remote-Stand prüfen (`4b16da4`).
 
 ## Prüfungen und Erkenntnisse
 
@@ -83,6 +83,9 @@ stagen. Commits mit englischem Emoji-Titel, danach Push wie beauftragt.
 
 ## Ergebnis
 
-Notizkorrektur und beide Issues technisch umgesetzt. Abschluss-Commit/Push
-werden noch geprüft. Persönliche Bedienprüfung und spätere Produktivfreigaben
-bleiben von technischen Tests getrennt; nächste Bildaufgaben nicht vorgezogen.
+Notizkorrektur (`8c3a561`), T017 (`4ef37bd`) und T018 (`4b16da4`) separat
+committed und nach main gepusht. Remote-Hash für T018 stimmt mit lokalem HEAD
+überein. Beide GitHub-Issues enthalten Ergebnisnachweise und das Testbriefing;
+sie bleiben bis zur Benutzer-Prüfrunde offen. Persönliche Bedienprüfung und
+spätere Produktivfreigaben bleiben von technischen Tests getrennt; nächste
+Bildaufgaben nicht vorgezogen. Fremde Änderungen bleiben uncommitted erhalten.
