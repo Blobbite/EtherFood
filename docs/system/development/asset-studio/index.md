@@ -13,6 +13,7 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Briefing und Nachprüfung von Zwischenpaket 4a](SICHTPRUEFUNG_4A.md)
 - [Briefing nach Paket 5](SICHTPRUEFUNG_5.md)
 - [Arbeitsplan Paket 5: Asset-Grundlagen und Bestand](../plans/asset-studio-paket-5.md)
+- [Nächster Quellenworkflow und Canvas-Nachbesserung](../plans/asset-studio-quellenworkflow-und-canvas.md)
 - [Ergebnisberichte T001–T014](task-results/index.md)
 - [Pfadkarte](PATH_MAP.json)
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)
