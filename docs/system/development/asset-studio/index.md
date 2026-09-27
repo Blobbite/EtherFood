@@ -37,6 +37,7 @@ erst in späteren, gesondert freizugebenden Paketen.
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)
 - [Arbeitsplan](../plans/asset-studio-pakete-1-bis-4.md)
 - [Issue-Struktur](../plans/asset-studio-github-issues.md)
+- [Späterer Szeneneditor: Phasen, Voraussetzungen und Teststopps](../plans/szeneneditor-roadmap.md)
 
 Die aufgabenbezogenen Nachweise stehen unter `task-results/`.
 Dies ist technische Dokumentation, kein zusätzlicher Spielkanon.
