@@ -1,27 +1,27 @@
 """Shared labels and platform-native type icons; no extra image dependencies."""
 
 from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap, QPolygonF
+from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap, QPolygonF
 from PySide6.QtWidgets import QApplication, QStyle
 
 KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
               "asset": "Asset", "package": "Paket", "note": "Notiz", "document": "Dokument",
               "task": "Aufgabe", "issue": "Issue"}
+DOCUMENT_COLOR = "#eee4f8"
 
 
 def kind_icon(kind: str) -> QIcon:
-    if kind in {"asset", "note"}:
+    if kind in {"asset", "note", "document", "task"}:
         return drawn_icon(kind)
     names = {"project": "SP_ComputerIcon", "global": "SP_DriveNetIcon", "act": "SP_DirIcon",
-             "chapter": "SP_DirOpenIcon", "asset": "SP_FileIcon", "package": "SP_DriveHDIcon",
-             "note": "SP_FileDialogDetailedView", "document": "SP_FileDialogContentsView",
-             "task": "SP_DialogApplyButton", "issue": "SP_MessageBoxWarning"}
+             "chapter": "SP_DirOpenIcon", "package": "SP_DriveHDIcon",
+             "issue": "SP_MessageBoxWarning"}
     icon = getattr(QStyle.StandardPixmap, names.get(kind, "SP_FileIcon"))
     return QApplication.style().standardIcon(icon)
 
 
 def drawn_icon(kind: str) -> QIcon:
-    """Code-native cube and sticky-note symbols, crisp at common display scales."""
+    """Code-native type symbols, crisp and theme-independent at common display scales."""
     result = QIcon()
     for size in (16, 24, 32, 48, 64):
         pixmap = QPixmap(size, size)
@@ -38,6 +38,23 @@ def drawn_icon(kind: str) -> QIcon:
             ):
                 painter.setBrush(QColor(color))
                 painter.drawPolygon(QPolygonF([QPointF(x, y) for x, y in points]))
+        elif kind == "task":
+            painter.setPen(QPen(QColor("#21844a"), 5, Qt.PenStyle.SolidLine,
+                                Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+            check = QPainterPath(QPointF(5, 17))
+            check.lineTo(12, 24)
+            check.lineTo(27, 7)
+            painter.drawPath(check)
+        elif kind == "document":
+            painter.setPen(QPen(QColor("#745398"), 1.8))
+            painter.setBrush(QColor(DOCUMENT_COLOR))
+            painter.drawPolygon(QPolygonF([QPointF(x, y) for x, y in (
+                (6, 3), (20, 3), (27, 10), (27, 29), (6, 29),
+            )]))
+            painter.drawPolyline(QPolygonF([QPointF(20, 3), QPointF(20, 10), QPointF(27, 10)]))
+            painter.drawLine(10, 15, 22, 15)
+            painter.drawLine(10, 20, 22, 20)
+            painter.drawLine(10, 25, 18, 25)
         else:
             painter.setPen(QPen(QColor("#a4852a"), 1.5))
             painter.setBrush(QColor("#ffe58a"))

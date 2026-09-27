@@ -9,6 +9,7 @@ from ..storage.paths import real_path
 from .project_service import ProjectService
 
 TEMPLATES = {
+    "Dokumentation": "# Dokumentation\n\n",
     "Freie Notiz": "# Notiz\n\n",
     "Aktbeschreibung": "# Aktbeschreibung\n\n## Ziel\n\n## Offene Fragen\n",
     "Kapitelanforderung": "# Kapitelanforderung\n\n## Anforderungen\n\n## Nachweise\n",
@@ -109,9 +110,10 @@ class DocumentService:
                     raise StudioError("validation", "Dokument gehört zu einer anderen Karte.")
                 record = self.save(identifier, body, expected_revision)
             else:
-                record = self.create(owner_id, path.stem, body)
+                record = self.create(owner_id, path.stem, body, template="Dokumentation")
             provenance = {"original_name": path.name, "sha256": hashlib.sha256(raw).hexdigest()}
-            return self.catalog.save(record, data=record.data | {"provenance": provenance})
+            return self.catalog.save(record, data=record.data | {"body": body,
+                                                                "provenance": provenance})
 
     def search(self, query: str, *, scope_id: str | None = None,
                document_type: str | None = None) -> list[Record]:

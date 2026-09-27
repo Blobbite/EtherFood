@@ -29,8 +29,14 @@ Berichte und manuelle Notizen sind verschiedene Dokumenttypen. Der normale
 Editor darf Berichte nicht überschreiben. Anhänge werden über den sicheren
 Blob-Import kopiert, Herkunftsnamen bleiben Metadaten. Markdown-Import
 erhält die Originaldatei, protokolliert Name/Hash und erfordert bei gleichen
-Titeln eine ausdrückliche Revisionsauswahl. Sechs neutrale Vorlagen enthalten
+Titeln eine ausdrückliche Revisionsauswahl. Sieben neutrale Vorlagen enthalten
 keine fertigen Abnahmen oder erfundene Geschichte.
+
+Seit Zwischenpaket 6d legt **+ Dokumentation** mit einer Dokumentvorlage an;
+neue Markdown-Importe verwenden die neutrale Vorlage Dokumentation. Bestehende
+Notizvorlagen und ausdrückliche Revisionsimporte behalten ihre Klassifikation.
+Dokumente erscheinen mit violettem Seitensymbol auch im Projekt-Canvas;
+generierte Berichte bleiben schreibgeschützt. Keine Datenmigration.
 
 `IssueService` unterstützt Aufgaben/Fehler, Priorität, optionale Zuständigkeit
 und Aufgabenabnahme. Eine Fundstelle kann Asset/Build, Pose, Richtung,

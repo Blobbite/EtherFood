@@ -73,7 +73,7 @@ class AssetWorkspace(QDialog):
         self.documents.saved.connect(self.did_change)
         self.documentation = QTabWidget()
         self.documentation.setObjectName("asset_documentation_tabs")
-        self.documentation.addTab(self.documents, "Notizen && Anhänge")
+        self.documentation.addTab(self.documents, "Dokumente && Anhänge")
         self.tasks = TasksPanel(owner_id=identifier)
         self.tasks.bind(assets.project)
         self.tasks.changed.connect(self.did_change)

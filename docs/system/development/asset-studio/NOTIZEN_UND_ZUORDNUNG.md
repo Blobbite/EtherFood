@@ -35,10 +35,13 @@ Pfeilziele ändern; bei Inhaltssymbolen gilt dieselbe Prüfung wie im Baum.
 
 ## Kleine Symbole im Projekt-Canvas
 
-Aufgaben, Issues und Notizen erscheinen als kompakte Icon-Karten mit kurzem
-Titel und vollständigem Tooltip. Ihre Besitzerverbindungen werden aus der
+Aufgaben, Issues, Notizen und seit 6d auch Dokumentation erscheinen als kompakte
+Icon-Karten mit kurzem Titel und vollständigem Tooltip. Ihre Besitzerverbindungen werden aus der
 vorhandenen Zuordnung abgeleitet. Ein Doppelklick öffnet eine Aufgabe im
-Kanban-Editor bzw. die Notiz im Notiz-Dashboard. Auswahl verändert nicht den Zoom.
+Kanban-Editor, die Notiz im Notiz-Dashboard bzw. Dokumentation im Dokumenteditor.
+Auswahl verändert nicht den Zoom. Dokumentation besitzt einen violetten
+Hintergrund und ein passendes Seitensymbol; generierte Berichte bleiben nur lesbar
+und können nicht frei einer anderen Karte zugeordnet werden.
 
 Die Symbole lassen sich verschieben und besitzen Anschlussstellen, aber keinen
 Größengriff. Neue automatische Positionen meiden bestehende Karten. Gespeicherte
@@ -46,9 +49,26 @@ Positionen bleiben erhalten. Einklappen oder Archivieren des Eigentümerzweigs
 blendet auch seine Inhalte aus. Alte Notiz-Karten bleiben kleine Sammelcontainer;
 ein Doppelklick zeigt ihre enthaltenen Notizdokumente im Dashboard.
 
-Assets erhalten einen blauen Würfel, Notizen ein gelbes Haftnotizsymbol. Beide
-Icons werden in Qt gezeichnet; keine zusätzlichen Bilddateien oder Schriftfonts
-sind nötig.
+Assets erhalten einen blauen Würfel, Notizen ein gelbes Haftnotizsymbol und
+Dokumentation ein violettes Blatt. Aufgaben zeigen einen kräftigen grünen Haken
+ohne Rahmen oder Hintergrund. Der Haken kennzeichnet den Typ Aufgabe, nicht
+deren Erledigungsstatus. Alle vier Icons werden in Qt gezeichnet; keine
+zusätzlichen Bilddateien oder Schriftfonts sind nötig.
+
+## Dokumentation anlegen und importieren
+
+**Dokumentation & Anhänge → + Dokumentation** erstellt ein Dokument mit der
+neutralen Vorlage Dokumentation oder einer anderen Dokumentvorlage. Freie Notiz
+und Testnotiz werden hier nicht angeboten; diese bleiben über das Notiz-Dashboard
+bzw. **Neue Notiz** im Kontextmenü verfügbar. Im Asset-Menü heißt der gleiche
+Unterreiter **Dokumente & Anhänge** und bietet denselben Dokumentationsbutton.
+
+**Markdown importieren** bleibt bestehen. Neue Importe zählen als Dokumentation;
+Quelltext (auch leerer Inhalt), Originaldatei und Herkunft bleiben erhalten.
+Ein ausdrücklicher Revisionsimport in eine vorhandene Notiz oder Dokumentation
+behält deren Typ, ID und Anhänge. Bestehende Notizen und frühere Importe werden
+nicht rückwirkend umklassifiziert. Notizen lassen sich weiterhin über
+**Dokument / Anhänge** in diesem Editor öffnen.
 
 ## Post-its im Notiz-Dashboard
 
@@ -73,5 +93,6 @@ Dokumentdatensatz. Fehlende Werte entsprechen Gelb und nicht angeheftet.
 Katalogöffnung validiert die Werte; eine Datenmigration ist nicht nötig.
 
 Keine Bildpipeline, Godot-Ausgabe oder Asset-Freigabe wurde ergänzt.
+[Ergänzende Nachprüfung Dokumentation/Icons](SICHTPRUEFUNG_6D.md) ·
 [Kurze Nachprüfung](SICHTPRUEFUNG_6C.md) · [Ergebnisbericht](task-results/6c.md) ·
 [Arbeitsplan](../plans/asset-studio-notizen-und-zuordnung.md)

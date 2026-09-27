@@ -87,7 +87,7 @@ def test_documents_conflicts_reports_attachments_and_move(project, tiny_sheet, t
     with pytest.raises(StudioError, match="existiert"):
         docs.import_markdown(ids["hero"], source)
     assert docs.search("echte", scope_id=ids["two"])[0].id == imported.id
-    assert len(TEMPLATES) == 6
+    assert len(TEMPLATES) == 7
 
 
 def test_tasks_finding_filter_rename_and_required_approval(project, tiny_sheet):

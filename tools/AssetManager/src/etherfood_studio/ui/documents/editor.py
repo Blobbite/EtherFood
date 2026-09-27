@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 
 from ...application.document_service import DocumentService, TEMPLATES
 from ...domain.models import Record, StudioError
+from ...domain.notes import NOTE_TEMPLATES, is_note
 from ..common import button, label, show_error
 from ..presentation import kind_icon
 
@@ -58,15 +59,15 @@ class DocumentEditor(QWidget):
         self.documents.setAccessibleName("Dokument auswählen")
         self.documents.currentIndexChanged.connect(self._select_document)
         top.addWidget(self.documents, 1)
-        top.addWidget(button("+ Notiz", "new_document", self.new_document))
+        top.addWidget(button("+ Dokumentation", "new_document", self.new_document))
         top.addWidget(button("Markdown importieren", "import_markdown", self.import_dialog))
         layout.addLayout(top)
-        self.state = label("Karte auswählen und eine Notiz anlegen.", "document_state")
+        self.state = label("Karte auswählen und Dokumentation anlegen.", "document_state")
         layout.addWidget(self.state)
         self.editor = QPlainTextEdit()
         self.editor.setObjectName("markdown_editor")
         self.editor.setAccessibleName("Markdown-Text bearbeiten")
-        self.editor.setPlaceholderText("Noch kein Dokument. Über + Notiz anlegen.")
+        self.editor.setPlaceholderText("Noch kein Dokument. Über + Dokumentation anlegen.")
         self.editor.textChanged.connect(self._changed)
         self.preview = SafePreview()
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -96,7 +97,7 @@ class DocumentEditor(QWidget):
         if not self.dirty:
             return True
         answer = QMessageBox.question(
-            self, "Nicht gespeicherte Änderungen", "Notiz vor dem Wechsel speichern?",
+            self, "Nicht gespeicherte Änderungen", "Dokument vor dem Wechsel speichern?",
             QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard
             | QMessageBox.StandardButton.Cancel, QMessageBox.StandardButton.Cancel,
         )
@@ -122,7 +123,8 @@ class DocumentEditor(QWidget):
         for row in rows:
             generated = row.data["document_type"] == "generated"
             suffix = " [Bericht, schreibgeschützt]" if generated else ""
-            self.documents.addItem(kind_icon("document"), row.title + suffix, row.id)
+            self.documents.addItem(kind_icon("note" if is_note(row) else "document"),
+                                   row.title + suffix, row.id)
         index = self.documents.findData(select_id) if select_id else 0
         self.documents.setCurrentIndex(max(0, index) if rows else -1)
         self.documents.blockSignals(False)
@@ -156,7 +158,7 @@ class DocumentEditor(QWidget):
         self._loading = False
         self.state.setText(f"Revision {self.current.revision_no} · "
                            + ("Bericht (nur lesen)" if generated else "gespeichert")
-                           if self.current else "Noch kein Dokument. + Notiz wählen.")
+                           if self.current else "Noch kein Dokument. + Dokumentation wählen.")
 
     def _select_document(self, index: int) -> None:
         if not self.confirm_discard():
@@ -194,7 +196,7 @@ class DocumentEditor(QWidget):
         self.saved.emit()
         return True
 
-    def create_document(self, title: str, template: str = "Freie Notiz") -> Record:
+    def create_document(self, title: str, template: str = "Dokumentation") -> Record:
         if not self.service or not self.owner_id:
             raise StudioError("validation", "Zuerst eine Karte auswählen.")
         record = self.service.create(self.owner_id, title, template=template)
@@ -203,13 +205,15 @@ class DocumentEditor(QWidget):
         self.saved.emit()
         return record
 
-    def new_document(self) -> None:
+    def new_document(self, *, note: bool = False) -> None:
         if not self.confirm_discard() or not self.owner_id:
             return
-        title, accepted = QInputDialog.getText(self, "Neue Notiz", "Titel")
+        title, accepted = QInputDialog.getText(self, "Neue Notiz" if note
+                                              else "Neue Dokumentation", "Titel")
         if not accepted:
             return
-        template, accepted = QInputDialog.getItem(self, "Vorlage", "Typ", list(TEMPLATES), 0, False)
+        templates = [key for key in TEMPLATES if (key in NOTE_TEMPLATES) == note]
+        template, accepted = QInputDialog.getItem(self, "Vorlage", "Typ", templates, 0, False)
         if accepted:
             try:
                 self.create_document(title, template)

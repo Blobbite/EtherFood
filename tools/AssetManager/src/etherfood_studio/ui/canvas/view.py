@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 from ...application.project_service import ProjectService
 from ...application.status_service import StatusService
 from ...domain.notes import NOTE_COLORS, is_note
+from ..presentation import DOCUMENT_COLOR
 from .edges import EdgeItem, curve, place_labels
 from .items import CardItem, IconCardItem, KIND_NAMES
 
@@ -56,7 +57,7 @@ class Canvas(QGraphicsView):
     def default_positions(project: ProjectService) -> dict[str, dict]:
         cards = project.cards()
         contents = [row for row in project.catalog.records()
-                    if row.kind in {"task", "issue"} or is_note(row)]
+                    if row.kind in {"task", "issue", "document"}]
         positions = {}
         cursor = 0
 
@@ -138,17 +139,21 @@ class Canvas(QGraphicsView):
                 item.setSelected(True)
         content_edges = []
         for record in project.catalog.records():
-            if record.kind not in {"task", "issue"} and not is_note(record):
+            if record.kind not in {"task", "issue", "document"}:
                 continue
             if record.owner_id not in self.items_by_id \
                     or project.catalog.layout(record.owner_id).get("collapsed"):
                 continue
             note = is_note(record)
-            color = NOTE_COLORS[record.data.get("note_color", "yellow")][1] if note else "#e3effb"
+            color = DOCUMENT_COLOR if record.kind == "document" else "#e3effb"
+            if note:
+                color = NOTE_COLORS[record.data.get("note_color", "yellow")][1]
             summary = project.breadcrumb(record.owner_id)
-            if not note:
+            if record.kind in {"task", "issue"}:
                 summary += "\nStatus: " + {"open": "Offen", "in_progress": "In Arbeit",
                     "blocked": "Blockiert", "done": "Erledigt"}[record.data["status"]]
+            elif record.data.get("document_type") == "generated":
+                summary += "\nBericht (nur lesen)"
             item = IconCardItem(record.id, record.title, "note" if note else record.kind,
                                 summary, self, color)
             layout = defaults[record.id] | project.catalog.layout(record.id)

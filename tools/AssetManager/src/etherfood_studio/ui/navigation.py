@@ -94,7 +94,7 @@ class Navigation:
 
     def new_note(self) -> None:
         self.window.tabs.setCurrentWidget(self.window.documents)
-        self.window.documents.new_document()
+        self.window.documents.new_document(note=True)
 
     def new_task(self, issue: bool) -> None:
         self.window.tabs.setCurrentWidget(self.window.tasks)
