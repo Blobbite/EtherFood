@@ -28,7 +28,7 @@ Reiter mit der Dokumentensuche. Der neue Auftrag trennt diese Arbeitsbereiche.
 3. [x] Kanban, Navigation und getrennte Suche einbinden.
 4. [x] Dienst- und echte Qt-Regressionstests ausführen; Bedienansicht prüfen.
 5. [x] Gesamtläufe, Dokumentation und kurze Nachprüfung abschließen.
-6. [ ] Eigene Änderungen gezielt committen, pushen und Remote-Stand prüfen.
+6. [x] Eigene Änderungen gezielt committen, pushen und Remote-Stand prüfen.
 
 ## Entscheidungen und Erkenntnisse
 
@@ -85,6 +85,15 @@ Keine Originalbilder oder Git-Historie löschen. Eigene Pfade einzeln stagen.
 
 Implementierung und technische Prüfung abgeschlossen. [Ergebnisbericht](../asset-studio/task-results/6b.md)
 und [sieben kurze Nachtests](../asset-studio/SICHTPRUEFUNG_6B.md) dokumentiert.
-Commit/Push steht als letzter Übergabeschritt an. Persönliche Nachprüfung 6b
-erfolgt nach der Übergabe; die bestätigte Nachprüfung 6a schließt keine früher
-zurückgestellten Kriterien. Spätere Pipeline-Issues nicht begonnen.
+Implementierung, Tests und Briefing als **64a9a1b** (`🗂️ Add scoped task Kanban
+and separate project search`) committed und nach `origin/main` gepusht.
+`git ls-remote origin refs/heads/main` bestätigte denselben vollständigen Hash
+wie das lokale HEAD. Repository-Weiterleitung zu Blobbite/EtherFood akzeptiert;
+keine Remote-Umschreibung und kein Force-Push. Abschließender Standardcheck
+nach den Dokumentationsänderungen bestätigt unverändert die oben genannten
+Bestandsbefunde. Dieser Nachtrag protokolliert die tatsächliche Übergabe.
+
+Persönliche Nachprüfung 6b erfolgt nach der Übergabe; die bestätigte Nachprüfung
+6a schließt keine früher zurückgestellten Kriterien. Spätere Pipeline-Issues
+nicht begonnen. Vorhandene, nicht zu dieser Änderung gehörende Game-/Control-
+Arbeitsstände bleiben unverändert im Arbeitsbaum.
