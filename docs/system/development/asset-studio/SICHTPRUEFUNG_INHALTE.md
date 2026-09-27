@@ -20,6 +20,24 @@ Falls der zentrale Control-Einstieg im eigenen Checkout bereits vorhanden ist,
 erledigt `python tools/control.py asset-manager import` diese Vorbereitung.
 Kein neues Studio-Projekt nötig; für Lösch-/Konfliktexperimente eine Testkopie nutzen.
 
+## Kurze Nachprüfung: MD/Code und Pinnwand
+
+Für diesen Nachtrag reichen vier Punkte; bereits bestätigte Aufgaben-/Canvas-
+und Asset-Pipeline-Tests müssen nicht erneut durchgegangen werden.
+
+1. **MD ↔ Code:** Dokumentation öffnen, **Code** anklicken, Text ändern und
+   ohne Speichern zu **MD** wechseln. Änderung muss gerendert erscheinen.
+   Zurück zu Code: derselbe Text, auch nach Wegklicken. Speichern und neu öffnen.
+2. **Farbige Notizen:** Notizen öffnen. Pinnwand darf nicht weiß sein; Titel-
+   und Textfelder müssen die Notizfarbe übernehmen. Rechtsklick → Farbe testen.
+3. **Verschieben und Neustart:** zwei Notizen an der oberen Griffleiste frei
+   platzieren. Text weiter bearbeiten, filtern, Filter löschen, Fenstergröße
+   ändern und App neu starten. Beide Notizen müssen am gespeicherten Ort stehen;
+   ihre kleinen Symbole im Projekt-Canvas dürfen dadurch nicht wandern.
+4. **Asset-Menü:** Dokumentation hat ebenfalls **MD / Code**. Notizen bleiben
+   hier platzsparend untereinander. Dort einen Text bearbeiten und zur Pinnwand
+   zurückkehren: Text geändert, Position unverändert.
+
 ## Sechs gezielte Tests
 
 1. **Notizen:** einen bisher leeren Notizbereich öffnen. Die gelbe Karte muss
@@ -54,12 +72,15 @@ oder Szeneneditor. Diese gehören nicht zu diesem UI-Paket.
 
 ## Technischer Nachweis
 
-- 343 Studio-Tests bestanden, einschließlich realer Qt-Ereignisse im Offscreen-Modus.
+- 375 Studio-Tests bestanden, einschließlich realer Qt-Ereignisse im Offscreen-Modus;
+  darunter MD/Code, Griffleisten-Ziehen, Position nach Filtern/Scrollen/Neustart,
+  Nullpunkt, Speicherfehler, Canvas-Undo und Erhalt paralleler Textentwürfe.
 - 56 vorhandene Control-/Asset-Manager-Tests nach Ergänzung der Parser-Testversion bestanden.
 - Studio-Quelltext-/Teststilprüfung und `pip check` bestanden;
   `git diff --check` ohne Befund.
 - Screenshots aus einem synthetischen Projekt für Notizen, Dokumentation,
   Haupt-Kanban und kompakte Asset-Aufgaben geprüft. Das ersetzt keine Benutzerabnahme.
+- Für den Nachtrag zusätzlich Pinnwand, MD- und Code-Modus visuell geprüft.
 - Repository-Gesamtcheck **nicht grün**: Godot fehlt im Container; bestehende
   Stilbefunde außerhalb des Studio-Quellcodes. Der separate Tool-Testlauf meldet
   258 bestanden, 37 übersprungen und drei Fehler: geänderter Godot-Fenstervertrag,

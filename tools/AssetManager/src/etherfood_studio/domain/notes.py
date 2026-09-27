@@ -9,6 +9,7 @@ NOTE_COLORS = {
 }
 NOTE_TEMPLATES = {"Freie Notiz", "Testnotiz"}
 NOTE_WORD_LIMIT = 100
+NOTE_POSITION_LIMIT = 100_000
 
 
 def note_word_count(body: str) -> int:
@@ -35,3 +36,11 @@ def validate_note_style(data: dict) -> None:
         raise StudioError("validation", "Unbekannte Notizfarbe.")
     if not isinstance(data.get("note_pinned", False), bool):
         raise StudioError("validation", "Anheften muss ein Wahrheitswert sein.")
+
+
+def validate_note_position(value: dict) -> None:
+    if (not isinstance(value, dict) or set(value) != {"x", "y"}
+            or any(isinstance(axis, bool) or not isinstance(axis, (int, float))
+                   or not 0 <= axis <= NOTE_POSITION_LIMIT
+                   for axis in value.values())):
+        raise StudioError("validation", "Ungültige Position auf der Notiz-Pinnwand.")

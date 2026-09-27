@@ -126,3 +126,57 @@ Kindwidget zu vermeiden. Alle vier Punkte sind durch Regressionstests abgesicher
 
 T017/T018 und spätere Pakete werden mit diesem Ergebnis nicht abgenommen oder
 geschlossen. Produktive Bildverarbeitung und Szeneneditor bleiben ausdrücklich offen.
+
+## Nachtrag 27.09.2026: MD/Code und Notiz-Pinnwand
+
+Die Dokumentation erhält sichtbare Schalter **MD / Code**. MD bleibt direkt
+blockweise bearbeitbar; Code zeigt die vollständige Markdown-Quelle dauerhaft
+in einer eigenen Schreibfläche. Wechsel ohne Speichern darf weder Entwürfe noch
+Undo verlieren. Beide Ansichten gelten auch im Asset-Menü und respektieren den
+Leseschutz generierter Berichte.
+
+Das Notiz-Dashboard erhält einen deutlich farbigen Pinnwand-Hintergrund und
+Notiz-Schreibfelder in Kartenfarbe. Post-its lassen sich an einer Griffleiste
+frei verschieben; ihre Position wird im Projekt gespeichert, getrennt von den
+Canvas-Koordinaten. Textauswahl und Schreiben bleiben normale Editoraktionen.
+Filter, Fenstergröße, Bereichswechsel und Neustart dürfen verschobene Karten
+nicht automatisch neu anordnen. Die schmale Asset-Ansicht bleibt gestapelt.
+Leere Schreibkarten erzeugen weiterhin erst beim Schreiben einen Datensatz.
+
+- [x] Gemeinsame Editoren, Layoutspeicherung und Regressionstests geprüft.
+- [x] MD-/Code-Umschaltung samt Entwurfsschutz implementieren.
+- [x] Freie Pinnwand, Farben und separate Positionsspeicherung implementieren.
+- [x] Gezielte Ereignis-/Speicherprüfungen und Studio-Regression ausführen.
+- [x] Dokumentation und kurzes Nachbriefing aktualisieren.
+- [x] Eigenen Änderungsumfang prüfen und Commit/Push vorbereiten.
+
+Erster gezielter Qt-Lauf: 16 Tests für Markdown-Modi und bisherige direkte
+Inhaltsbearbeitung bestanden. Geprüft wurden insbesondere unveränderte Quelle
+(auch CRLF/Unicode), Entwürfe/Undo über Moduswechsel, Leseschutz und Konflikte.
+Weitere 44 vorhandene Notiz-/Inhaltstests und fünf neue echte Pinnwand-Maustests
+sind bestanden. Pinnwand-Koordinaten verwenden das optionale Layoutfeld
+`note_board`, nicht die Canvas-Felder `x/y` oder die Inhaltsrevision. Keine
+Migration und kein Notizdatensatz allein durch das Verschieben einer leeren
+Schreibkarte; ihr Platz wird mit dem ersten Inhalt atomar gespeichert.
+
+Weitere Randprüfungen: Position `(0, 0)` darf nicht als fehlender Wert gelten;
+die Pinnwand-Ausdehnung und Scrollposition bleiben während des Ziehens stabil.
+Textspeicherung aus einer anderen Ansicht überschreibt keine neuere Position.
+Canvas-Undo/-Redo bewahrt das separate `note_board`-Feld. Leere automatische
+Platzhalter verschwinden, wenn echte Notizen nachgeladen werden; ausdrücklich
+angelegte neue Schreibkarten bleiben dagegen erhalten.
+
+Stilprüfung: 122 Studio-Quelltext-/Testdateien ohne Befund, `pip check` und
+`git diff --check` bestanden. Drei synthetische Screenshots geprüft (Pinnwand,
+MD und Code). `python tools/control.py check` erneut ausgeführt: dieselben
+1907 vorhandenen Stilbefunde außerhalb des Studio-Quelltexts, Godot nicht
+installiert, Tooltests 258 bestanden / 37 übersprungen / drei bekannte Fehler
+(Fenstervertrag, Entscheidungsdokumente, Dokumentationslinks).
+
+Das [Nachbriefing](../asset-studio/SICHTPRUEFUNG_INHALTE.md) enthält vier kurze
+Tests für diesen Nachtrag; bestehende persönliche Abnahmen werden nicht vorweggenommen.
+
+Abschließender vollständiger Studio-Lauf nach den Randkorrekturen:
+`pytest tools/AssetManager/tests -q` **375 bestanden**, keine übersprungenen Tests.
+Nur die eigenen 17 Quelltext-, Test- und Dokumentationsdateien gehören zum
+Commit dieses Nachtrags; vorhandene fremde Änderungen und Bildassets bleiben außerhalb.

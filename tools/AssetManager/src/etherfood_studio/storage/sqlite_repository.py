@@ -13,6 +13,7 @@ from uuid import UUID
 from ..domain.models import (
     IMMUTABLE, KINDS, MAX_SNAPSHOT, Record, StudioError, UNTRUSTED_IMPORT, new_id, utc_now,
 )
+from ..domain.notes import validate_note_position
 from .migrations import CURRENT_VERSION, MIGRATIONS
 from .paths import real_path, safe_target
 
@@ -217,6 +218,8 @@ class Catalog:
             if not isinstance(data["manual"], dict) or set(data["manual"]) - {"x", "y"}:
                 raise StudioError("validation", "Ungültige gespeicherte Anordnung.")
             Catalog.validate_layout(data["manual"])
+        if "note_board" in data:
+            validate_note_position(data["note_board"])
 
     def save_layout(self, identifier: str, data: dict) -> None:
         self.validate_layout(data)

@@ -2,17 +2,28 @@
 
 [Asset Studio](index.md) · [Aktuelles Bedienbriefing](SICHTPRUEFUNG_INHALTE.md)
 
-Dokumentation zeigt nur noch eine Inhaltsfläche, nicht Quelltext und Vorschau
-nebeneinander. Einen gerenderten Absatz, eine Überschrift, Tabelle oder einen
-Codeblock anklicken: An derselben Stelle erscheint der bearbeitbare Markdown-
-Quelltext dieses Blocks. Überschriften behalten dabei ihre Darstellungsgröße;
-die `#`-Zeichen werden sichtbar. Beim Verlassen wird wieder gerendert.
+Dokumentation zeigt eine Inhaltsfläche mit zwei Schaltern darüber:
+
+- **MD** zeigt gerendertes Markdown. Einen Absatz, eine Überschrift, Tabelle
+  oder einen Codeblock anklicken: An derselben Stelle erscheint der bearbeitbare
+  Quelltext dieses Blocks. Überschriften behalten ihre Darstellungsgröße; die
+  `#`-Zeichen werden sichtbar. Beim Verlassen wird wieder gerendert.
+- **Code** zeigt die gesamte Markdown-Quelle in Festbreitenschrift. Dieser Modus
+  bleibt auch beim Wegklicken, Speichern und Wechseln des Dokuments aktiv, bis
+  wieder **MD** gewählt wird. Code bedeutet hier Markdown-Quelltext, keine
+  Programmausführung.
+
+Beide Modi bearbeiten denselben Entwurf. Umschalten speichert nicht automatisch,
+erzeugt keine Revision und verändert den Text nicht. Ungespeicherte Änderungen
+und Rückgängig/Wiederholen bleiben beim Wechsel erhalten. Beim erneuten Start
+der App ist zunächst MD aktiv. Generierte Berichte lassen sich in beiden Modi
+lesen und kopieren, bleiben aber schreibgeschützt.
 
 **Rechtsklick** bietet Überschrift, Tabelle, Codeblock, Liste, Aufgabenliste,
 Zitat und Link an. Bei Tabellen werden Spalten und Datenzeilen abgefragt.
 Neue Blöcke werden hinter dem angeklickten Block eingefügt. Für Änderungen
 über Blockgrenzen hinweg gibt es im selben Menü **Gesamten Markdown-Quelltext
-bearbeiten**. Die Gesamtquelle erscheint ebenfalls in derselben Fläche.
+bearbeiten**. Das aktiviert denselben dauerhaften **Code**-Modus.
 **Speichern / Strg+S** schreibt eine Revision; ungespeicherte Dokumente behalten
 den bisherigen Speichern/Verwerfen/Abbrechen-Schutz. Anders als Post-its werden
 Dokumente nicht automatisch gespeichert.
@@ -42,8 +53,9 @@ Qt-Widgets erzeugen. Dabei wird beim Anklicken die gesamte Quelle bearbeitet.
 `markdown-it-py==4.0.0` ist eine versioniert gebundene GUI-Abhängigkeit für
 Quelltextpositionen; Qt übernimmt die Darstellung. Die `[gui]`-Installation
 installiert sie mit. Es gibt keine Konvertierung zurück aus Rich Text:
-Nur tatsächlich bearbeitete Quelltextblöcke werden ersetzt. Unbearbeitete
-Markdown-Bereiche, Referenzen und Metadaten bleiben erhalten.
+Im MD-Modus werden nur tatsächlich bearbeitete Quelltextblöcke ersetzt;
+im Code-Modus wird unmittelbar die gesamte Quelle bearbeitet. Metadaten und
+Referenzen werden nicht aus der gerenderten Ansicht zurückgewonnen.
 
 Hauptfenster und **Asset-Menü → Dokumentation → Dokumente & Anhänge** verwenden
 denselben Editor und dieselben Dokument-IDs. Generierte Berichte bleiben

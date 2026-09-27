@@ -47,17 +47,25 @@ class Commands:
     def layout(self, identifier: str, data: dict) -> None:
         before = self.project.catalog.layout(identifier)
         self.execute(Command("Ansicht ändern",
-                             lambda: self.project.catalog.save_layout(identifier, data),
-                             lambda: self.project.catalog.save_layout(identifier, before)))
+                             lambda: self._save_canvas_layout(identifier, data),
+                             lambda: self._save_canvas_layout(identifier, before)))
 
     def layouts(self, values: dict[str, dict]) -> None:
         before = {key: self.project.catalog.layout(key) for key in values}
 
         def write(layouts: dict[str, dict]) -> None:
             for key, value in layouts.items():
-                self.project.catalog.save_layout(key, value)
+                self._save_canvas_layout(key, value)
 
         self.execute(Command("Anordnung ändern", lambda: write(values), lambda: write(before)))
+
+    def _save_canvas_layout(self, identifier: str, data: dict) -> None:
+        # Canvas undo/redo must not roll back a later move on the independent note board.
+        value = {key: item for key, item in data.items() if key != "note_board"}
+        position = self.project.catalog.layout(identifier).get("note_board")
+        if position is not None:
+            value["note_board"] = position
+        self.project.catalog.save_layout(identifier, value)
 
     def create_card(self, kind: str, title: str, parent: str, data: dict | None = None) -> str:
         identity = []

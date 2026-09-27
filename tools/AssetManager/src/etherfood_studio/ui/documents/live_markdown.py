@@ -3,11 +3,11 @@
 import re
 
 from markdown_it import MarkdownIt
-from PySide6.QtCore import QEvent, Qt, QTimer, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtCore import QEvent, QSignalBlocker, Qt, QTimer, Signal
+from PySide6.QtGui import QFont, QFontDatabase, QKeySequence
 from PySide6.QtWidgets import (
-    QApplication, QFrame, QInputDialog, QMenu, QPlainTextEdit, QScrollArea, QStackedLayout,
-    QVBoxLayout, QWidget,
+    QApplication, QButtonGroup, QFrame, QHBoxLayout, QInputDialog, QMenu, QPlainTextEdit,
+    QPushButton, QScrollArea, QStackedLayout, QVBoxLayout, QWidget,
 )
 
 from .preview import HEADING_SIZES, SafePreview
@@ -113,6 +113,7 @@ class MarkdownBlock(QWidget):
 
 class LiveMarkdownEditor(QWidget):
     textChanged = Signal()
+    modeChanged = Signal(str)
 
     def __init__(self) -> None:
         super().__init__()
@@ -124,9 +125,27 @@ class LiveMarkdownEditor(QWidget):
         self.blocks = []
         self.active = None
         self._rebuilding = False
+        self.mode = "md"
         self.setFocusPolicy(Qt.StrongFocus)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        modes = QHBoxLayout()
+        self.mode_buttons = QButtonGroup(self)
+        for title, mode, hint in (("MD", "md", "Gerendertes Markdown; Blöcke direkt bearbeiten"),
+                                  ("Code", "code", "Vollständigen Markdown-Quelltext bearbeiten")):
+            button = QPushButton(title)
+            button.setObjectName("markdown_mode_" + mode)
+            button.setAccessibleName(hint)
+            button.setToolTip(hint)
+            button.setCheckable(True)
+            button.setChecked(mode == self.mode)
+            button.clicked.connect(lambda checked=False, value=mode: self.set_mode(value))
+            self.mode_buttons.addButton(button)
+            modes.addWidget(button)
+        modes.addStretch(1)
+        layout.addLayout(modes)
+        self.surface = QStackedLayout()
+        layout.addLayout(self.surface, 1)
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.page = QWidget()
@@ -134,7 +153,17 @@ class LiveMarkdownEditor(QWidget):
         self.page_layout.setContentsMargins(8, 8, 8, 8)
         self.page_layout.setSpacing(0)
         self.scroll.setWidget(self.page)
-        layout.addWidget(self.scroll)
+        self.surface.addWidget(self.scroll)
+        self.code_source = QPlainTextEdit()
+        self.code_source.setObjectName("markdown_code_source")
+        self.code_source.setAccessibleName("Vollständiger Markdown-Quelltext")
+        self.code_source.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        self.code_source.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.code_source.installEventFilter(self)
+        self.code_source.textChanged.connect(self._code_changed)
+        self.code_source.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.code_source.customContextMenuRequested.connect(self.show_code_context)
+        self.surface.addWidget(self.code_source)
         self.scroll.setContextMenuPolicy(Qt.CustomContextMenu)
         self.scroll.customContextMenuRequested.connect(self.show_context)
         self.rebuild()
@@ -151,6 +180,7 @@ class LiveMarkdownEditor(QWidget):
 
     def setReadOnly(self, value: bool) -> None:
         self._read_only = value
+        self.code_source.setReadOnly(value)
         for block in self.blocks:
             block.source.setReadOnly(value)
         if value and self.active:
@@ -162,13 +192,77 @@ class LiveMarkdownEditor(QWidget):
 
     def setPlaceholderText(self, text: str) -> None:
         self._placeholder = text
+        self.code_source.setPlaceholderText(text)
         for block in self.blocks:
             block.source.setPlaceholderText(text)
 
     def placeholderText(self) -> str:
         return self._placeholder
 
-    def rebuild(self, *, whole_source: bool = False) -> None:
+    def set_mode(self, mode: str) -> None:
+        if mode not in {"md", "code"}:
+            raise ValueError("Unknown Markdown editor mode")
+        if self.mode == mode:
+            return
+        self.mode = mode
+        self.active = None
+        for button in self.mode_buttons.buttons():
+            button.setChecked(button.objectName() == "markdown_mode_" + mode)
+        self.rebuild()
+        self.surface.setCurrentWidget(self.code_source if mode == "code" else self.scroll)
+        if mode == "code":
+            self.code_source.setFocus()
+        self.modeChanged.emit(mode)
+
+    def _sync_code(self) -> None:
+        # Loading an unchanged source must not normalize line endings or mark it dirty.
+        if self.code_source.toPlainText() == self._text:
+            return
+        cursor = self.code_source.textCursor().position()
+        scroll = self.code_source.verticalScrollBar().value()
+        with QSignalBlocker(self.code_source):
+            self.code_source.setPlainText(self._text)
+        selection = self.code_source.textCursor()
+        selection.setPosition(min(cursor, self.code_source.document().characterCount() - 1))
+        self.code_source.setTextCursor(selection)
+        self.code_source.verticalScrollBar().setValue(scroll)
+
+    def _code_changed(self) -> None:
+        if self.mode != "code" or self._read_only:
+            return
+        value, previous = self.code_source.toPlainText(), self._text
+        if value == previous:
+            return
+        start = 0
+        limit = min(len(value), len(previous))
+        while start < limit and value[start] == previous[start]:
+            start += 1
+        tail = 0
+        while tail < limit - start and value[-tail - 1] == previous[-tail - 1]:
+            tail += 1
+        self._undo.append((start, previous[start:len(previous) - tail],
+                           value[start:len(value) - tail]))
+        self._undo = self._undo[-100:]
+        self._redo.clear()
+        self._text = value
+        self.textChanged.emit()
+
+    def eventFilter(self, watched, event) -> bool:
+        if (watched is self.code_source
+                and event.type() in {QEvent.ShortcutOverride, QEvent.KeyPress}):
+            undo = event.matches(QKeySequence.Undo)
+            redo = event.matches(QKeySequence.Redo)
+            if undo or redo:
+                if event.type() == QEvent.KeyPress:
+                    self.undo() if undo else self.redo()
+                event.accept()
+                return True
+        return super().eventFilter(watched, event)
+
+    def rebuild(self) -> None:
+        if self.mode == "code":
+            self._sync_code()
+            return
         self._rebuilding = True
         self.active = None
         scroll = self.scroll.verticalScrollBar().value()
@@ -179,8 +273,6 @@ class LiveMarkdownEditor(QWidget):
                 item.widget().deleteLater()
         self.blocks = []
         spans, references = markdown_spans(self._text)
-        if whole_source:
-            spans = [(0, len(self._text))]
         for start, end in spans:
             block = MarkdownBlock(self, start, end, references)
             block.source.setPlaceholderText(self._placeholder)
@@ -193,7 +285,7 @@ class LiveMarkdownEditor(QWidget):
         self._rebuilding = False
 
     def activate(self, block: MarkdownBlock) -> None:
-        if self._read_only or block not in self.blocks:
+        if self.mode != "md" or self._read_only or block not in self.blocks:
             return
         if self.active and self.active is not block:
             self.active.render()
@@ -244,16 +336,22 @@ class LiveMarkdownEditor(QWidget):
             self.textChanged.emit()
 
     def hasFocus(self) -> bool:
-        return super().hasFocus() or bool(self.active and self.active.source.hasFocus())
+        return (super().hasFocus() or self.code_source.hasFocus()
+                or bool(self.active and self.active.source.hasFocus()))
 
     def setFocus(self, reason=Qt.OtherFocusReason) -> None:
-        if not self._read_only:
+        if self.mode == "code":
+            self.code_source.setFocus(reason)
+        elif not self._read_only:
             self.activate(self.active or self.blocks[0])
         else:
             super().setFocus(reason)
 
     def keyPressEvent(self, event) -> None:
-        if not self._read_only:
+        if self.mode == "code":
+            self.code_source.keyPressEvent(event)
+            event.accept()
+        elif not self._read_only:
             self.activate(self.active or self.blocks[0])
             # Calling sendEvent here would propagate ignored modifier keys back
             # through this parent and recurse indefinitely.
@@ -286,11 +384,27 @@ class LiveMarkdownEditor(QWidget):
         self._text = self._text[:position] + value + self._text[position:]
         self.rebuild()
         self.textChanged.emit()
+        if self.mode == "code":
+            self.code_source.setFocus()
+            return
         block = next((b for b in self.blocks if b.start <= position < b.end), self.blocks[-1])
         self.activate(block)
 
     def context_menu(self, block=None, field=None) -> QMenu:
-        menu = field.createStandardContextMenu() if field else QMenu(self)
+        if field is self.code_source:
+            menu = QMenu(self)
+            for title, callback, enabled in (
+                ("Rückgängig", self.undo, bool(self._undo) and not self._read_only),
+                ("Wiederholen", self.redo, bool(self._redo) and not self._read_only),
+                ("Ausschneiden", field.cut,
+                 field.textCursor().hasSelection() and not self._read_only),
+                ("Kopieren", field.copy, field.textCursor().hasSelection()),
+                ("Einfügen", field.paste, field.canPaste()),
+                ("Alles auswählen", field.selectAll, True),
+            ):
+                menu.addAction(title, callback).setEnabled(enabled)
+        else:
+            menu = field.createStandardContextMenu() if field else QMenu(self)
         menu.addSeparator()
         position = block.end if block else len(self._text)
         for title, kind in (("Überschrift einfügen", "heading"), ("Tabelle einfügen …", "table"),
@@ -304,8 +418,9 @@ class LiveMarkdownEditor(QWidget):
                                      self.insert_dialog(value, position))
         source = menu.addAction("Gesamten Markdown-Quelltext bearbeiten")
         source.setObjectName("markdown_full_source")
-        source.setEnabled(not self._read_only)
         source.triggered.connect(self.edit_whole_source)
+        if self.mode == "code":
+            menu.addAction("Gerendertes Markdown anzeigen", lambda: self.set_mode("md"))
         return menu
 
     def insert_dialog(self, kind: str, position: int) -> None:
@@ -320,9 +435,12 @@ class LiveMarkdownEditor(QWidget):
         self.insert_template(kind, position=position, columns=columns, rows=rows)
 
     def edit_whole_source(self) -> None:
-        if not self._read_only:
-            self.rebuild(whole_source=True)
-            self.activate(self.blocks[0])
+        self.set_mode("code")
+
+    def show_code_context(self, point) -> None:
+        menu = self.context_menu(field=self.code_source)
+        menu.exec(self.code_source.viewport().mapToGlobal(point))
+        menu.deleteLater()
 
     def show_context(self, point) -> None:
         menu = self.context_menu()

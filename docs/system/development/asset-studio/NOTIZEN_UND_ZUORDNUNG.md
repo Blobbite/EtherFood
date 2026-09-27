@@ -108,8 +108,21 @@ der Dokumentation. Alte freie Notizen ohne explizite Vorlage bleiben lesbar.
   Anheften lassen sich bei unverändertem Alttext weiterhin speichern.
 - Rechtsklick bietet sechs Farben und **Oben anheften** an. Im Asset-Menü
   werden dieselben bearbeitbaren Notizkarten untereinander angezeigt.
-- Angeheftete Notizen stehen zuerst, danach wird nach Titel sortiert. Die Farbe
-  ist unabhängig von Aufgabenstatus oder Asset-Freigabe.
+- Das Dashboard ist eine warme, farbige **Pinnwand**. Auch die Schreibfelder
+  verwenden die jeweilige Notizfarbe; sie sind keine weißen Kästen.
+  An der oberen **Verschieben**-Leiste lassen sich Karten frei platzieren,
+  auch überlappend. Textfelder bleiben zum Schreiben und Markieren da.
+  Die Position wird beim Loslassen automatisch im Projekt gespeichert.
+  **Esc** bricht einen laufenden Zug ab. Bei einem Schreibfehler wird die
+  vorherige Position wiederhergestellt und eine Fehlermeldung angezeigt.
+- Filter, Fenstergröße, Titel-/Farbwechsel und Neustart ordnen gespeicherte
+  Positionen nicht neu. Der Bereich ist scrollbar und bietet Platz hinter der
+  letzten Karte. Die Canvas-Position des Notizsymbols bleibt unabhängig davon.
+  Eine noch leere Schreibkarte behält ihren gewählten Platz während des
+  Arbeitens und speichert ihn zusammen mit ihrem ersten Inhalt.
+- Anheften bestimmt die Reihenfolge in der gestapelten Asset-Ansicht und bei
+  der ersten Standardanordnung; bereits platzierte Pinnwand-Karten springen
+  dadurch nicht um. Die Farbe ist unabhängig von Aufgabenstatus oder Asset-Freigabe.
 - Bereich und Herkunft bleiben sichtbar. Text-/Farbfilter sowie **Gesamtes
   Projekt** helfen bei größeren Sammlungen. Akt/Kapitel berücksichtigen auch
   verwendete Assets/Pakete und deren Unterkarten, ohne doppelte Notizen.
@@ -124,6 +137,12 @@ der Dokumentation. Alte freie Notizen ohne explizite Vorlage bleiben lesbar.
 `note_color` und `note_pinned` sind optionale Darstellungsfelder im bestehenden
 Dokumentdatensatz. Fehlende Werte entsprechen Gelb und nicht angeheftet.
 Katalogöffnung validiert die Werte; eine Datenmigration ist nicht nötig.
+Pinnwand-Koordinaten liegen als optionales `note_board: {x, y}` im vorhandenen
+Layoutdatensatz der Notiz. Sie gehören zum Projekt und zum Metadatensnapshot,
+nicht zur lokalen Rechnerkonfiguration. Verschieben erzeugt keine Textrevision
+und überschreibt weder Textentwürfe noch die getrennten Canvas-Koordinaten.
+Auch Rückgängig/Wiederholen einer Canvas-Anordnung erhält neuere Pinnwand-Positionen.
+Die kompakte Asset-Ansicht verändert diese Pinnwand-Anordnung nicht.
 
 Keine Bildpipeline, Godot-Ausgabe oder Asset-Freigabe wurde ergänzt.
 [Ergänzende Nachprüfung Dokumentation/Icons](SICHTPRUEFUNG_6D.md) ·

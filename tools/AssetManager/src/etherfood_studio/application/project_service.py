@@ -285,6 +285,7 @@ class ProjectService:
         from ..domain.notes import validate_note_style
 
         for record in self.catalog.records(include_archived=True):
+            self.catalog.layout(record.id)
             if record.kind in {"task", "issue"}:
                 validate_checklist(record.data.get("checklist", []))
             if record.kind == "document":
@@ -298,7 +299,6 @@ class ProjectService:
                     from .asset_service import AssetService
                     from .source_import import SourceImportService
                     SourceImportService(AssetService(self)).active(card.id)
-            self.catalog.layout(card.id)
             self.breadcrumb(card.id)
             parents = [e for e in edges
                        if e["kind"] == "belongs_to" and e["source_id"] == card.id]

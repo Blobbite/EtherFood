@@ -1,10 +1,12 @@
 """Scoped, directly editable post-its over the shared revisioned note service."""
 
-from PySide6.QtCore import QSize, Qt, Signal
+import sqlite3
+
+from PySide6.QtCore import QPoint, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLineEdit,
-    QListView, QListWidget, QListWidgetItem, QMessageBox, QPlainTextEdit, QVBoxLayout, QWidget,
+    QListWidgetItem, QMessageBox, QPlainTextEdit, QVBoxLayout, QWidget,
 )
 
 from ..application.note_service import NoteService
@@ -12,6 +14,7 @@ from ..domain.models import StudioError
 from ..domain.notes import NOTE_COLORS
 from .common import button, label, show_error
 from .note_details import NoteDetails
+from .note_board import NoteBoard
 
 NOTE_ROLE = Qt.ItemDataRole.UserRole
 LOCATION_ROLE = Qt.ItemDataRole.UserRole + 1
@@ -102,6 +105,7 @@ class NotesPanel(QWidget):
         self.project = None
         self.current_card = None
         self._selecting = False
+        self._positions = {}
         self._empty_editor = NoteDetails(self)
         self._empty_editor.hide()
         layout = QVBoxLayout(self)
@@ -123,18 +127,9 @@ class NotesPanel(QWidget):
         self.owner_button = button("Zum Bezug", "note_owner", self.focus_owner)
         filters.addWidget(self.owner_button)
         layout.addLayout(filters)
-        self.notes = QListWidget()
-        self.notes.setObjectName("notes_board")
-        self.notes.setViewMode(QListView.IconMode)
-        self.notes.setResizeMode(QListView.Adjust)
-        self.notes.setMovement(QListView.Static)
-        self.notes.setFlow(QListView.TopToBottom if stacked else QListView.LeftToRight)
-        self.notes.setWrapping(not stacked)
-        self.notes.setGridSize(QSize(334, 284))
-        self.notes.setSpacing(4)
-        self.notes.setStyleSheet("QListWidget { background: #f3f5f7; border: none; }"
-                                "QListWidget::item:selected { background: transparent; }")
+        self.notes = NoteBoard(stacked=stacked)
         self.notes.currentItemChanged.connect(self._selection)
+        self.notes.moved.connect(self._moved)
         layout.addWidget(self.notes, 1)
         self.query.textChanged.connect(self.refresh)
         self.color.currentIndexChanged.connect(self.refresh)
@@ -155,6 +150,8 @@ class NotesPanel(QWidget):
 
     def _remove(self, item, card) -> None:
         card.timer.stop()
+        card.hide()
+        self.notes.detach_handle(card.grip)
         self.notes.removeItemWidget(item)
         self.notes.takeItem(self.notes.row(item))
         card.deleteLater()
@@ -163,8 +160,10 @@ class NotesPanel(QWidget):
         self.notes.blockSignals(True)
         for item, card in self._cards():
             self._remove(item, card)
+        self.notes.reset_extent()
         self.notes.blockSignals(False)
         self.project = project
+        self._positions.clear()
         self.current_card = project.project().id
         self._empty_editor.bind(NoteService(project), self.current_card)
         self.setEnabled(True)
@@ -177,8 +176,10 @@ class NotesPanel(QWidget):
             self.notes.blockSignals(True)
             for item, card in self._cards():
                 self._remove(item, card)
+            self.notes.reset_extent()
             self.notes.blockSignals(False)
             self.current_card = identifier
+            self._positions.clear()
             for field in (self.query, self.color):
                 field.blockSignals(True)
             self.query.clear()
@@ -192,14 +193,20 @@ class NotesPanel(QWidget):
         item = self.notes.currentItem()
         return item.data(NOTE_ROLE) if item else None
 
-    def _append(self, record=None):
+    def _append(self, record=None, *, placeholder: bool = False):
         item = NoteItem()
         item.setSizeHint(QSize(334, 284))
         item.setData(NOTE_ROLE, record)
         card = NoteDetails()
+        card.placeholder_draft = placeholder
         card.bind(NoteService(self.project), self.current_card, record)
+        if self.notes.free:
+            point = self._positions[record.id] if record else self._next_position()
         self.notes.addItem(item)
         self.notes.setItemWidget(item, card)
+        self.notes.attach_handle(item, card.grip)
+        if self.notes.free:
+            self._place(item, card, point)
         card.activated.connect(lambda: self.notes.setCurrentItem(item))
         card.saved.connect(lambda: self._saved(item, card))
         return item
@@ -207,8 +214,17 @@ class NotesPanel(QWidget):
     def refresh(self, *args) -> None:
         if not self.project or not self.current_card:
             return
-        rows = NoteService(self.project).notes(self.current_card, self.query.text(),
-                                               self.color.currentData())
+        service = NoteService(self.project)
+        rows = service.notes(self.current_card, self.query.text(), self.color.currentData())
+        if self.notes.free:
+            all_rows = service.notes(self.current_card)
+            for row in all_rows:
+                position = service.position(row.id)
+                if position is not None:
+                    self._positions[row.id] = QPoint(round(position["x"]), round(position["y"]))
+            for row in all_rows:
+                if row.id not in self._positions:
+                    self._positions[row.id] = self._next_position()
         wanted = {row.id: row for row in rows}
         present = set()
         self.notes.blockSignals(True)
@@ -219,20 +235,25 @@ class NotesPanel(QWidget):
                 if not card.dirty and latest.revision_no != record.revision_no:
                     card.load(latest)
                 item.setData(NOTE_ROLE, card.current)
+                if self.notes.free:
+                    self._place(item, card, self._positions[record.id])
                 present.add(record.id)
-            elif not card.dirty and (record or self.query.text() or self.color.currentData()):
+            elif not card.dirty and (record or self.query.text() or self.color.currentData()
+                                     or (rows and card.placeholder_draft)):
                 self._remove(item, card)
         for row in rows:
             if row.id not in present:
                 self._append(row)
         if not self.notes.count() and not self.query.text() and self.color.currentData() is None:
-            self._append()
+            self._append(placeholder=True)
         self.notes.sortItems()
+        self.notes.restore_positions()
         if self.notes.currentItem() is None and self.notes.count():
             self.notes.setCurrentRow(0)
         self.notes.blockSignals(False)
         self.scope_label.setText("Bereich: " + self.project.breadcrumb(self.current_card)
-                                 + " · Direkt schreiben · Rechtsklick: Farbe")
+                                 + " · Direkt schreiben · Rechtsklick: Farbe"
+                                 + (" · Griffleiste ziehen" if self.notes.free else ""))
         self.owner_button.setEnabled(self.selected() is not None)
 
     def _selection(self, item, previous) -> None:
@@ -251,8 +272,37 @@ class NotesPanel(QWidget):
 
     def _saved(self, item, card) -> None:
         item.setData(NOTE_ROLE, card.current)
+        if self.notes.free:
+            self._positions[card.current.id] = self.notes.position(item)
         self.owner_button.setEnabled(self.selected() is not None)
         self.changed.emit()
+
+    def _next_position(self) -> QPoint:
+        points = list(self._positions.values())
+        points.extend(self.notes.position(item) for item, card in self._cards())
+        occupied = [QRect(point, QSize(334, 284)) for point in points]
+        index = 0
+        while True:
+            point = QPoint(16 + index % 3 * 334, 16 + index // 3 * 284)
+            if not any(QRect(point, QSize(334, 284)).intersects(rect) for rect in occupied):
+                return point
+            index += 1
+
+    def _place(self, item, card, point: QPoint) -> None:
+        self.notes.place_item(item, point)
+        card.board_position = {"x": point.x(), "y": point.y()}
+
+    def _moved(self, item, point: QPoint, original: QPoint) -> None:
+        card = self.notes.itemWidget(item)
+        position = {"x": point.x(), "y": point.y()}
+        try:
+            if card.current:
+                card.service.place(card.current.id, position)
+                self._positions[card.current.id] = point
+            card.board_position = position
+        except (StudioError, OSError, sqlite3.Error) as error:
+            self._place(item, card, original)
+            show_error(self, error)
 
     def confirm_discard(self) -> bool:
         return all(card.confirm_discard() for _, card in self._cards())
@@ -268,6 +318,7 @@ class NotesPanel(QWidget):
         draft = next((item for item, card in self._cards() if card.current is None), None)
         if draft is None:
             draft = self._append()
+        self.notes.itemWidget(draft).placeholder_draft = False
         self.notes.setCurrentItem(draft)
         self.notes.scrollToItem(draft)
         self.notes.itemWidget(draft).editor.setFocus()

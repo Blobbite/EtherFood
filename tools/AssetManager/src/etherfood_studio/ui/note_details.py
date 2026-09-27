@@ -3,6 +3,7 @@
 import sqlite3
 
 from PySide6.QtCore import QEvent, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QFrame, QLineEdit, QMenu, QMessageBox, QPlainTextEdit, QVBoxLayout,
 )
@@ -24,9 +25,17 @@ class NoteDetails(QFrame):
         self.current = None
         self.dirty = False
         self._loading = False
+        self.board_position = None
+        self.placeholder_draft = False
         self.setObjectName("note_card")
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self.setFixedSize(*self.SIZE)
         layout = QVBoxLayout(self)
+        self.grip = label("⠿  Verschieben", "note_drag_handle")
+        self.grip.setCursor(Qt.OpenHandCursor)
+        self.grip.setToolTip("An dieser Leiste auf der Pinnwand verschieben")
+        self.grip.setFixedHeight(20)
+        layout.addWidget(self.grip)
         self.title = QLineEdit()
         self.title.setObjectName("note_inline_title")
         self.title.setPlaceholderText("Überschrift …")
@@ -96,10 +105,15 @@ class NoteDetails(QFrame):
         self.setStyleSheet(
             f"QFrame#note_card {{ background: {color}; border: 1px solid #aa9868; "
             "border-radius: 9px; }"
-            "QLineEdit, QPlainTextEdit { background: transparent; color: #263238; "
+            f"QLineEdit, QPlainTextEdit {{ background: {color}; color: #263238; "
             "border: none; selection-background-color: #b3d6f5; }"
             "QLineEdit { font-weight: bold; } QLabel { color: #52606a; background: transparent; }"
         )
+        # Native Qt themes may still paint the text viewport with their Base brush.
+        palette = self.editor.palette()
+        palette.setColor(QPalette.Base, QColor(color))
+        self.editor.setPalette(palette)
+        self.editor.viewport().setPalette(palette)
 
     def _caption(self, message: str = "") -> None:
         count = note_word_count(self.editor.toPlainText())
@@ -147,6 +161,7 @@ class NoteDetails(QFrame):
                 identifier=self.current.id if self.current else None,
                 expected_revision=self.current.revision_no if self.current else None,
                 color=self.color.currentData(), pinned=self.pinned.isChecked(),
+                position=self.board_position if self.current is None else None,
             )
         except (StudioError, OSError, sqlite3.Error) as error:
             self._caption(str(error))
