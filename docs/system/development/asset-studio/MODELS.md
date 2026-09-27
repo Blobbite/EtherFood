@@ -15,6 +15,13 @@ keine erfundene Handlung in den Spielkanon. Projektimport/-öffnung prüft
 Hierarchie, Eigentümer, Verknüpfungen und Zyklen; fehlende externe Wurzeln
 bleiben gespeichert und werden als nicht verfügbar gemeldet.
 
+Seit Zwischenpaket 6c erfolgt die Umordnung direkt per Drag-and-drop im
+Projektbaum. Karten, Aufgaben, Issues und manuelle Dokumente behalten ihre IDs
+und Daten; nur die Zuordnung ändert sich. Verwendungs-Verweise verschieben nur
+die jeweilige Beziehung. Strg+Ziehen eines Assets/Pakets fügt eine Verwendung
+hinzu. Validierung und Undo/Redo schützen vor ungültigen Ebenen, Zyklen und
+zwischenzeitlichen Änderungen. [Bedienung](NOTIZEN_UND_ZUORDNUNG.md).
+
 ## Dokumente und Aufgaben
 
 `DocumentService` speichert Markdown revisioniert im Katalog. Generierte
@@ -44,6 +51,18 @@ und Issues nach Herkunft und erlaubt Statuswechsel per Ziehen oder Schaltfläche
 Projektwurzel zeigt alle aktiven Aufgaben; verwendete Assets/Pakete und ihre
 Unterkarten werden ohne Kopien berücksichtigt. Archivierte Eigentümerzweige
 bleiben ausgeblendet. [Bedienung und Bereichsregeln](KANBAN.md).
+
+Zwischenpaket 6c ergänzt **Notizen** zwischen Kanban und Dokumentation. Das
+Dashboard zeigt dieselben manuellen Dokumente der Vorlagen Freie Notiz und
+Testnotiz als Post-its. Optionale Felder `note_color` (sechs definierte Farben)
+und `note_pinned` (Boolean) steuern nur die Darstellung. Alte Datensätze ohne
+diese Felder sind gelb und nicht angeheftet. Dokumenteditor und Dashboard
+schreiben revisioniert auf dieselben IDs; Markdown und Anhänge bleiben erhalten.
+Aufgaben, Issues und Notizen erscheinen zusätzlich als kleine Canvas-Symbole.
+
+`ProjectService.content_scope` löst für Aufgaben, Suche und Notizen einheitlich
+aktive Unterkarten und rekursive Paket-/Assetverwendungen auf. Archivierte
+Eigentümerzweige sind ausgeschlossen; keine inhaltliche Vervielfältigung.
 
 Aufgaben und Issues können eine To-do-Liste besitzen. Im Anlage-/Bearbeitendialog
 Punkte ergänzen, per Doppelklick umbenennen oder gezielt entfernen. Häkchen in

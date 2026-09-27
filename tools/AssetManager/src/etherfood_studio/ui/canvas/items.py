@@ -148,3 +148,24 @@ class CardItem(QGraphicsRectItem):
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         self.view.toggle_requested.emit(self.identifier)
         event.accept()
+
+
+class IconCardItem(CardItem):
+    """Small content handle, not another workflow/asset card."""
+
+    def __init__(self, identifier: str, title: str, kind: str, summary: str,
+                 view: "Canvas", color: str = "#e3effb") -> None:
+        super().__init__(identifier, title, kind, summary, view, 144, 62)
+        self.grip.hide()
+        self.setBrush(QColor(color))
+        self.icon.setPixmap(kind_icon(kind).pixmap(26, 26))
+        self.icon.setPos(10, 17)
+        self.texts[0][0].setPos(45, 9)
+        self.texts[1][0].setPos(45, 30)
+        self.texts[2][0].hide()
+        self.resize(144, 62)
+        self.setToolTip(title + "\n" + summary + "\nDoppelklick: öffnen · Port ziehen: zuordnen")
+
+    def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        self.view.open_requested.emit(self.identifier)
+        event.accept()

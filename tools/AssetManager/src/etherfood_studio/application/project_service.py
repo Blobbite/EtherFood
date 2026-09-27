@@ -98,9 +98,12 @@ class ProjectService:
 
     def move(self, identifier: str, parent_id: str, expected_revision: int) -> Record:
         with self.catalog.transaction():
-            record, target = self.catalog.get(identifier), self.catalog.get(parent_id)
+            record, target = self.validate_move(identifier, parent_id)
             self._check_revision(record, expected_revision)
-            validate_relation(record, target, "belongs_to", self.catalog.relations())
+            if record.owner_id == parent_id:
+                return record
+            if record.kind in {"task", "issue", "document"}:
+                return self.catalog.save(record, owner_id=parent_id)
             relation_id = None
             for edge in self.catalog.relations():
                 if edge["source_id"] == identifier and edge["kind"] == "belongs_to":
@@ -108,6 +111,41 @@ class ProjectService:
                     self.catalog.remove_relation(edge["id"])
             self.catalog.add_relation(identifier, parent_id, "belongs_to", identifier=relation_id)
             return self.catalog.save(record, owner_id=parent_id)
+
+    def require_active_card(self, identifier: str) -> Record:
+        record = self.catalog.get(identifier)
+        if record.kind not in CARD_KINDS:
+            raise StudioError("validation", "Als Ziel eine Projektkarte auswählen.")
+        current = record
+        seen = set()
+        while current:
+            if current.id in seen or current.archived:
+                raise StudioError("validation", "Archivierte/zyklische Bereiche sind gesperrt.")
+            seen.add(current.id)
+            current = self.catalog.get(current.owner_id) if current.owner_id else None
+        return record
+
+    def validate_move(self, identifier: str, parent_id: str) -> tuple[Record, Record]:
+        record = self.catalog.get(identifier)
+        target = self.require_active_card(parent_id)
+        if record.archived or identifier == parent_id:
+            raise StudioError("validation", "Archivierte Inhalte/Selbstzuordnung sind gesperrt.")
+        if record.owner_id:
+            self.require_active_card(record.owner_id)
+        if record.kind in CARD_KINDS:
+            validate_relation(record, target, "belongs_to", self.catalog.relations())
+        elif record.kind in {"task", "issue", "document"}:
+            if record.kind == "document":
+                if record.data.get("document_type") != "manual":
+                    raise StudioError("validation", "Generierte Berichte bleiben schreibgeschützt.")
+                if any(row.id != record.id and row.kind == "document"
+                       and row.owner_id == parent_id
+                       and row.title.casefold() == record.title.casefold()
+                       for row in self.catalog.records()):
+                    raise StudioError("conflict", "Dokumentname existiert am Ziel bereits.")
+        else:
+            raise StudioError("validation", "Dieser Datentyp kann nicht umgeordnet werden.")
+        return record, target
 
     def reorder(self, identifier: str, order: int, expected_revision: int) -> Record:
         record = self.catalog.get(identifier)
@@ -205,6 +243,33 @@ class ProjectService:
             identifier = record.owner_id
         return " / ".join(reversed(names))
 
+    def content_scope(self, scope_id: str | None = None) -> set[str]:
+        """Active ownership subtree plus used assets/packages; never dependencies."""
+        children: dict[str | None, list[str]] = {}
+        for card in self.cards():
+            children.setdefault(card.owner_id, []).append(card.id)
+        root = self.project().id
+        visible: set[str] = set()
+        pending = [root]
+        while pending:
+            identifier = pending.pop()
+            if identifier not in visible:
+                visible.add(identifier)
+                pending.extend(children.get(identifier, []))
+        references: dict[str, list[str]] = {}
+        for edge in self.catalog.relations():
+            if edge["kind"] == "uses":
+                references.setdefault(edge["source_id"], []).append(edge["target_id"])
+        scope: set[str] = set()
+        pending = [scope_id or root]
+        while pending:
+            identifier = pending.pop()
+            if identifier in visible and identifier not in scope:
+                scope.add(identifier)
+                pending.extend(children.get(identifier, []))
+                pending.extend(references.get(identifier, []))
+        return scope
+
     def validate_structure(self) -> None:
         self.project()
         cards = self.cards(include_archived=True)
@@ -213,10 +278,13 @@ class ProjectService:
         edges = self.catalog.relations()
         from dataclasses import replace
         from ..domain.checklists import validate_checklist
+        from ..domain.notes import validate_note_style
 
         for record in self.catalog.records(include_archived=True):
             if record.kind in {"task", "issue"}:
                 validate_checklist(record.data.get("checklist", []))
+            if record.kind == "document":
+                validate_note_style(record.data)
 
         for card in cards:
             if card.kind == "asset" and "asset_definition" in card.data:

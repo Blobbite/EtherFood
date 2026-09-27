@@ -1,5 +1,10 @@
 # Nachbriefing 6b – Aufgaben-Kanban
 
+**Abgenommen:** Der Benutzer hat alle sieben Punkte am 27.09.2026 bestätigt.
+Diese Prüfliste dokumentiert die damalige Reiterfolge. Die zusätzliche
+Notizansicht und Baumzuordnung werden getrennt in [Nachbriefing 6c](SICHTPRUEFUNG_6C.md)
+geprüft; die Pipeline-Issues beginnen dadurch noch nicht.
+
 Deine Prüfungen 1–7 aus Zwischenpaket 6a sind bestätigt. Für diese Runde reicht
 das bestehende Testprojekt; kein neuer Quellenimport und kein neues Projekt nötig.
 Studio neu starten: `python3 tools/control.py asset-manager run`.

@@ -82,8 +82,6 @@ class Navigation:
         action("Umbenennen …", "context_rename", record.kind,
                lambda: self._on_card(identifier, window.rename_dialog))
         if record.kind not in {"project", "global"}:
-            action("Hierarchie umordnen …", "context_reparent", record.kind,
-                   lambda: self._on_card(identifier, self.reparent))
             action("Wiederherstellen" if record.archived else "Archivieren …",
                    "context_archive", record.kind,
                    lambda: self._on_card(identifier, window.archive_dialog))
@@ -118,16 +116,3 @@ class Navigation:
             window.refresh()
 
         window.perform(rename)
-
-    def reparent(self) -> None:
-        window = self.window
-        record = window.project.catalog.get(window.selected_id)
-        choices = {f"{window.project.breadcrumb(card.id)} [{card.id[:8]}]": card.id
-                   for card in window.project.cards()
-                   if card.kind in PARENTS[record.kind] and card.id != record.id}
-        if not choices:
-            return
-        choice, accepted = QInputDialog.getItem(window, "Hierarchie umordnen", "Neuer Elternort",
-                                               list(choices), 0, False)
-        if accepted and window.perform(lambda: window.commands.move(record.id, choices[choice])):
-            window.refresh()

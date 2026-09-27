@@ -1,7 +1,7 @@
 # Aufgaben-Kanban und getrennte Suche
 
-Seit Zwischenpaket 6b lautet die Reihenfolge im Hauptfenster:
-**Projekt-Canvas → Aufgaben-Kanban → Dokumentation & Anhänge → Suche**.
+Seit Zwischenpaket 6c lautet die Reihenfolge im Hauptfenster:
+**Projekt-Canvas → Aufgaben-Kanban → Notizen → Dokumentation & Anhänge → Suche**.
 Bestehende Projekte bleiben ohne Migration verwendbar. Aufgaben und lokale
 Issues sind dieselben Katalogeinträge wie zuvor, keine GitHub-Synchronisierung.
 
@@ -58,6 +58,11 @@ Status-, Typ- und Assettypfilter ändern keine Kanban-Filter. Dokumente lassen s
 von dort im Dokumentationsreiter öffnen, Aufgaben im gemeinsamen Editor.
 Ungespeicherte Notizen behalten ihren bisherigen Speichern/Verwerfen/Abbrechen-
 Schutz beim Wechsel zu einer anderen Karte.
+
+Der eigene Reiter **Notizen** zeigt farbige Post-its. Aufgaben/Issues bleiben
+im Kanban und besitzen zusätzlich kleine Symbole im Canvas. Eigentümer lassen
+sich im Projektbaum per Drag-and-drop ändern; das Ziehen im Kanban ändert
+weiterhin ausschließlich den Status. [Notizen und Zuordnung](NOTIZEN_UND_ZUORDNUNG.md).
 
 `.asset-studio/objects` ist ein hashadressierter, unveränderlicher Quellenspeicher.
 Die Namen dort sind keine vorgesehenen Godot-Assetnamen. Geprüfte, portable

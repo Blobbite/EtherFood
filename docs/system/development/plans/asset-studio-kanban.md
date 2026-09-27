@@ -93,7 +93,9 @@ keine Remote-Umschreibung und kein Force-Push. Abschließender Standardcheck
 nach den Dokumentationsänderungen bestätigt unverändert die oben genannten
 Bestandsbefunde. Dieser Nachtrag protokolliert die tatsächliche Übergabe.
 
-Persönliche Nachprüfung 6b erfolgt nach der Übergabe; die bestätigte Nachprüfung
-6a schließt keine früher zurückgestellten Kriterien. Spätere Pipeline-Issues
-nicht begonnen. Vorhandene, nicht zu dieser Änderung gehörende Game-/Control-
-Arbeitsstände bleiben unverändert im Arbeitsbaum.
+Persönliche Nachprüfung 6b: alle sieben Punkte am 27.09.2026 vom Benutzer
+bestätigt. Frühere zurückgestellte Kriterien werden dadurch nicht geschlossen.
+Der Folgeauftrag zu Notizen und Baumzuordnung wird im
+[Arbeitsplan 6c](asset-studio-notizen-und-zuordnung.md) behandelt. Spätere
+Pipeline-Issues nicht begonnen. Vorhandene, nicht zu dieser Änderung gehörende
+Game-/Control-Arbeitsstände bleiben unverändert im Arbeitsbaum.

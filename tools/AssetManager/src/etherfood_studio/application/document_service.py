@@ -115,13 +115,10 @@ class DocumentService:
 
     def search(self, query: str, *, scope_id: str | None = None,
                document_type: str | None = None) -> list[Record]:
-        scope = self.project.descendants(scope_id) if scope_id else None
-        if scope is not None:
-            scope.update(edge["target_id"] for edge in self.catalog.relations()
-                         if edge["kind"] == "uses" and edge["source_id"] in scope)
+        scope = self.project.content_scope(scope_id)
         needle = query.casefold()
         return [row for row in self.catalog.records() if row.kind == "document"
                 and not self.catalog.get(row.owner_id).archived
-                and (scope is None or row.owner_id in scope)
+                and row.owner_id in scope
                 and (document_type is None or row.data.get("document_type") == document_type)
                 and needle in (row.title + "\n" + row.data.get("body", "")).casefold()]

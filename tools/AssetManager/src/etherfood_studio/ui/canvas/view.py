@@ -10,14 +10,16 @@ from PySide6.QtWidgets import (
 
 from ...application.project_service import ProjectService
 from ...application.status_service import StatusService
+from ...domain.notes import NOTE_COLORS, is_note
 from .edges import EdgeItem, curve, place_labels
-from .items import CardItem, KIND_NAMES
+from .items import CardItem, IconCardItem, KIND_NAMES
 
 
 class Canvas(QGraphicsView):
     EDGE_PEEK_PIXELS = 48.0
 
     selected = Signal(str)
+    open_requested = Signal(str)
     moved = Signal(str, float, float)
     toggle_requested = Signal(str)
     resized = Signal(str, float, float)
@@ -53,6 +55,8 @@ class Canvas(QGraphicsView):
     @staticmethod
     def default_positions(project: ProjectService) -> dict[str, dict]:
         cards = project.cards()
+        contents = [row for row in project.catalog.records()
+                    if row.kind in {"task", "issue"} or is_note(row)]
         positions = {}
         cursor = 0
 
@@ -60,8 +64,10 @@ class Canvas(QGraphicsView):
             nonlocal cursor
             card = project.catalog.get(identifier)
             width = 650 if card.kind in {"global", "project"} else 250
-            positions[identifier] = {"x": depth * 295, "y": cursor * 125, "w": width, "h": 100}
-            cursor += 1
+            positions[identifier] = {"x": depth * 295, "y": cursor, "w": width, "h": 100}
+            if card.kind == "note":
+                positions[identifier] |= {"w": 144, "h": 62}
+            cursor += 125
             children = [row for row in cards if row.owner_id == identifier]
             children.sort(key=lambda row: (
                 row.kind != "global", row.data.get("order", 0), row.title,
@@ -70,6 +76,33 @@ class Canvas(QGraphicsView):
                 arrange(child.id, depth + (0 if child.kind in {"global", "act"} else 1))
 
         arrange(project.project().id, 0)
+        occupied = []
+        for card in cards:
+            if card.id not in positions:
+                continue
+            value = positions[card.id] | project.catalog.layout(card.id)
+            occupied.append(QRectF(value["x"], value["y"], value["w"], value["h"]))
+        for record in contents:
+            saved = project.catalog.layout(record.id)
+            if "x" in saved and "y" in saved:
+                occupied.append(QRectF(saved["x"], saved["y"], 144, 62))
+        # Add small handles into free space without moving or covering existing cards.
+        ordered = sorted(contents, key=lambda row: (row.owner_id, row.title.casefold(), row.id))
+        for record in ordered:
+            if record.owner_id not in positions:
+                continue
+            owner = positions[record.owner_id] | project.catalog.layout(record.owner_id)
+            offset = 0
+            while True:
+                box = QRectF(owner["x"] + owner["w"] + 35 + offset % 4 * 170,
+                             owner["y"] + offset // 4 * 80, 144, 62)
+                if not any(box.adjusted(-10, -10, 10, 10).intersects(other)
+                           for other in occupied):
+                    break
+                offset += 1
+            positions[record.id] = {"x": box.x(), "y": box.y(), "w": 144, "h": 62}
+            saved = positions[record.id] | project.catalog.layout(record.id)
+            occupied.append(QRectF(saved["x"], saved["y"], 144, 62))
         return positions
 
     def render(self, project: ProjectService, selected_id: str | None = None) -> None:
@@ -92,14 +125,41 @@ class Canvas(QGraphicsView):
             if card.id in hidden:
                 continue
             layout = defaults.get(card.id, {"x": 0, "y": 0}) | project.catalog.layout(card.id)
-            item = CardItem(card.id, card.title, card.kind, statuses.summary(card.id), self,
-                            layout.get("w", 250), layout.get("h", 100))
+            if card.kind == "note":
+                item = IconCardItem(card.id, card.title, "note", "Notizbereich öffnen", self,
+                                    NOTE_COLORS["yellow"][1])
+            else:
+                item = CardItem(card.id, card.title, card.kind, statuses.summary(card.id), self,
+                                layout.get("w", 250), layout.get("h", 100))
             item.setPos(layout["x"], layout["y"])
             self.scene().addItem(item)
             self.items_by_id[card.id] = item
             if card.id == selected_id:
                 item.setSelected(True)
-        for edge in project.catalog.relations():
+        content_edges = []
+        for record in project.catalog.records():
+            if record.kind not in {"task", "issue"} and not is_note(record):
+                continue
+            if record.owner_id not in self.items_by_id \
+                    or project.catalog.layout(record.owner_id).get("collapsed"):
+                continue
+            note = is_note(record)
+            color = NOTE_COLORS[record.data.get("note_color", "yellow")][1] if note else "#e3effb"
+            summary = project.breadcrumb(record.owner_id)
+            if not note:
+                summary += "\nStatus: " + {"open": "Offen", "in_progress": "In Arbeit",
+                    "blocked": "Blockiert", "done": "Erledigt"}[record.data["status"]]
+            item = IconCardItem(record.id, record.title, "note" if note else record.kind,
+                                summary, self, color)
+            layout = defaults[record.id] | project.catalog.layout(record.id)
+            item.setPos(layout["x"], layout["y"])
+            self.scene().addItem(item)
+            self.items_by_id[record.id] = item
+            content_edges.append({"id": "content:" + record.id, "kind": "belongs_to",
+                                  "source_id": record.id, "target_id": record.owner_id})
+            if record.id == selected_id:
+                item.setSelected(True)
+        for edge in project.catalog.relations() + content_edges:
             source = self.items_by_id.get(edge["source_id"])
             target = self.items_by_id.get(edge["target_id"])
             if source is not None and target is not None:

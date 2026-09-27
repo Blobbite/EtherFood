@@ -85,8 +85,15 @@ class Commands:
             if not identity:
                 identity.append(edge)
 
-        self.execute(Command("Verbindung anlegen", forward,
-                             lambda: self.project.unlink(identity[0])))
+        def backward() -> None:
+            edge = next((row for row in self.project.catalog.relations()
+                         if row["id"] == identity[0]), None)
+            if not edge or (edge["source_id"], edge["target_id"], edge["kind"]) \
+                    != (source, target, kind):
+                raise StudioError("conflict", "Verwendung wurde zwischenzeitlich geändert.")
+            self.project.unlink(identity[0])
+
+        self.execute(Command("Verbindung anlegen", forward, backward))
         return identity[0]
 
     def unlink(self, identifier: str) -> None:
@@ -98,14 +105,26 @@ class Commands:
                              lambda: self.project.relate(edge["source_id"], edge["target_id"],
                                                          edge["kind"], identifier=identifier)))
 
-    def move(self, identifier: str, parent: str) -> None:
-        old = self.project.catalog.get(identifier).owner_id
+    def move(self, identifier: str, parent: str, expected_revision: int | None = None) -> None:
+        record, _ = self.project.validate_move(identifier, parent)
+        self.project._check_revision(record, expected_revision or record.revision_no)
+        old = record.owner_id
+        if old == parent:
+            return
+        initial = [True]
 
-        def move_to(target: str) -> None:
+        def move_to(target: str, expected_owner: str, *, forward: bool = False) -> None:
             current = self.project.catalog.get(identifier)
+            if current.owner_id != expected_owner:
+                raise StudioError("conflict", "Zuordnung wurde zwischenzeitlich geändert.")
+            if forward and initial[0]:
+                self.project._check_revision(current, record.revision_no)
             self.project.move(identifier, target, current.revision_no)
+            if forward:
+                initial[0] = False
 
-        self.execute(Command("Karte umordnen", lambda: move_to(parent), lambda: move_to(old)))
+        self.execute(Command("Zuordnung ändern", lambda: move_to(parent, old, forward=True),
+                             lambda: move_to(old, parent)))
 
     def relink(self, identifier: str, source: str, target: str) -> None:
         edge = next((row for row in self.project.catalog.relations()
@@ -119,7 +138,15 @@ class Commands:
                 raise StudioError("validation", "Nur das Eltern-Ziel der Hierarchie umhängen.")
             self.move(source, target)
             return
-        self.execute(Command(
-            "Verbindung umhängen", lambda: self.project.relink(identifier, source, target),
-            lambda: self.project.relink(identifier, edge["source_id"], edge["target_id"]),
-        ))
+        old = (edge["source_id"], edge["target_id"])
+        new = (source, target)
+
+        def retarget(expected, replacement) -> None:
+            current = next((row for row in self.project.catalog.relations()
+                            if row["id"] == identifier), None)
+            if not current or (current["source_id"], current["target_id"]) != expected:
+                raise StudioError("conflict", "Verwendung wurde zwischenzeitlich geändert.")
+            self.project.relink(identifier, *replacement)
+
+        self.execute(Command("Verbindung umhängen", lambda: retarget(old, new),
+                             lambda: retarget(new, old)))

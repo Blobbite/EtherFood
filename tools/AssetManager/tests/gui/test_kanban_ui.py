@@ -75,7 +75,7 @@ def test_tabs_search_shortcut_and_filters_are_independent(window, qt_app):
     ids, rows = seed(window)
     doc = DocumentService(window.project).create(ids["two"], "Suchnotiz", "Dokumentinhalt")
     assert [window.tabs.tabText(i) for i in range(window.tabs.count())] == [
-        "Projekt-Canvas", "Aufgaben-Kanban", "Dokumentation && Anhänge", "Suche"]
+        "Projekt-Canvas", "Aufgaben-Kanban", "Notizen", "Dokumentation && Anhänge", "Suche"]
     assert window.splitter.widget(2).isHidden()
     window.tabs.setCurrentIndex(0)
     assert not window.splitter.widget(2).isHidden()

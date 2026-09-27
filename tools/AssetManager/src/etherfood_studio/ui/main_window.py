@@ -10,7 +10,7 @@ from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QMainWindow,
     QMessageBox, QPlainTextEdit, QScrollArea, QSpinBox, QSplitter, QTabWidget, QToolBar,
-    QTreeWidget, QTreeWidgetItem,
+    QTreeWidgetItem,
     QVBoxLayout, QWidget,
 )
 
@@ -19,8 +19,10 @@ from ..application.asset_service import AssetService
 from ..application.document_service import DocumentService
 from ..application.project_service import ProjectService
 from ..application.status_service import STATE_NAMES, STEP_NAMES, StatusService, status_reason
+from ..application.tree_service import TreeService
 from ..domain.models import StudioError
 from ..domain.relations import CARD_KINDS
+from ..domain.notes import is_note
 from .canvas.view import Canvas
 from .asset_wizard import AssetWizard
 from .asset_workspace import AssetWorkspace
@@ -29,6 +31,8 @@ from .documents.editor import DocumentEditor
 from .project_dialog import ProjectDialog
 from .navigation import Navigation
 from .presentation import KIND_NAMES, kind_icon
+from .project_tree import EDGE_ROLE, ProjectTree
+from .notes import NotesPanel
 from .tasks.panel import TasksPanel
 from .tasks.kanban import KanbanPanel
 
@@ -83,7 +87,8 @@ class MainWindow(QMainWindow):
         )
         outer.addWidget(self.root_notice)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
-        self.tree = QTreeWidget()
+        self.tree = ProjectTree(self)
+        self.tree.drop_requested.connect(self.tree_drop, Qt.ConnectionType.QueuedConnection)
         self.tree.setObjectName("project_tree")
         self.tree.setAccessibleName("Projektbaum; Verweise öffnen dieselbe Asset-Karte")
         self.tree.setHeaderLabels(["Projekt und Verwendungen"])
@@ -110,6 +115,8 @@ class MainWindow(QMainWindow):
         self.canvas = Canvas()
         # Saving a dirty note can rebuild the scene; finish the pointer event first.
         self.canvas.selected.connect(self._canvas_selected, Qt.ConnectionType.QueuedConnection)
+        self.canvas.open_requested.connect(self.open_canvas_content,
+                                            Qt.ConnectionType.QueuedConnection)
         self.canvas.moved.connect(self.move_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.toggle_requested.connect(self.toggle_card, Qt.ConnectionType.QueuedConnection)
         self.canvas.resized.connect(self.resize_canvas_card, Qt.ConnectionType.QueuedConnection)
@@ -129,6 +136,11 @@ class MainWindow(QMainWindow):
         self.tasks.focus_requested.connect(self.select_card)
         self.tasks.changed.connect(self.refresh)
         self.tabs.addTab(self.tasks, "Aufgaben-Kanban")
+        self.notes = NotesPanel(self.prepare_content_change)
+        self.notes.changed.connect(self._notes_changed)
+        self.notes.document_requested.connect(self.open_document)
+        self.notes.focus_requested.connect(self.select_card)
+        self.tabs.addTab(self.notes, "Notizen")
         self.documents = DocumentEditor()
         self.documents.saved.connect(self._document_saved)
         self.tabs.addTab(self.documents, "Dokumentation && Anhänge")
@@ -170,7 +182,6 @@ class MainWindow(QMainWindow):
         property_layout.addLayout(size_row)
         for text, name, call in (
             ("Umbenennen", "rename_card", self.rename_dialog),
-            ("Hierarchie umordnen", "reparent_card", self.reparent_dialog),
             ("Archivieren / Wiederherstellen", "archive_card", self.archive_dialog),
         ):
             property_layout.addWidget(button(text, name, call))
@@ -180,7 +191,7 @@ class MainWindow(QMainWindow):
         self.relation_kind.addItem("Voraussetzung → depends_on", "depends_on")
         self.relation_target = QComboBox()
         self.relation_target.setObjectName("relation_target")
-        property_layout.addWidget(label("Zielkarte für Verbindung / Umordnen"))
+        property_layout.addWidget(label("Zielkarte für Verbindung (Zuordnung: im Baum ziehen)"))
         property_layout.addWidget(self.relation_kind)
         property_layout.addWidget(self.relation_target)
         property_layout.addWidget(button("Verbindung anlegen", "add_relation", self.link_dialog))
@@ -200,7 +211,7 @@ class MainWindow(QMainWindow):
         self.splitter.setStretchFactor(1, 1)
         # Canvas geometry/relations are not task controls; give the board their space.
         self.tabs.currentChanged.connect(lambda index: property_scroll.setVisible(
-            self.tabs.widget(index) is not self.tasks))
+            self.tabs.widget(index) not in {self.tasks, self.notes}))
         outer.addWidget(self.splitter, 1)
         self.jobs = label("Keine Aufträge. Pipeline- und Godot-Aktionen sind noch nicht verfügbar.",
                           "job_status")
@@ -321,6 +332,7 @@ class MainWindow(QMainWindow):
         self.selected_content_id = None
         self.documents.bind(DocumentService(project))
         self.tasks.bind(project)
+        self.notes.bind(project)
         self.search.bind(project)
         missing = project.unavailable_roots()
         self.root_notice.setText("Nicht verfügbare Wurzeln: " + ", ".join(missing) if missing
@@ -399,10 +411,11 @@ class MainWindow(QMainWindow):
                 self.tree.addTopLevelItem(items[card.id])
         for record in self.project.catalog.records():
             if record.kind in {"document", "task", "issue"} and record.owner_id in items:
-                item = QTreeWidgetItem([KIND_NAMES[record.kind] + " · " + record.title])
+                display_kind = "note" if is_note(record) else record.kind
+                item = QTreeWidgetItem([KIND_NAMES[display_kind] + " · " + record.title])
                 item.setData(0, Qt.ItemDataRole.UserRole, record.id)
                 item.setData(0, Qt.ItemDataRole.UserRole + 1, record.kind)
-                item.setIcon(0, kind_icon(record.kind))
+                item.setIcon(0, kind_icon(display_kind))
                 item.setToolTip(0, "Inhalt öffnen · Rechtsklick: bearbeiten")
                 items[record.owner_id].addChild(item)
                 items[record.id] = item
@@ -412,6 +425,7 @@ class MainWindow(QMainWindow):
                 item = QTreeWidgetItem(["↪ " + target.title + " (Verweis)"])
                 item.setData(0, Qt.ItemDataRole.UserRole, target.id)
                 item.setData(0, Qt.ItemDataRole.UserRole + 1, "reference")
+                item.setData(0, EDGE_ROLE, edge["id"])
                 item.setIcon(0, kind_icon(target.kind))
                 item.setToolTip(0, "Herkunft: " + self.project.breadcrumb(target.id))
                 items[edge["source_id"]].addChild(item)
@@ -420,17 +434,20 @@ class MainWindow(QMainWindow):
         selected = self.selected_content_id or self.selected_id
         if selected in items:
             self.tree.setCurrentItem(items[selected])
-        self.canvas.render(self.project, self.selected_id)
+        self.canvas.render(self.project, self.selected_content_id or self.selected_id)
         self._refreshing = False
         self.tasks.refresh_scopes()
+        self.notes.refresh()
         self.search.refresh_scopes()
         self._properties()
+        if self.selected_id:
+            self.breadcrumb.setText(self.project.breadcrumb(self.selected_id))
         self.undo_action.setEnabled(bool(self.commands.done))
         self.redo_action.setEnabled(bool(self.commands.undone))
 
     def _tree_selected(self) -> None:
         item = self.tree.currentItem()
-        if item and not self._refreshing:
+        if item and not self._refreshing and self.tree.dragged is None:
             identifier = item.data(0, Qt.ItemDataRole.UserRole)
             if item.data(0, Qt.ItemDataRole.UserRole + 1) in {"document", "task", "issue"}:
                 self.open_content(identifier)
@@ -439,7 +456,29 @@ class MainWindow(QMainWindow):
 
     def _canvas_selected(self, identifier: str) -> None:
         # Keep the camera fixed while Qt still tracks a press/drag on the card.
-        self.select_card(identifier, center=False)
+        record = self.project.catalog.get(identifier)
+        if record.kind in {"document", "task", "issue"}:
+            if self.select_card(record.owner_id, center=False):
+                self.selected_content_id = record.id
+                self._select_tree_item(record.id)
+                self.canvas.focus_card(record.id, center=False)
+        else:
+            self.select_card(identifier, center=False)
+
+    def open_canvas_content(self, identifier: str) -> None:
+        record = self.project.catalog.get(identifier)
+        if record.kind == "note" or is_note(record):
+            if not self.select_card(record.id if record.kind == "note" else record.owner_id):
+                return
+            self.tabs.setCurrentWidget(self.notes)
+            self.notes.query.clear()
+            self.notes.color.setCurrentIndex(0)
+            self.notes.refresh()
+            if is_note(record):
+                self.notes.select_note(record.id)
+                self.notes.edit_note()
+        else:
+            self.open_content(identifier, edit=True)
 
     def select_card(self, identifier: str, *, center: bool = True) -> bool:
         if not self.project or self._refreshing:
@@ -453,6 +492,7 @@ class MainWindow(QMainWindow):
         self.selected_id = identifier
         self.selected_content_id = None
         self.tasks.set_scope(identifier)
+        self.notes.set_scope(identifier)
         self.search.current_card = identifier
         self.breadcrumb.setText(self.project.breadcrumb(identifier))
         current = self.tree.currentItem()
@@ -528,6 +568,9 @@ class MainWindow(QMainWindow):
     def connect_cards(self, source: str, target: str) -> None:
         if not self.project:
             return
+        if self.project.catalog.get(source).kind in {"document", "task", "issue"}:
+            self.move_canvas_content(source, target)
+            return
         kinds = {"Verwendet vorhandenes Asset/Paket": "uses",
                  "Benötigt Voraussetzung": "depends_on",
                  "Gehört zu (Hierarchie umordnen)": "belongs_to"}
@@ -544,11 +587,21 @@ class MainWindow(QMainWindow):
                 self.refresh()
 
     def reconnect_cards(self, identifier: str, source: str, target: str) -> None:
+        if identifier.startswith("content:"):
+            if source != identifier.removeprefix("content:"):
+                show_error(self, StudioError("validation", "Nur das Eigentümerende umhängen."))
+            else:
+                self.move_canvas_content(source, target)
+            return
         if self.project and self.perform(lambda: self.commands.relink(identifier, source, target)):
             self.refresh()
 
+    def move_canvas_content(self, source: str, target: str) -> None:
+        if self.project and self.prepare_content_change():
+            self.tree_drop(TreeService(self.commands).capture(source), target, False)
+
     def _tree_collapse(self, item: QTreeWidgetItem, collapsed: bool) -> None:
-        if not self._refreshing and self.project \
+        if not self._refreshing and self.project and self.tree.dragged is None \
                 and item.data(0, Qt.ItemDataRole.UserRole + 1) in CARD_KINDS:
             identifier = item.data(0, Qt.ItemDataRole.UserRole)
             layout = self.project.catalog.layout(identifier) | {"collapsed": collapsed}
@@ -584,8 +637,8 @@ class MainWindow(QMainWindow):
 
     def restore_layout(self) -> None:
         if self.project:
-            values = {card.id: self.project.catalog.layout(card.id)
-                      for card in self.project.cards()}
+            values = {key: self.project.catalog.layout(key)
+                      for key in self.canvas.default_positions(self.project)}
             self.commands.layouts({key: value | value.get("manual", {})
                                    for key, value in values.items()})
             self.refresh()
@@ -597,8 +650,17 @@ class MainWindow(QMainWindow):
             else:
                 self.documents.editor.undo()
             return
+        stack = (self.commands.undone if redo else self.commands.done) if self.commands else []
+        if stack and stack[-1].title == "Zuordnung ändern" and not self.prepare_content_change():
+            return
         if self.commands and self.perform(self.commands.redo if redo else self.commands.undo):
+            self.sync_document_owner()
             self.refresh()
+            if self.selected_content_id:
+                identifier = self.selected_content_id
+                self.select_card(self.project.catalog.get(identifier).owner_id)
+                self.selected_content_id = identifier
+                self._select_tree_item(identifier)
 
     def create_dialog(self, kind: str) -> None:
         if not self.project:
@@ -644,12 +706,34 @@ class MainWindow(QMainWindow):
             self.breadcrumb.setText(self.project.breadcrumb(record.id))
             self.refresh()
 
-    def reparent_dialog(self) -> None:
-        if self.project and self.selected_id and self.relation_target.currentData():
-            if self.perform(lambda: self.commands.move(self.selected_id,
-                                                        self.relation_target.currentData())):
-                self.refresh()
-                self.breadcrumb.setText(self.project.breadcrumb(self.selected_id))
+    def prepare_content_change(self) -> bool:
+        if not self.documents.confirm_discard():
+            return False
+        if self.documents.dirty:
+            self.documents.refresh_documents(self.documents.current.id)
+        return True
+
+    def tree_drop(self, drag, target: str, copy: bool) -> None:
+        if not self.project or not self.perform(
+                lambda: TreeService(self.commands).apply(drag, target, copy)):
+            return
+        self.sync_document_owner()
+        self.refresh()
+        if not drag.edge and not copy:
+            record = self.project.catalog.get(drag.record.id)
+            if record.kind in {"task", "issue", "document"}:
+                self.select_card(record.owner_id)
+                self.selected_content_id = record.id
+                self._select_tree_item(record.id)
+            else:
+                self.select_card(record.id)
+        self.statusBar().showMessage("Zuordnung gespeichert · Strg+Z: rückgängig", 7000)
+
+    def sync_document_owner(self) -> None:
+        current = self.documents.current
+        if current and not self.documents.dirty:
+            self.documents.owner_id = self.project.catalog.get(current.id).owner_id
+            self.documents.refresh_documents(current.id)
 
     def archive_dialog(self) -> None:
         if not self.project or not self.selected_id:
@@ -706,6 +790,11 @@ class MainWindow(QMainWindow):
     def _document_saved(self) -> None:
         if self.documents.current:
             self.selected_content_id = self.documents.current.id
+        self.refresh()
+
+    def _notes_changed(self) -> None:
+        if self.documents.current and not self.documents.dirty:
+            self.documents.refresh_documents(self.documents.current.id)
         self.refresh()
 
     def _focus_search(self) -> None:
