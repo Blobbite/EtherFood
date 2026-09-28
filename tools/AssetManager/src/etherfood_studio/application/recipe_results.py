@@ -91,13 +91,26 @@ class RecipeResultService:
                           reason="Aktuelle Verarbeitung ist blockiert: " + str(error))
         return result
 
-    def metadata(self, record):
+    def metadata(self, record, *, published=True):
         require(record.kind == "build" and record.data.get("contract") == "studio-build-v1"
                 and not record.data.get("diagnostic", True), "Kein geprüftes Bildbuild.")
         self.cache.verify(record, ("image.png", "metadata.json"), record.data["dependencies"])
         relative = f".asset-studio/jobs/{record.data['job_id']}/output"
         image_path = safe_target(self.root, relative + "/image.png")
         meta_path = safe_target(self.root, relative + "/metadata.json")
+        if published:
+            row = self.project.catalog.db.execute(
+                "SELECT path FROM asset_publications WHERE build_id=? AND asset_id=?",
+                (record.id, record.owner_id)).fetchone()
+            if row:
+                image_path = self.project.files.path(record.owner_id) / row["path"]
+                image_path = safe_target(self.root, str(image_path.relative_to(self.root)))
+                meta_path = safe_target(self.root,
+                    str(image_path.with_suffix(".json").relative_to(self.root)))
+                expected = {item["path"]: item["sha256"] for item in record.data["outputs"]}
+                require(file_hash(image_path) == expected["image.png"] and
+                        file_hash(meta_path) == expected["metadata.json"],
+                        "Veröffentlichte Asset-Dateien fehlen oder wurden extern verändert.")
         require(meta_path.stat().st_size <= 65536, "Zu große Ergebnis-Metadaten.")
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         require(isinstance(meta, dict) and meta.get("contract") == "studio-image-result-v1" and
@@ -106,4 +119,4 @@ class RecipeResultService:
             require(image.format == "PNG" and image.mode == "RGBA" and
                     getattr(image, "n_frames", 1) == 1, "Kein statisches RGBA-PNG-Ergebnis.")
             validate_metadata(meta, image.size)
-        return {"image_path": relative + "/image.png", "metadata": meta}
+        return {"image_path": str(image_path.relative_to(self.root)), "metadata": meta}

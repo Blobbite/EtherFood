@@ -784,8 +784,9 @@ class PipelineRunDialog(QDialog):
             success = report["status"] == "succeeded"
             succeeded += success
             asset = self.project.catalog.get(entry["asset_id"])
+            detail = report.get("publication_error", "Snapshot: " + report["run_id"])
             item = QTreeWidgetItem([asset.title, "Erfolgreich" if success else "Unvollständig",
-                                   "Snapshot: " + report["run_id"]])
+                                   detail])
             item.setData(0, Qt.ItemDataRole.UserRole, {"text": json.dumps(
                 json.loads(report["plan"].get("snapshot", "{}")),
                 ensure_ascii=False, indent=2)})

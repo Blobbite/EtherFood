@@ -9,7 +9,7 @@ from PySide6.QtCore import QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QMainWindow,
-    QMessageBox, QPlainTextEdit, QScrollArea, QSizePolicy, QSpinBox, QSplitter, QTabWidget,
+    QMenu, QMessageBox, QPlainTextEdit, QScrollArea, QSizePolicy, QSpinBox, QSplitter, QTabWidget,
     QToolBar, QTreeWidgetItem, QTreeWidgetItemIterator, QVBoxLayout, QWidget,
 )
 
@@ -84,12 +84,21 @@ class MainWindow(QMainWindow):
         self.redo_action = self._action(toolbar, "Wiederholen", lambda: self.undo(True),
                                         "Ctrl+Shift+Z", "redo")
         self._action(toolbar, "Aufträge …", self.show_jobs, "", "show_jobs")
-        self._action(toolbar, "Buildplan …", self.show_build_plan, "", "show_build_plan")
-        for text in ("Bildpipeline (später)", "Godot bereitstellen (später)"):
-            action = toolbar.addAction(text)
-            action.setObjectName("image_pipeline" if text.startswith("Bild") else "godot_export")
-            action.setEnabled(False)
-            action.setToolTip("Produktive Bildverarbeitung/Godot folgen in späteren Issues.")
+        self._action(toolbar, "Pipelines ausführen …", self.show_build_plan, "", "show_build_plan")
+        self._action(toolbar, "Startseite", self.show_start_page, "", "project_start_page")
+        diagnostics = self.menuBar().addMenu("Technische Werkzeuge")
+        self._action(diagnostics, "Cache-Diagnose …", self.show_cache_diagnostics,
+                     "", "cache_diagnostics")
+        self.pipeline_action = self._action(toolbar, "Pipelines …", self.show_pipeline_menu,
+                                            "", "image_pipeline")
+        self.pipeline_action.setIcon(kind_icon("pipeline"))
+        self.pipeline_action.setEnabled(False)
+        self.pipeline_action.setToolTip(
+            "Pipelines des geöffneten Projekts anlegen oder importieren")
+        action = toolbar.addAction("Godot bereitstellen (später)")
+        action.setObjectName("godot_export")
+        action.setEnabled(False)
+        action.setToolTip("Godot-Bereitstellung folgt in späteren Issues.")
         center = QWidget()
         outer = QVBoxLayout(center)
         tools_row = QHBoxLayout()
@@ -168,6 +177,7 @@ class MainWindow(QMainWindow):
         self.notes.focus_requested.connect(self.select_card)
         self.tabs.addTab(self.notes, "Notizen")
         self.documents = DocumentEditor()
+        self.documents.navigate = self.open_document
         self.documents.saved.connect(self._document_saved)
         self.tabs.addTab(self.documents, "Dokumentation && Anhänge")
         self.search = TasksPanel(search_only=True)
@@ -364,6 +374,15 @@ class MainWindow(QMainWindow):
             dialog.deleteLater()
         self.perform(edit)
 
+    def show_pipeline_menu(self) -> None:
+        if not self.project:
+            return
+        menu = QMenu(self)
+        self.navigation.add_pipeline_actions(menu)
+        point = self.project_toolbar.actionGeometry(self.pipeline_action).bottomLeft()
+        menu.exec(self.project_toolbar.mapToGlobal(point))
+        menu.deleteLater()
+
     def open_pipeline(self, identifier: str) -> None:
         if not self.project or not self.prepare_content_change():
             return
@@ -394,7 +413,7 @@ class MainWindow(QMainWindow):
             return
         def create():
             service = PipelineService(self.project)
-            key = self.commands.create_card("pipeline", title, service.global_id,
+            key = self.commands.create_card("pipeline", title, service.project_id,
                 {"project_id": service.project_id, "recipe": template(identifier)})
             self.refresh()
             self.select_card(key)
@@ -447,6 +466,7 @@ class MainWindow(QMainWindow):
         if self.project:
             self.project.catalog.close()
         self.project = project
+        self.pipeline_action.setEnabled(True)
         self.commands = Commands(project)
         self.selected_id = None
         self.selected_content_id = None
@@ -512,6 +532,7 @@ class MainWindow(QMainWindow):
     def refresh(self) -> None:
         if not self.project:
             return
+        self.documents.refresh_current()
         self._refreshing = True
         self.tree.clear()
         cards = self.project.cards(include_archived=True)
@@ -524,7 +545,7 @@ class MainWindow(QMainWindow):
             item.setData(0, Qt.ItemDataRole.UserRole + 1, card.kind)
             item.setIcon(0, kind_icon(card.kind))
             items[card.id] = item
-        for card in cards:
+        for card in sorted(cards, key=lambda row: row.kind != "pipeline"):
             if card.owner_id in items:
                 items[card.owner_id].addChild(items[card.id])
             else:
@@ -933,13 +954,19 @@ class MainWindow(QMainWindow):
         self.search.query.setFocus()
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        from .pipeline_auxiliary import PipelineRunDialog
         modal = QApplication.activeModalWidget()
+        if isinstance(modal, PipelineRunDialog) and (modal.worker or modal.preview_worker):
+            modal.may_close()
+            event.ignore()
+            return
         if isinstance(modal, BuildPlanDialog) and modal.worker:
             modal.cancel()
             event.ignore()
             return
-        if self.build_dialog and self.build_dialog.worker:
-            self.build_dialog.cancel()
+        if self.build_dialog and (self.build_dialog.worker or
+                                  getattr(self.build_dialog, "preview_worker", None)):
+            self.build_dialog.reject()
             event.ignore()
             self.statusBar().showMessage("Buildprüfung wird beendet; danach erneut schließen.")
             return
@@ -963,7 +990,8 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def jobs_idle(self) -> bool:
-        if self.build_dialog and self.build_dialog.worker:
+        if self.build_dialog and (self.build_dialog.worker or
+                                  getattr(self.build_dialog, "preview_worker", None)):
             self.statusBar().showMessage("Zuerst den laufenden Buildplan abschließen/abbrechen.")
             return False
         if self.job_dialog and self.job_dialog.runner.active:
@@ -983,14 +1011,29 @@ class MainWindow(QMainWindow):
 
     def show_build_plan(self) -> None:
         if self.project:
-            dialog = BuildPlanDialog(self.project, self.selected_id or self.project.project().id,
-                                     self)
+            from .pipeline_auxiliary import PipelineRunDialog
+            selected = self.project.catalog.get(self.selected_id or self.project.project().id)
+            dialog = PipelineRunDialog(self.project,
+                recipe_id=selected.id if selected.kind == "pipeline" else None, parent=self,
+                asset_id=selected.id if selected.kind == "asset" else None)
             self.build_dialog = dialog
             dialog.exec()
             self.build_dialog = None
             dialog.deleteLater()
             if self.job_dialog:
                 self.job_dialog.refresh()
+
+    def show_start_page(self):
+        if self.project and self.select_card(self.project.project().id):
+            document = next(row for row in self.documents.service.documents(self.selected_id)
+                            if row.data.get("automation") == "index")
+            self.open_document(document.id)
+
+    def show_cache_diagnostics(self):
+        if self.project:
+            dialog = BuildPlanDialog(self.project, self.project.project().id, self)
+            dialog.exec()
+            dialog.deleteLater()
 
     def _jobs_changed(self) -> None:
         count = len(self.job_dialog.runner.active)

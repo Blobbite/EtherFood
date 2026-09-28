@@ -157,7 +157,9 @@ def load_profile(path: Path):
     if path.stat().st_size > 2_000_000:
         raise ValueError(f"Farbprofil zu groß: {path}")
     profile = json.loads(path.read_text(encoding="utf-8"))
-    if (profile.get("format"), profile.get("version"), profile.get("method")) != (FORMAT, VERSION, METHOD):
+    if (not isinstance(profile, dict) or profile.get("format") != FORMAT
+            or type(profile.get("version")) is not int or profile["version"] not in {1, 2}
+            or profile.get("method") != METHOD):
         raise ValueError("Kein unterstütztes Referenz-Farbprofil; color_profile.json von PyImgTestColor ist ein anderes Format.")
     for key, limit in (("colors", 256), ("pixel_palette", 256)):
         colors = profile.get(key)
@@ -166,6 +168,10 @@ def load_profile(path: Path):
                 for c in colors):
             raise ValueError(f"Ungültige Palette im Profil: {key}")
     refs = profile.get("references", [])
+    if profile["version"] == 2:
+        from PyImgReferenceSelection import validate_profile
+        validate_profile(profile)
+        return profile
     if [r.get("direction") for r in refs] != list(DIRECTIONS) or any(
             not isinstance(r.get("path"), str) or not isinstance(r.get("sha256"), str)
             or len(r["sha256"]) != 64 or not isinstance(r.get("grid"), list)

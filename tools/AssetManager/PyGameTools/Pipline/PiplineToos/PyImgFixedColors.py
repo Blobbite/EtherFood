@@ -74,8 +74,10 @@ def validate_references(refs):
 
 def validate_header(profile, expected):
     if (not isinstance(profile, dict) or profile.get("format") != expected
-            or type(profile.get("version")) is not int or profile["version"] != VERSION):
-        raise ValueError(f"Erwartetes Profilformat: {expected}, Version {VERSION}.")
+            or type(profile.get("version")) is not int
+            or profile["version"] not in ({1} if expected == DEFINITIONS_FORMAT else {1, 2})):
+        versions = "1" if expected == DEFINITIONS_FORMAT else "1 oder 2"
+        raise ValueError(f"Erwartetes Profilformat: {expected}, Version {versions}.")
 
 
 def validate_materials(materials, definitions=False):
@@ -106,7 +108,7 @@ def load_palette(path):
     if profile.get("color_space") != "sRGB":
         raise ValueError("Festfarbenprofil benötigt color_space: sRGB.")
     validate_colors(profile.get("colors"), "Festpalette")
-    validate_references(profile.get("references"))
+    validate_profile_references(profile)
     return profile
 
 
@@ -116,7 +118,7 @@ def load_material_profile(path):
     if profile.get("color_space") != "sRGB":
         raise ValueError("Materialprofil benötigt color_space: sRGB.")
     validate_materials(profile.get("materials"))
-    validate_references(profile.get("references"))
+    validate_profile_references(profile)
     return profile
 
 
@@ -129,14 +131,26 @@ def load_definitions(path):
 
 def make_palette(reference_profile):
     """Konkrete gemeinsame 64er-Palette des bestehenden Stand-Profils festschreiben."""
-    validate_references(reference_profile.get("references"))
+    validate_profile_references(reference_profile)
     colors = [list(c) for c in dict.fromkeys(tuple(c) for c in reference_profile["pixel_palette"])]
     validate_colors(colors, "Stand-Palette")
-    return {"format": FIXED_FORMAT, "version": VERSION, "color_space": "sRGB",
+    extra = {key: reference_profile[key] for key in ("sampling", "preview_reference")} \
+        if reference_profile.get("version") == 2 else {}
+    return {"format": FIXED_FORMAT, "version": reference_profile.get("version", 1),
+        "color_space": "sRGB",
+            **extra,
             "colors": colors, "references": reference_profile["references"],
             "derivation": {"reference_profile_sha256": color.fingerprint(reference_profile),
                            "sampling": reference_profile["sampling"],
                            "palette": "pixel_palette; up to 64 colors; review visually"}}
+
+
+def validate_profile_references(profile):
+    if profile.get("version") == 2:
+        from PyImgReferenceSelection import validate_profile
+        validate_profile(profile)
+    else:
+        validate_references(profile.get("references"))
 
 
 def mask_metadata(grid, source_sha256):
@@ -177,7 +191,7 @@ def validate_labels(mask, image, materials, path="<Maske>", grid=(1, 1)):
     return {str(i): n for i, n in enumerate(histogram) if i and n}
 
 
-def load_mask(path, image, grid, materials, source_sha256):
+def load_mask(path, image, grid, materials, source_sha256, *, validate=True):
     path = Path(path)
     if path.is_symlink() or any(p.is_symlink() for p in path.parents):
         raise ValueError(f"Maskenpfad darf keine symbolischen Links enthalten: {path}")
@@ -201,11 +215,45 @@ def load_mask(path, image, grid, materials, source_sha256):
             # P-Pixel sind Indizes, NICHT per Graustufen-Konvertierung zu lesende RGB-Farben.
             mask = Image.frombytes("L", source.size, source.tobytes())
     try:
-        validate_labels(mask, image, materials, path, grid)
+        if validate:
+            validate_labels(mask, image, materials, path, grid)
     except Exception:
         mask.close()
         raise
     return mask
+
+
+def label_findings(mask, image, materials, grid):
+    """Structured draft diagnostics use the same label rules as production validation."""
+    ids = {m["id"] for m in materials}
+    tables = [
+        ("unknown_id", "Unbekannte Material-ID", [
+            255 if i and i not in ids else 0 for i in range(256)]),
+        ("unassigned", "Sichtbarer Pixel ohne Material (ID 0)", [255] + [0] * 255),
+        ("background", "Material auf transparentem Hintergrund", [0] + [255] * 255),
+    ]
+    findings = []
+    with image.getchannel("A") as alpha, alpha.point([0] + [255] * 255) as visible:
+        for code, message, table in tables:
+            with mask.point(table) as selected:
+                if code == "unassigned":
+                    region = ImageChops.multiply(selected, visible)
+                elif code == "background":
+                    with ImageChops.invert(visible) as hidden:
+                        region = ImageChops.multiply(selected, hidden)
+                else:
+                    region = selected.copy()
+                with region:
+                    for index, box in enumerate(color.frame_boxes(image.size, grid)):
+                        with region.crop(box) as frame:
+                            bounds = frame.getbbox()
+                            if bounds:
+                                findings.append({"code": code, "message": message,
+                                    "frame": index + 1,
+                                    "bounds": [bounds[0] + box[0], bounds[1] + box[1],
+                                               bounds[2] + box[0], bounds[3] + box[1]],
+                                    "count": frame.histogram()[255]})
+    return findings
 
 
 def mask_preview(mask, image, materials):

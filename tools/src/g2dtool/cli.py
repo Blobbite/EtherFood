@@ -64,6 +64,8 @@ WELCOME_TEXT = textwrap.dedent(
 
     🧩 Run or test Asset Studio
       python tools/control.py asset-manager run
+      python tools/control.py asset-manager install
+      python tools/control.py asset-manager upgrade
       python tools/control.py asset-manager doctor
       python tools/control.py asset-manager test
       python tools/control.py asset-manager check
@@ -91,6 +93,8 @@ def build_parser(prog: str = "g2d") -> argparse.ArgumentParser:
               python tools/control.py forge2d-template run
               python tools/control.py Forge2D-Template run
               python tools/control.py asset-manager run
+              python tools/control.py asset-manager install
+              python tools/control.py asset-manager upgrade
               python tools/control.py asset-manager doctor
               python tools/control.py asset-manager test
             """

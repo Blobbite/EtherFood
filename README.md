@@ -63,6 +63,8 @@ Dokumente und Aufgaben. Er wird ebenfalls zentral über Control gesteuert:
 ```sh
 python tools/control.py asset-manager run
 python tools/control.py asset-manager doctor
+python tools/control.py asset-manager install
+python tools/control.py asset-manager upgrade
 python tools/control.py asset-manager install --dry-run
 python tools/control.py asset-manager import
 python tools/control.py asset-manager test
@@ -70,9 +72,12 @@ python tools/control.py asset-manager pipeline-test
 python tools/control.py asset-manager check
 ```
 
-`run` legt beim ersten Start eine fehlende `.venv` an, installiert die benötigten
-Python-Pakete darin und öffnet das Studio. Eine manuelle Aktivierung entfällt;
-spätere Starts verwenden die passende Installation wieder. `doctor` prüft nur
+`run` legt beim ersten Start eine fehlende `.venv` an, ergänzt bei Bedarf pip,
+installiert die benötigten Python-Pakete darin und öffnet das Studio. Eine
+manuelle Aktivierung entfällt; spätere Starts verwenden die passende Installation
+wieder. `install` repariert ebenfalls fehlendes pip in einer vorhandenen `.venv`.
+`upgrade` aktualisiert pip über `ensurepip` und installiert die im Projekt
+festgelegten Studio-Paketversionen mit `--upgrade`. `doctor` prüft nur
 und meldet fehlende Pakete oder Qt-Systembibliotheken. `import` bereitet wie
 `install` nur die Tool-Umgebung samt Python-Modulen vor, **keine Spielgrafiken**.
 `test` prüft das Studio einschließlich Oberfläche ohne sichtbares Fenster;

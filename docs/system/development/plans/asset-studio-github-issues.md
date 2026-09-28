@@ -4,6 +4,14 @@
 
 # Asset Studio: zusammenhängende GitHub-Issues
 
+**Stillgelegt am 28.09.2026 auf Benutzerwunsch.** Die bisherige T-/Phasenplanung
+und ihre Ergänzungen bleiben historische Nachweise. Sie sind kein aktiver
+Umsetzungsauftrag mehr. Maßgeblich für die Neubewertung ist
+[Skriptplattform-Korrektur](asset-studio-skriptplattform-korrektur.md).
+Geschlossene, nicht weitergeplante Issues sind dadurch nicht fertiggestellt
+oder abgenommen. Die folgenden früheren Status- und Auftragsangaben gelten
+nur für ihren damaligen Stand.
+
 ## PIPELINE-ALIGNMENT-V1 – verbindlicher aktueller Einstieg
 
 Stand: 28.09.2026. Diese Ergänzung präzisiert die bestehenden R01–R36 und
@@ -20,6 +28,132 @@ schränken ihn nicht auf einen neuen Kurzauftrag ein. Der tatsächliche Unterbau
 und seine Grenzen stehen in [Projektpipelines](../asset-studio/PIPELINES.md),
 [Architektur](../asset-studio/ARCHITECTURE.md) und dem
 [Implementierungs-/Prüfbericht](asset-studio-projektpipelines.md).
+
+Nachträgliche Benutzerentscheidung vom 28.09.2026: Pipelines gehören direkt zur
+Projektwurzel, als Geschwister von „Projektweit“. Die frühere Ablage unter dem
+globalen Rahmen ist damit ersetzt. Umsetzung und Migrationsnachweise stehen im
+[aktuellen Nachtrag zum Pipeline-Plan](asset-studio-projektpipelines.md#aktuelle-korrektur-pipelines-direkt-am-projekt-28092026).
+Historische Issue-Texte und Veröffentlichungssnapshots wurden dabei nicht verändert.
+
+### Dashboard-Hierarchie in Ablage und Export (28.09.2026)
+
+**Angenommene Benutzerentscheidung, noch zu implementieren:** Die lesbare
+Projekt-/Ergebnisablage bildet die fachliche Dashboard-Struktur eins zu eins ab.
+Ein flacher Export nur nach Assetnamen erfüllt den Auftrag nicht. Der aktuelle
+Bildlauf schreibt weiterhin nach `.asset-studio/jobs/<job-id>/output/`;
+die folgende Planpräzisierung erzeugt oder verschiebt keine Projektdateien.
+
+Maßgeblich ist die vorhandene Besitzhierarchie: Projekt, „Projektweit“, Akte,
+Kapitel, auch verschachtelte Asset-Pakete und Assets. Tatsächlich übersprungene
+Ebenen bleiben übersprungen; es werden keine zusätzlichen Kapitel oder Pakete
+erfunden. Pipeline-Karten bleiben direkt am Projekt. Beispiel eines möglichen
+Projektstands, keine feste Schablone:
+
+```text
+Ergebnisse/
+└── Mein Projekt/
+    ├── Grafik-Pipeline/
+    ├── Projektweit/
+    │   └── Gemeinsame Effekte/
+    └── Akt 1/
+        └── Kapitel 2/
+            └── Tempelpaket/
+                └── Wächter/
+                    └── comic_low/
+                        └── gehen/
+                            └── S.png
+```
+
+Der gemeinsame Vertrag **DASHBOARD-ABLAGE-V1** wird im aktuellen
+[T033 / #40](https://github.com/Blobbite/EtherFood/issues/40) konkretisiert:
+
+- Besitz und zusätzliche Verwendungen bleiben verschieden. Geteilte Assets
+  haben eine kanonische Ablage beim Besitzer und auflösbare relative Verweise
+  an weiteren Verwendungsorten; keine impliziten Asset-Kopien und keine Zyklen.
+  Canvas-Koordinaten, Zoom und freie Verbindungen bestimmen keine Dateipfade.
+- Menschenlesbare Namen und stabile IDs werden gemeinsam im Manifest erhalten.
+  Ungültige Pfadzeichen, reservierte Namen und Kollisionen einschließlich
+  Groß-/Kleinschreibung sowie Unicode-Normalisierung werden deterministisch
+  behandelt und in der Vorschau erklärt. Kein stilles Überschreiben.
+- Umbenennen und fachliches Verschieben ändern beim nächsten bewussten
+  Veröffentlichen die Struktur, ohne Bilder neu zu berechnen. Eingefrorene
+  Kandidaten und Exporte behalten ihre damaligen Namen, Pfade und Beziehungen.
+  Der Strukturstand gehört zum Snapshot, aber nicht zum Pixel-Cache-Schlüssel.
+- Notizen, Dokumente und Aufgaben bleiben ihrem fachlichen Besitzer zugeordnet;
+  deklarative Pipeline-Beschreibungen liegen auf Projektebene. Die vollständige
+  Dokumentdarstellung liefert T042. Einträge ohne fertige Bilder bleiben als
+  solche erkennbar. Die Hierarchie allein exportiert keine Originalquellen,
+  Geheimnisse, privaten Absolutpfade oder lokalen Codefreigaben.
+- PNGs werden aus vollständig geprüften Ergebnissen übernommen und mit Profil,
+  gegebenenfalls Pose, Richtung und Framevariante eindeutig zugeordnet. Statische
+  Assets erhalten keine erfundenen Animationsordner. Vorschau und „Ordner öffnen“
+  führen von der Dashboard-Karte zum passenden veröffentlichten Inhalt.
+- Interne Jobs, Quellenobjekte und Cachebindungen bleiben erhalten. Veröffentlichte
+  Ergebnisse sind vollständig und überprüfbar; eine fehlgeschlagene Erstellung
+  ersetzt keinen gültigen Stand. Bestehende Godot-Zielpfade bleiben über eine
+  ausdrücklich dokumentierte Zuordnung kompatibel, ohne die lesbare
+  Projektablage abzuflachen oder bestehende Spielassets umzubenennen.
+
+| Aufgabe | Zuständigkeit für diesen Vertrag |
+| --- | --- |
+| [T033 / #40](https://github.com/Blobbite/EtherFood/issues/40) | Gemeinsame Struktur-/Pfadauflösung, unveränderliche Kandidaten, lesbare Ergebnisablage, Vorschau und Öffnen des Ausgabeorts. |
+| [T035 / #42](https://github.com/Blobbite/EtherFood/issues/42) | Denselben Hierarchiesnapshot im portablen Export erhalten; Godot-Pfade explizit und kompatibel zuordnen. |
+| [T042 / #49](https://github.com/Blobbite/EtherFood/issues/49) | Dokumente, Notizen, Aufgaben und Verwendungsnachweise in derselben Hierarchie ausgeben; keinen zweiten Pfadplaner bauen. |
+| [T044 / #51](https://github.com/Blobbite/EtherFood/issues/51) | Hierarchie-/ID-/Pfadbindungen sichern und wiederherstellen; referenzierte Ergebnisse bei Speicherpflege schützen. |
+
+Verbindliche spätere Abnahme: verschachtelte Pakete, globale und direkt einem
+Akt zugehörige Assets, zwei Kapitel mit gleichnamigen Assets, geteilte Verwendung,
+statische/animierte Varianten, Umlaute und Pfadkollisionen, Umbenennen/Verschieben
+ohne Bildjob, reine Layoutänderung ohne Pfadänderung, unveränderte alte Snapshots,
+Projektgrenzen, Abbruch ohne falsche Veröffentlichung und bytegleiche Originale.
+Die Prüfung vergleicht Dashboard-Zuordnung, Manifest und tatsächlichen Ordnerbaum.
+
+Umfang dieses Änderungsauftrags: diesen Plan und die vier aktuellen
+Issue-Beschreibungen ergänzen. Vor jedem Schreiben frisch lesen, alte Checkboxen,
+Kommentare und Metadaten erhalten, danach erneut abrufen. Keine Issues schließen,
+keine neuen Abhängigkeiten, kein Anwendungsumbau und keine Asset-Neuerzeugung.
+Bei einer Korrektur nur den markierten neuen Abschnitt gegen den dann aktuellen
+Stand ändern; historische Originalaufträge und Veröffentlichungssnapshots erhalten.
+
+Fortschritt:
+
+- [x] Besitzregeln, aktuelle Issues und Voraussetzungen des nächsten Pakets prüfen.
+- [x] Strukturvertrag und Zuständigkeiten konkretisieren.
+- [x] Vier Issue-Ergänzungen veröffentlichen und unveränderte übrige Inhalte prüfen.
+- [x] Plan-/Archiv-/Diff-Prüfung ausführen und Ergebnis festhalten.
+
+Ergebnis dieser Plananpassung: #40, #42, #49 und #51 um den markierten Vertrag
+ergänzt und direkt nach dem Schreiben erneut abgerufen. Die vorherigen Texte
+einschließlich aller 40 vorhandenen Checkboxen sind bytegleich erhalten; 16
+zusätzliche Abnahmepunkte bleiben offen. Titel, Zustände, Kommentare, Bearbeiter,
+Labels, Meilensteine und native Voraussetzungen sind unverändert. Keine neuen
+Issues, Kommentare oder Abhängigkeiten. Der lokale Plan ist noch nicht committed.
+
+Tatsächlich geprüft: `python3 tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/pruefung/check_plan.py --json`
+meldet 48 Aufgaben, 36 Anforderungen, 955 lokale Links und 81 unveränderte
+Dateihashes ohne Fehler. `git diff --check -- docs/system/development/plans/asset-studio-github-issues.md`
+ist sauber. Anwendungs-/Bild-/Qt-/Godot-Tests und der vollständige
+Repository-Check wurden für diese reine Plananpassung **nicht ausgeführt**.
+
+**Nächstes vorgeschlagenes Umsetzungspaket: T019 / #26 und T020 / #27.**
+Die technisch vorhandenen Quellen-, Auftrags- und Builddienste werden zunächst
+gegen die offenen Integrationspunkte ihrer Issues geprüft. Darauf aufbauend
+werden freie Masterreferenzen, passende Richtungssets, Materialdefinitionen
+sowie quellgebundene Maskenrevisionen und deren Validierung ergänzt. Vorhandene
+Farbadapter bleiben erhalten; nur fehlende Verträge und Bedienwege erweitern.
+Danach folgt T021 / #28 mit dem Maskeneditor. Die neue Ergebnisablage bleibt
+ausdrücklicher Liefergegenstand von T033/T035; deren Paket-/Prüfvoraussetzungen
+werden durch diese Planung nicht als erledigt erklärt. Dies ist die Empfehlung
+für die nächste Umsetzung, keine bereits begonnene Implementierung.
+
+**Umsetzungsnachtrag 28.09.2026:** Der Benutzer hat anschließend Paket 8 mit
+T019/#26 und T020/#27 beauftragt. Der konkrete Arbeitsstand, Prüfungen und
+verbleibende Grenzen werden im [Paket-8-Plan](asset-studio-paket-8.md) und in den
+[Ergebnisberichten](../asset-studio/task-results/index.md) geführt. Die obigen
+Angaben zu nicht ausgeführten Tests beziehen sich auf die vorherige reine
+Plananpassung. T021/#28 bleibt der nächste Schritt nach dieser Umsetzung und
+ihrer Bedienprüfung. Die Ordnerabbildung des Dashboards gehört weiterhin zu
+T033/T035.
 
 ### Auftrag, Bestand und Fortschritt der Planungssynchronisierung
 

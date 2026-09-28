@@ -46,7 +46,8 @@ def asset_graph(project, identifier: str, *, cancelled=lambda: False) -> BuildGr
         return Dependency(key, "artifact.json", kind)
 
     profile = add("profile", "profile", "palette", blockers=(
-        "Masterreferenz/Profilrevision wird mit T019 eingebunden",)) if materials else None
+        "Farbverarbeitung benötigt eine zugewiesene Projekt-Pipeline mit Farbprofil",
+            )) if materials else None
     for variant in definition.expected():
         if cancelled():
             raise StudioError("cancelled", "Dry-run abgebrochen; keine Änderungen geschrieben.")
@@ -79,7 +80,8 @@ def asset_graph(project, identifier: str, *, cancelled=lambda: False) -> BuildGr
         upstream = []
         if materials:
             mask = add(branch + "/mask", "maskcheck", "mask_report", inputs=inputs,
-                       blockers=("Maskenrevision wird mit T020 eingebunden",))
+                       blockers=("Materialmasken im Asset-Menü prüfen; "
+                                 "Ausführung über eine Projekt-Pipeline",))
             upstream = [profile, mask]
         color = add(branch + "/color", "color", "image", upstream, inputs=inputs,
                     source_ids=source_ids, parameters=canonical(metadata), blockers=tuple(problems))

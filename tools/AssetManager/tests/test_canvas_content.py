@@ -21,7 +21,7 @@ def project(tmp_path):
 
 @pytest.mark.parametrize("kind,source", [(kind, "one") for kind in
                                       ("asset", "package", "note", "document", "task", "issue")]
-                         + [("chapter", "act"), ("act", "root")])
+                         + [("chapter", "act"), ("act", "root"), ("pipeline", "root")])
 def test_create_link_layout_undo_redo_and_reopen(project, kind, source):
     commands = Commands(project)
     source = project.catalog.get(project.ids[source]) if source != "root" else project.project()
@@ -29,7 +29,7 @@ def test_create_link_layout_undo_redo_and_reopen(project, kind, source):
     assert created.owner_id == source.id and len(commands.done) == 1
     assert project.catalog.layout(created.id) == {"x": 83, "y": -71}
     edges = project.affected_relations(created.id)
-    if created.kind in {"asset", "package", "chapter", "act"}:
+    if created.kind in {"asset", "package", "chapter", "act", "pipeline"}:
         assert len(edges) == 1 and edges[0]["target_id"] == source.id
     commands.undo()
     assert project.catalog.get(created.id).archived

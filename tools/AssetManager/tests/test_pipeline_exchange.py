@@ -94,6 +94,7 @@ def test_package_roundtrip_copies_recipe_ids_layout_and_resources(projects, tmp_
     preview = exchange.preview(package)
     assert destination.catalog.export_snapshot() == before  # Preview is read-only.
     imported = exchange.accept(preview, "Eigene Kopie")
+    assert imported.owner_id == destination.project().id
     copied = imported.data["recipe"]
     assert imported.id != record.id and imported.data["project_id"] == destination.project().id
     assert {n["id"] for n in copied["steps"]}.isdisjoint(n["id"] for n in recipe["steps"])

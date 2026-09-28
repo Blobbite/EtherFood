@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QColor, QKeySequence, QPen
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDoubleSpinBox, QFileDialog, QFormLayout, QHBoxLayout,
@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..application.commands import Command, Commands
+from ..application.pipeline_actions import PipelineActions, condition
 from ..application.pipeline_exchange import PipelineExchange
 from ..application.pipeline_service import PipelineService
 from ..application.profile_service import ProfileService
@@ -105,6 +106,7 @@ class PipelineEditor(QDialog):
         self.identifier, self.record = identifier, self.service.recipe(identifier)
         self.commands, self.history = commands or Commands(project), Commands(project)
         self.changed, self.filling, self.selected = False, False, None
+        self.initial_view = True
         self.manifests = self.service.manifests()
         self.saved_layout = project.catalog.layout(identifier)
         self.state = {"title": self.record.title, "recipe": deepcopy(self.record.data["recipe"]),
@@ -134,7 +136,6 @@ class PipelineEditor(QDialog):
             ("Speichern", "pipeline_save", self.save),
             ("Rückgängig", "pipeline_undo", self.undo),
             ("Wiederholen", "pipeline_redo", self.redo),
-            ("Projektprofile …", "pipeline_profiles", self.profiles),
             ("Zuweisungen …", "pipeline_assign", self.assign),
             ("Dry-run / Ausführen …", "pipeline_build", self.run_pipeline),
             ("Exportieren …", "pipeline_export", self.export),
@@ -142,6 +143,8 @@ class PipelineEditor(QDialog):
         ):
             actions.addWidget(button(text, name, call))
         root.addLayout(actions)
+        self.package_actions = QHBoxLayout()
+        root.addLayout(self.package_actions)
         root.addWidget(label("Nur technische Bildverbindungen. Layoutänderungen erzeugen keine "
                              "Bilder. Vor der Ausführung speichern und den Dry-run prüfen."))
         splitter = QSplitter()
@@ -175,7 +178,8 @@ class PipelineEditor(QDialog):
         side_layout.addWidget(area, 1)
         side_layout.addWidget(button("Ressource hinzufügen …", "pipeline_resource",
                                       self.add_resource))
-        side_layout.addWidget(label("Zielprofile (keine Auswahl = Anforderungen des Assets):"))
+        self.target_label = label("Zielprofile (keine Auswahl = Anforderungen des Assets):")
+        side_layout.addWidget(self.target_label)
         self.targets = QListWidget()
         self.targets.setMaximumHeight(180)
         self.targets.itemChanged.connect(self.targets_changed)
@@ -208,7 +212,23 @@ class PipelineEditor(QDialog):
         self.operations.clear()
         for key, manifest in self.manifests.items():
             self.operations.addItem(kind_icon("pipeline"), manifest["name"], key)
-        self.operations.setCurrentIndex(self.operations.findData("graphics"))
+        preferred = next((node["operation"] for node in self.state["recipe"]["steps"]
+                          if node["operation"].startswith("python:") and
+                          node["operation"] in self.manifests), "graphics")
+        self.operations.setCurrentIndex(self.operations.findData(preferred))
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.initial_view:
+            self.initial_view = False
+            QTimer.singleShot(0, self.fit_steps)
+
+    def fit_steps(self):
+        bounds = self.canvas.scene().itemsBoundingRect().adjusted(-40, -40, 40, 40)
+        self.canvas.fitInView(bounds, Qt.KeepAspectRatio)
+        if self.canvas.transform().m11() > 1:
+            self.canvas.resetTransform()
+            self.canvas.centerOn(bounds.center())
 
     def mutate(self, title, change):
         if self.filling:
@@ -236,8 +256,10 @@ class PipelineEditor(QDialog):
             self.canvas.render_recipe(recipe, self.state["positions"], self.manifests,
                                        self.selected, self.state["legacy"])
             self.targets.clear()
-            has_graphics = any(node["operation"] == "graphics"
-                               for node in recipe["steps"])
+            has_graphics = any(self.manifests.get(node["operation"], {}).get("profile_targets")
+                               for node in recipe["steps"] if node["enabled"])
+            self.target_label.setVisible(has_graphics)
+            self.targets.setVisible(has_graphics)
             self.targets.setEnabled(has_graphics)
             self.targets.setToolTip(
                 "Zielprofile werden von einem Grafikprofile-Schritt verarbeitet."
@@ -256,6 +278,7 @@ class PipelineEditor(QDialog):
                 "Rezept validiert; Dry-run erforderlich"
             self.status.setText(saved + detail)
             self.legacy_button.setVisible(bool(recipe["legacy_unresolved"]))
+            self.show_package_actions()
             self.show_properties()
         finally:
             self.filling = False
@@ -299,14 +322,34 @@ class PipelineEditor(QDialog):
         self.form.addRow(enabled)
         if manifest:
             for key, definition in manifest["parameters"].items():
-                if node["operation"] in {"color", "source_color"}:
-                    modes = {"soft": {"mode", "reference", "strength", "max_distance"},
-                             "fixed": {"mode", "palette"},
-                             "material": {"mode", "materials", "mask"}}
-                    visible = modes[node["parameters"]["mode"]]
-                    if key not in visible:
-                        continue
+                if not condition(node["parameters"], definition.get("visible_if", {})):
+                    continue
                 self.add_parameter(node, key, definition)
+            for action in PipelineActions(self.project).for_step(node, "step"):
+                self.form.addRow(button(action["name"], "pipeline_action_" + action["id"],
+                    lambda checked=False, a=action["id"]: self.package_action(node, a)))
+
+    def show_package_actions(self):
+        while self.package_actions.count():
+            item = self.package_actions.takeAt(0)
+            item.widget().deleteLater()
+        actions = PipelineActions(self.project).for_recipe(self.state["recipe"], "recipe")
+        for node, action in actions:
+            self.package_actions.addWidget(button(action["name"], "pipeline_" + action["id"],
+                lambda checked=False, n=node, a=action["id"]: self.package_action(n, a)))
+
+    def package_action(self, node, action_id):
+        from .package_actions import invoke_step
+
+        def run():
+            values = invoke_step(self.project, node, action_id, self, recipe_id=self.identifier)
+            if values is not None and values != node["parameters"]:
+                def change(state):
+                    target = next(n for n in state["recipe"]["steps"] if n["id"] == node["id"])
+                    target["parameters"] = values
+                self.mutate("Paketaktion", change)
+            self.render()
+        self.safe(run)
 
     def add_parameter(self, node, key, spec):
         kind, value = spec["type"], node["parameters"][key]
@@ -326,16 +369,16 @@ class PipelineEditor(QDialog):
             widget = QComboBox()
             choices = spec["choices"] if kind == "choice" else \
                 ["", *self.state["recipe"]["resources"]]
-            if kind == "resource" and key == "mask":
-                choices.insert(1, "@source")
+            bindings = spec.get("bindings", {}) if kind == "resource" else {}
+            choices[1:1] = list(bindings)
             for choice in choices:
-                from ..domain.pipeline_recipes import TIMING_MODES
-                if choice == "@source":
-                    caption = "Nach Quellbindung (importierte Masken)"
+                if choice in bindings:
+                    caption = bindings[choice]
+                elif kind == "resource" and choice:
+                    caption = self.state["recipe"]["resources"][choice]["name"]
                 else:
-                    caption = self.state["recipe"]["resources"][choice]["name"] \
-                        if kind == "resource" and choice else TIMING_MODES.get(
-                            choice, choice or "Nicht konfiguriert")
+                    caption = spec.get("choice_labels", {}).get(
+                        choice, choice or "Nicht konfiguriert")
                 widget.addItem(caption, choice)
             widget.setCurrentIndex(widget.findData(value))
             widget.activated.connect(
@@ -349,20 +392,14 @@ class PipelineEditor(QDialog):
             widget.editingFinished.connect(
                 lambda: self.parameter_changed(node["id"], key, widget.text()))
         widget.setObjectName("pipeline_parameter_" + key)
-        automatic_fps = key == "fps" and node["operation"] == "frames" and \
-            node["parameters"]["timing"] == "keep_duration"
-        if automatic_fps:
-            widget.setEnabled(False)
-            widget.setToolTip("Wird aus Quelldauer und Zielframes berechnet. "
-                              "Dieser Wert bleibt für den Modus FPS beibehalten gespeichert.")
-        caption = {"frames": "Zielframes", "fps": "Wiedergabe-FPS", "timing": "Timing-Modus",
-                   "mode": "Farbmodus", "reference": "Referenzprofil", "palette": "Festpalette",
-                   "materials": "Materialprofil", "mask": "Labelmaske", "strength": "Stärke",
-                   "max_distance": "Max. Farbdistanz"}.get(key, key)
-        self.form.addRow(caption, widget)
+        widget.setToolTip(spec.get("description", ""))
+        disabled = bool(spec.get("disabled_if")) and condition(
+            node["parameters"], spec["disabled_if"])
+        widget.setEnabled(not disabled)
+        self.form.addRow(spec.get("label", key), widget)
         if kind in {"number", "integer", "boolean", "choice", "resource"}:
             allowed = QCheckBox("Lokale Asset-Abweichung erlauben")
-            allowed.setEnabled(not automatic_fps)
+            allowed.setEnabled(not disabled)
             token = node["id"] + "." + key
             allowed.setChecked(token in self.state["recipe"]["overridable"])
             def toggle(checked):
@@ -516,11 +553,6 @@ class PipelineEditor(QDialog):
         ) == QMessageBox.Yes:
             self.safe(lambda: self.mutate("Legacy-Prüfung bestätigen",
                 lambda state: state["recipe"].update(legacy_unresolved=[])))
-
-    def profiles(self):
-        from .pipeline_auxiliary import ProfileDialog
-        self.safe(lambda: ProfileDialog(self.project, self).exec())
-        self.render()
 
     def assign(self):
         from .pipeline_auxiliary import AssignmentDialog

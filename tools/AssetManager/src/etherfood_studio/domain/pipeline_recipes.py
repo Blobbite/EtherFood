@@ -4,6 +4,7 @@ from copy import deepcopy
 import math
 import re
 
+from ..packages import manifests as bundled_manifests
 from .assets import CAPABILITIES, require
 from .models import new_id
 
@@ -16,41 +17,10 @@ def parameter(kind, default, **kwargs):
     return {"type": kind, "default": default, **kwargs}
 
 
-BUILTINS = {
-    "source": {"name": "Projektquelle", "inputs": {}, "outputs": {"image": "image"},
-               "parameters": {}, "capabilities": []},
-    "graphics": {"name": "Grafikprofile", "parameters": {"palette": parameter("resource", "")},
-                 "capabilities": []},
-    "prepare8": {"name": "Spritesheet · 8 Frames", "parameters": {},
-                 "capabilities": ["animated"]},
-    "prepare16": {"name": "Spritesheet · 16 Frames", "parameters": {},
-                  "capabilities": ["animated"]},
-    "frames": {"name": "Frameauswahl und Timing", "capabilities": ["animated"],
-               "parameters": {"frames": parameter("integer", 8, minimum=1, maximum=64),
-                   "timing": parameter("choice", "keep_fps", choices=list(TIMING_MODES)),
-                   "fps": parameter("number", 8.0, minimum=0.01, maximum=240)}},
-    "color": {"name": "Spritesheet-Farbverarbeitung", "capabilities": [],
-              "parameters": {
-                  "mode": parameter("choice", "soft", choices=["soft", "fixed", "material"]),
-                  "reference": parameter("resource", ""),
-                  "palette": parameter("resource", ""),
-                  "materials": parameter("resource", ""),
-                  "mask": parameter("resource", ""),
-                  "strength": parameter("number", 0.6, minimum=0.0, maximum=1.0),
-                  "max_distance": parameter("number", 18.0, minimum=1.0, maximum=50.0)}},
-    "source_color": {"name": "Source-Farbverarbeitung", "capabilities": ["static_image"],
-                     "parameters": {}},
-}
-BUILTINS["source_color"]["parameters"] = deepcopy(BUILTINS["color"]["parameters"])
-for identifier, manifest in BUILTINS.items():
-    manifest.update(id=identifier, version="1", description=manifest["name"])
-    manifest.setdefault("inputs", {"image": "image"})
-    manifest.setdefault("outputs", {"image": "image"})
-
-TEMPLATES = {"graphics": "Grafik-Assets", "prepare8": "Spritesheets mit 8 Frames",
-             "prepare16": "Spritesheets mit 16 Frames", "frames": "Frame-Reduktion und Timing",
-             "color": "Spritesheet-Farbverarbeitung", "source_color": "Source-Farbverarbeitung",
-             "empty": "Leeres Rezept"}
+# Shipped recipes are declarative packages. Python/UI is imported only on invocation.
+BUILTINS = bundled_manifests()
+TEMPLATES = {key: spec["template"] for key, spec in BUILTINS.items() if spec.get("template")}
+TEMPLATES["empty"] = "Leeres Rezept"
 
 
 def step(identifier: str, manifest: dict) -> dict:
@@ -183,6 +153,8 @@ def blockers(data: dict, manifests: dict) -> list[str]:
             needed = {"soft": ["reference"], "fixed": ["palette"],
                       "material": ["materials", "mask"]}[parameters["mode"]]
             for name in needed:
+                if parameters[name] == "@asset":
+                    continue  # Managed, source-bound color resources; resolved in the dry-run.
                 if name == "mask" and parameters[name] == "@source":
                     continue  # Resolved by source hash, with ambiguity errors in the dry-run.
                 if parameters[name] not in data["resources"]:

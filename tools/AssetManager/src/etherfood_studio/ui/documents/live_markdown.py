@@ -46,6 +46,8 @@ class MarkdownBlock(QWidget):
         self.stack = QStackedLayout(self)
         self.stack.setContentsMargins(0, 0, 0, 0)
         self.view = SafePreview()
+        self.view.local_link = host.local_link
+        self.view.local_resource = host.local_resource
         self.view.setFrameShape(QFrame.NoFrame)
         self.source = QPlainTextEdit()
         self.source.setObjectName("markdown_block_source")
@@ -161,6 +163,8 @@ class LiveMarkdownEditor(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self._text = ""
+        self.local_link = None
+        self.local_resource = None
         self._read_only = False
         self._placeholder = ""
         self._undo = []

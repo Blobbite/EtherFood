@@ -1,0 +1,22 @@
+{
+  "contract": "studio-bundled-package-v1",
+  "id": "studio:source",
+  "version": "1",
+  "steps": [
+    {
+      "name": "Projektquelle",
+      "inputs": {},
+      "outputs": {
+        "image": "image"
+      },
+      "parameters": {},
+      "capabilities": [],
+      "id": "source",
+      "version": "1",
+      "description": "Projektquelle",
+      "package": "studio:source",
+      "actions": [],
+      "template": null
+    }
+  ]
+}

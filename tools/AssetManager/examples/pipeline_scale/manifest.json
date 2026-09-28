@@ -1,0 +1,19 @@
+{
+  "contract": "studio-python-step-v2",
+  "id": "python:proportional-scale",
+  "name": "Proportionale Skalierung",
+  "version": "1.0.0",
+  "description": "Skaliert jedes Einzelbild bzw. jede Frame-Zelle proportional mit dem bestehenden Comic-Verfahren. Raster, Quellbindung und logische Darstellungsgröße bleiben erhalten.",
+  "source": "scale.py",
+  "entry_point": "apply",
+  "inputs": {"image": "image"},
+  "outputs": {"image": "image"},
+  "capabilities": [],
+  "dependencies": [],
+  "parameters": {
+    "size_mode": {"type": "choice", "default": "factor", "choices": ["factor", "max_edge"], "label": "Größenmodus"},
+    "factor": {"type": "number", "default": 0.5, "minimum": 0.000001, "maximum": 1.0, "label": "Faktor", "description": "Gemeinsamer Faktor für Breite und Höhe; im Modus factor verwendet."},
+    "max_edge": {"type": "integer", "default": 128, "minimum": 1, "maximum": 16384, "label": "Maximale Frame-Kante", "description": "Längste Seite in Pixeln; im Modus max_edge verwendet, ohne Hochskalieren."}
+  },
+  "actions": [{"id": "presets", "name": "Größenvorgabe wählen …", "entry_point": "choose_preset"}]
+}

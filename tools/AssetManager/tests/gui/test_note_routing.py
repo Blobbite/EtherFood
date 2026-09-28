@@ -55,7 +55,8 @@ def test_all_note_entry_points_open_inline_dashboard(window, qt_app, entry):
     assert window.notes.selected().id == identifier
     assert window.notes.editor.current.id == identifier
     assert window.notes.editor.editor.toPlainText() == "Vorhandener Text"
-    assert window.documents.current is None and window.documents.documents.count() == 0
+    assert window.documents.current.data["automation"] == "section"
+    assert window.documents.documents.count() == 1
 
 
 def test_inline_note_save_colors_attachment_conflict_and_restart(window, qt_app,

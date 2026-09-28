@@ -72,7 +72,11 @@ class CanvasService:
         def backward() -> None:
             current = catalog.get(identity[0].id)
             self.project._check_revision(current, identity[0].revision_no)
-            children = [row for row in catalog.records() if row.owner_id == current.id]
+            from .project_documents import END
+            children = [row for row in catalog.records() if row.owner_id == current.id
+                        and not (row.kind == "document" and row.data.get("automation") and
+                                 row.data["body"].split(END)[-1] ==
+                                 row.data.get("initial_manual"))]
             if children or self.project.affected_relations(current.id) != relations:
                 raise StudioError("conflict", "Neue Inhalte/Verwendungen vorhanden; "
                                   "die Erstellung kann nicht mehr zurückgenommen werden.")

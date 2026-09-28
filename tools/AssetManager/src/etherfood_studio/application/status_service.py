@@ -80,7 +80,10 @@ class StatusService:
         return result
 
     def summary(self, identifier: str) -> str:
-        if self.project.catalog.get(identifier).kind == "pipeline":
+        record = self.project.catalog.get(identifier)
+        if record.kind == "pipeline":
+            if record.archived:
+                return "Pipeline archiviert · Zum Bearbeiten wiederherstellen."
             from .pipeline_service import PipelineService
             values = PipelineService(self.project).summary(identifier)
             enabled = "aktiv" if values["enabled"] else "aus"

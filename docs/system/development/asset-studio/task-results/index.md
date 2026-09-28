@@ -1,4 +1,4 @@
-# Ergebnisberichte: Pakete 1–7
+# Ergebnisberichte: Pakete 1–8
 
 Die technischen Kriterien von T001–T016 sind umgesetzt. Pakete 1–4 samt 4a
 sowie die verkürzte Anforderungs-/Canvas-Prüfrunde sind vom Benutzer abgenommen.
@@ -24,6 +24,7 @@ Der ursprüngliche Aufgabenplan unter
 | 6d | Dokumentanlage, Dokumente im Canvas und grüner Aufgabenhaken | [Dokumentationsbericht](6d.md) |
 | 7, Teil 1 | Kontrollierte Hintergrundaufträge und Adapter | [T017](T017.md) |
 | 7, Teil 2 | Typisierter Buildplan, verifizierter Cache und Veraltung | [T018](T018.md) |
+| 8 | Freie Farbreferenzen, Materialdefinitionen und Maskenrevisionen | [T019](T019.md), [T020](T020.md) |
 
 Historischer technischer Abschluss der Pakete 1–4: 56 Studio-Tests bestanden (45 Core/Verträge,
 11 GUI), 171 Pipeline-Bestandstests bestanden. Neue Source-/Testdateien
@@ -61,3 +62,10 @@ Paket 7 ergänzt die konsequente Notiztrennung, T017 und T018. Technischer
 Studio-Stand: **304 Tests bestanden**. Persönliche Abnahme anhand des
 [neuen Briefings](../SICHTPRUEFUNG_7.md) bleibt offen; produktive Bildadapter
 und Godot-Bereitstellung sind weiterhin nachfolgende Aufgaben.
+
+Paket 8 ergänzt T019/T020 auf den inzwischen vorhandenen echten Bildadaptern:
+**624 Studio-Tests + 171 Pipeline-Tests bestanden**. Freie Referenzen,
+Farbprofil-v2, Materialdefinitionen und quellgebundene Maskenrevisionen sind
+technisch integriert. [Bedienung](../REFERENZEN_UND_MASKEN.md) und aktuelle
+Nachweise samt offenen Repository-/Abnahmegrenzen: [T019](T019.md), [T020](T020.md).
+Als nächster fachlicher Schritt folgt T021 mit den Maskenmalwerkzeugen.

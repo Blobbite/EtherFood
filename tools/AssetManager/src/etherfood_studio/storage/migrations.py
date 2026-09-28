@@ -1,5 +1,36 @@
 """Forward-only schema steps; each statement runs inside one transaction."""
 
+# Also normalize old metadata snapshots imported into an already current catalog.
+# Only legacy ownership with a matching project binding is eligible. Historical
+# revisions and frozen builds stay intact; record the ownership change separately.
+PIPELINE_PROJECT_OWNERSHIP = (
+    """CREATE TEMP TABLE pipeline_project_owners AS
+        SELECT object.id, object.owner_id AS old_owner, project.id AS project_id
+        FROM objects AS object
+        JOIN objects AS scope ON scope.id=object.owner_id AND scope.kind='global'
+        JOIN objects AS project ON project.id=scope.owner_id AND project.kind='project'
+        WHERE json_extract(object.data, '$.project_id')=project.id AND
+            (object.kind='pipeline' OR (object.kind='pipeline_assignment' AND
+                json_extract(object.data, '$.asset_id') IS NULL))""",
+    """UPDATE relations SET target_id=(SELECT project_id FROM pipeline_project_owners
+            WHERE id=relations.source_id)
+        WHERE kind='belongs_to' AND source_id IN (SELECT id FROM pipeline_project_owners)
+            AND target_id=(SELECT old_owner FROM pipeline_project_owners
+                WHERE id=relations.source_id)""",
+    """UPDATE objects SET owner_id=(SELECT project_id FROM pipeline_project_owners
+            WHERE id=objects.id), revision_no=revision_no+1,
+            updated_at=strftime('%Y-%m-%dT%H:%M:%f+00:00', 'now')
+        WHERE id IN (SELECT id FROM pipeline_project_owners)""",
+    """INSERT INTO revisions (object_id, revision_no, snapshot)
+        SELECT id, revision_no, json_object(
+            'id', id, 'kind', kind, 'title', title, 'owner_id', owner_id,
+            'data', json(data), 'revision_no', revision_no,
+            'archived', json(CASE WHEN archived=1 THEN 'true' ELSE 'false' END),
+            'created_at', created_at, 'updated_at', updated_at)
+        FROM objects WHERE id IN (SELECT id FROM pipeline_project_owners)""",
+    "DROP TABLE pipeline_project_owners",
+)
+
 MIGRATIONS = {
     1: (
         "CREATE TABLE schema_version (version INTEGER NOT NULL)",
@@ -70,6 +101,19 @@ MIGRATIONS = {
             identifier TEXT PRIMARY KEY, manifest TEXT NOT NULL CHECK(json_valid(manifest)),
             code_path TEXT NOT NULL, code_hash TEXT NOT NULL, approved_hash TEXT
         )""",
+    ),
+    7: PIPELINE_PROJECT_OWNERSHIP,
+    8: (
+        "CREATE TABLE card_paths (id TEXT PRIMARY KEY, path TEXT NOT NULL UNIQUE)",
+        "CREATE TABLE managed_files (owner_id TEXT NOT NULL, path TEXT NOT NULL, "
+        "sha256 TEXT NOT NULL, PRIMARY KEY(owner_id,path))",
+        "CREATE TABLE asset_publications (build_id TEXT PRIMARY KEY, asset_id TEXT NOT NULL, "
+        "path TEXT NOT NULL)",
+        "CREATE TABLE file_commits (id TEXT PRIMARY KEY)",
+    ),
+    9: (
+        "CREATE TABLE document_files (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, "
+        "path TEXT NOT NULL, sha256 TEXT NOT NULL, body TEXT NOT NULL)",
     ),
 }
 

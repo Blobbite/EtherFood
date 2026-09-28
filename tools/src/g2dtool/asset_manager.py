@@ -26,7 +26,7 @@ from g2dtool.repository import discover_repository_layout
 SETUP_TIMEOUT_SECONDS = 900
 PROBE_TIMEOUT_SECONDS = 30
 TEST_TIMEOUT_SECONDS = 900
-MODES = ("run", "install", "import", "doctor", "test", "pipeline-test", "check")
+MODES = ("run", "install", "upgrade", "import", "doctor", "test", "pipeline-test", "check")
 SETUP_HELP = "python tools/control.py asset-manager install"
 NATIVE_HELP = (
     "Check the reported Qt/GL/EGL/XKB/D-Bus library or display/plugin error. "
@@ -121,26 +121,41 @@ class StudioEnvironment:
             print_help_line(NATIVE_HELP)
         return code
 
-    def prepare(self, *, dry_run: bool) -> None:
-        """Create only a missing venv and install only missing/mismatched dependencies."""
+    def prepare(self, *, dry_run: bool, upgrade: bool = False) -> None:
+        """Prepare the local venv, repair missing pip and optionally upgrade its packages."""
 
         create_command = [sys.executable, "-m", "venv", str(self.venv)]
+        bootstrap_command = [str(self.python), "-m", "ensurepip", "--upgrade"]
+        install_command = self.install_command
+        if upgrade:
+            install_command.append("--upgrade")
         if dry_run:
             if not self.venv.exists():
                 print_dry_run(join_command(create_command))
-            print_dry_run("If packages are missing/outdated: " + join_command(self.install_command))
+            print_dry_run("Verify the repository interpreter before changing the environment.")
+            print_dry_run(("" if upgrade else "If pip is missing: ") +
+                          join_command(bootstrap_command))
+            print_dry_run(("" if upgrade else "If packages are missing/outdated: ") +
+                          join_command(install_command))
             print_dry_run("Verify interpreter, package pins and module imports; no commands run.")
             return
         if not self.venv.exists():
             _require_success(create_command, self.root, "Create repository .venv")
-        if self.probe("environment"):
+        if self.probe("interpreter"):
             raise AssetManagerError(
-                "Repair the reported .venv/Python/pip problem explicitly. "
+                "Repair the reported .venv/Python problem explicitly. "
                 "Use Python >= 3.11 with venv/ensurepip; no environment was replaced."
             )
-        if self.probe("packages", report=False):
+        if upgrade or self.probe("pip", report=False):
+            _require_success(bootstrap_command, self.root, "Prepare pip in repository .venv")
+        if self.probe("pip"):
+            raise AssetManagerError(
+                "pip is still unavailable after ensurepip. "
+                "Check Python venv/ensurepip support and retry with: " + SETUP_HELP
+            )
+        if upgrade or self.probe("packages", report=False):
             self.probe("packages")
-            _require_success(self.install_command, self.root, "Install Asset Studio in .venv")
+            _require_success(install_command, self.root, "Install Asset Studio in .venv")
             if self.probe("packages"):
                 raise AssetManagerError("Package verification failed after installation.")
             _require_success(
@@ -161,7 +176,8 @@ def add_asset_manager_parser(commands: argparse._SubParsersAction) -> None:
     actions = parser.add_subparsers(dest="mode")
     descriptions = {
         "run": "prepare the local .venv if needed and open the desktop",
-        "install": "prepare the local .venv and verify Python module imports",
+        "install": "prepare the local .venv, repair missing pip and verify module imports",
+        "upgrade": "upgrade pip with ensurepip and install the project's required package versions",
         "import": "alias for install: prepare tool modules, not game assets",
         "doctor": "diagnose .venv, packages and native Qt libraries without installing",
         "test": "run Studio tests, including Qt offscreen tests",
@@ -211,7 +227,7 @@ def run_asset_manager(
         environment.validate()
         if mode == "doctor":
             return _doctor(environment, config=config)
-        environment.prepare(dry_run=dry_run)
+        environment.prepare(dry_run=dry_run, upgrade=mode == "upgrade")
         commands = _action_commands(environment, mode, project=project)
         if dry_run:
             for command in commands:
@@ -220,7 +236,7 @@ def run_asset_manager(
             return 0
         if environment.probe("runtime"):
             return 1
-        if mode in {"install", "import"}:
+        if mode in {"install", "upgrade", "import"}:
             success("Asset Studio environment ready. No assets were imported or generated.")
             return 0
         offscreen = mode in {"test", "check"}
@@ -246,7 +262,7 @@ def _doctor(environment: StudioEnvironment, *, config: Path | None) -> int:
         error(f"Repository .venv is missing. Run: {SETUP_HELP}")
         return 1
     if environment.probe("environment"):
-        print_help_line("Repair this .venv explicitly; Control will not delete it.")
+        print_help_line(f"To repair missing pip in this .venv, run: {SETUP_HELP}")
         return 1
     packages = environment.probe("packages")
     runtime = environment.probe("runtime")
@@ -307,7 +323,7 @@ def _execute(
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     if offscreen:
         env["QT_QPA_PLATFORM"] = "offscreen"
-    if "pip" in command:
+    if "pip" in command or "ensurepip" in command:
         # Prevent user-level pip settings from redirecting writes out of the verified .venv.
         for key in ("PIP_TARGET", "PIP_PREFIX", "PIP_ROOT", "PIP_USER"):
             env.pop(key, None)

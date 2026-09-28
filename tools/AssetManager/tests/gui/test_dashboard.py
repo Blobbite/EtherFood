@@ -59,6 +59,7 @@ def test_create_save_keyboard_and_reopen(window, tmp_path, qt_app):
     assert "Saved from keyboard" in window.project.catalog.get(record.id).data["body"]
     window.open_project(root)
     window.select_card(ids["one"])
+    window.documents.open_document(record.id)
     assert "Saved from keyboard" in window.documents.editor.toPlainText()
     assert window.documents.current.id == record.id
     assert str(root) in window.settings.value("recent_projects")
@@ -199,7 +200,9 @@ def test_controls_and_manual_layout_are_real(window, tmp_path):
     assert window.project.catalog.layout(ids["hero"])["x"] == 72
     assert window.findChild(QAction, "undo").isEnabled()
     disabled = [a for a in window.findChildren(QAction) if "später" in a.text()]
-    assert len(disabled) == 2 and all(not a.isEnabled() for a in disabled)
+    assert [a.objectName() for a in disabled] == ["godot_export"]
+    assert not disabled[0].isEnabled()
+    assert window.findChild(QAction, "image_pipeline").isEnabled()
     assert window.findChild(QPushButton, "add_act") is not None
 
 

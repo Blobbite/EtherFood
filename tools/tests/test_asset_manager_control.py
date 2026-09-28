@@ -36,6 +36,7 @@ class FakeProcess:
     def __init__(self, root: Path, *, installed: bool = False) -> None:
         self.root = root
         self.installed = installed
+        self.pip_available = True
         self.calls = []
         self.failures = {}
         self.probe_payload = None
@@ -52,11 +53,17 @@ class FakeProcess:
         elif "asset_manager_probe.py" in command[2]:
             key = command[3]
             code = self.failures.get(key, 0)
+            if key in {"environment", "pip"} and not self.pip_available:
+                code = code or 1
             if key == "packages" and not self.installed:
                 code = 1
             checks = [{"name": key, "ok": code == 0, "detail": "test diagnostic"}]
             output = json.dumps(checks) if self.probe_payload is None else self.probe_payload
             return subprocess.CompletedProcess(command, code, output, "probe stderr")
+        elif command[1:3] == ["-m", "ensurepip"]:
+            key = "ensurepip"
+            if not self.failures.get(key):
+                self.pip_available = True
         elif "pip" in command:
             key = "install" if "install" in command else "pip-check"
             if key == "install" and not self.failures.get(key):
@@ -150,7 +157,8 @@ def test_ready_run_reuses_packages_and_resolves_project_from_calling_directory(
     monkeypatch.chdir(tmp_path)
     assert asset_manager.run_asset_manager("run", start=checkout, project=Path("my studio")) == 0
     commands = [call[0] for call in ready.calls]
-    assert not any("pip" in command or "venv" in command for command in commands)
+    assert not any("pip" in command or "ensurepip" in command or "venv" in command
+                   for command in commands if "asset_manager_probe.py" not in command[2])
     assert commands[-1][-2:] == ["--project", str(tmp_path / "my studio")]
 
 
@@ -161,6 +169,72 @@ def test_changed_pins_trigger_one_install(checkout, ready):
     assert not any("gui" in call[0] for call in ready.calls)
 
 
+@pytest.mark.parametrize("mode", [
+    "run", "install", "upgrade", "import", "test", "pipeline-test", "check",
+])
+def test_missing_pip_is_repaired_before_install_or_launch(checkout, ready, mode):
+    ready.pip_available = False
+    ready.installed = False
+    sentinel = checkout / ".venv" / "keep.txt"
+    sentinel.write_text("existing environment", encoding="utf-8")
+
+    assert asset_manager.run_asset_manager(mode, start=checkout) == 0
+
+    commands = [call[0] for call in ready.calls]
+    bootstrap = next(command for command in commands if "ensurepip" in command)
+    install = next(command for command in commands if "install" in command)
+    assert bootstrap == [str(asset_manager.StudioEnvironment(checkout).python),
+                         "-m", "ensurepip", "--upgrade"]
+    assert commands.index(bootstrap) < commands.index(install)
+    assert not any("venv" in command for command in commands)
+    assert sentinel.read_text(encoding="utf-8") == "existing environment"
+    assert ready.pip_available and ready.installed
+
+
+def test_upgrade_refreshes_ready_environment_without_launching_desktop(checkout, ready):
+    assert asset_manager.run_asset_manager("upgrade", start=checkout) == 0
+    commands = [call[0] for call in ready.calls]
+    assert sum("ensurepip" in command for command in commands) == 1
+    install = next(command for command in commands if "install" in command)
+    assert "--upgrade" in install
+    assert "--require-virtualenv" in install and "--no-user" in install
+    assert f"{checkout}/tools/AssetManager[test,gui]" in install
+    assert any(command[1:] == ["-m", "pip", "check"] for command in commands)
+    assert not any("gui" in command or "pytest" in command for command in commands)
+
+
+def test_upgrade_core_keeps_gui_dependencies_optional(checkout, ready):
+    assert asset_manager.run_asset_manager("upgrade", start=checkout, core=True) == 0
+    install = next(call[0] for call in ready.calls if "install" in call[0])
+    assert f"{checkout}/tools/AssetManager[test]" in install
+    probes = [call[0] for call in ready.calls if "asset_manager_probe.py" in call[0][2]]
+    assert all("--core" in command for command in probes)
+    assert not any("platform" in command for command in probes)
+
+
+def test_failed_pip_bootstrap_stops_without_replacing_environment(checkout, ready):
+    ready.pip_available = False
+    ready.failures["ensurepip"] = 31
+    assert asset_manager.run_asset_manager("install", start=checkout) == 31
+    assert "ensurepip" in ready.calls[-1][0]
+    assert not any("install" in call[0] or "gui" in call[0] for call in ready.calls)
+    assert (checkout / ".venv/pyvenv.cfg").is_file()
+
+
+def test_bootstrap_success_requires_pip_to_be_available(checkout, ready, capsys):
+    ready.failures["pip"] = 1
+    assert asset_manager.run_asset_manager("install", start=checkout) == 1
+    assert any("ensurepip" in call[0] for call in ready.calls)
+    assert not any("install" in call[0] or "gui" in call[0] for call in ready.calls)
+    assert "still unavailable" in capsys.readouterr().out
+
+
+def test_upgrade_rejects_wrong_interpreter_before_bootstrap(checkout, ready):
+    ready.failures["interpreter"] = 1
+    assert asset_manager.run_asset_manager("upgrade", start=checkout) == 1
+    assert not any("ensurepip" in call[0] or "install" in call[0] for call in ready.calls)
+
+
 @pytest.mark.parametrize("mode", ["install", "import"])
 def test_preparation_never_imports_assets_or_launches_desktop(checkout, ready, mode):
     assert asset_manager.run_asset_manager(mode, start=checkout) == 0
@@ -168,15 +242,26 @@ def test_preparation_never_imports_assets_or_launches_desktop(checkout, ready, m
     assert not (checkout / "game").exists()
 
 
-@pytest.mark.parametrize("mode", ["run", "install", "import", "test", "pipeline-test", "check"])
-def test_dry_run_never_starts_process_or_creates_environment(checkout, monkeypatch, mode, capsys):
+@pytest.mark.parametrize("mode", [
+    "run", "install", "upgrade", "import", "test", "pipeline-test", "check",
+])
+@pytest.mark.parametrize("existing", [False, True])
+def test_dry_run_never_starts_process_or_changes_environment(
+    checkout, monkeypatch, mode, existing, capsys,
+):
+    if existing:
+        create_environment(checkout)
+
     def forbidden(*args, **kwargs):
         raise AssertionError("Dry-run started a process")
 
     monkeypatch.setattr(asset_manager, "_execute", forbidden)
     assert asset_manager.run_asset_manager(mode, start=checkout, dry_run=True) == 0
-    assert not (checkout / ".venv").exists()
-    assert "DRY-RUN" in capsys.readouterr().out
+    assert (checkout / ".venv").exists() == existing
+    output = capsys.readouterr().out
+    assert "DRY-RUN" in output
+    assert "-m ensurepip --upgrade" in output
+    assert ("If pip is missing:" in output) == (mode != "upgrade")
 
 
 def test_missing_environment_doctor_never_installs(checkout, monkeypatch, capsys):
@@ -193,6 +278,14 @@ def test_doctor_reports_missing_packages_without_installing(checkout, ready, cap
     assert asset_manager.run_asset_manager("doctor", start=checkout) == 1
     assert not any("pip" in call[0] or "gui" in call[0] for call in ready.calls)
     assert "missing/mismatched" in capsys.readouterr().out
+
+
+def test_doctor_reports_missing_pip_without_repairing(checkout, ready, capsys):
+    ready.pip_available = False
+    assert asset_manager.run_asset_manager("doctor", start=checkout) == 1
+    assert not ready.pip_available
+    assert not any("ensurepip" in call[0] or "install" in call[0] for call in ready.calls)
+    assert "asset-manager install" in capsys.readouterr().out
 
 
 def test_doctor_can_forward_explicit_project_configuration(checkout, ready, tmp_path):
@@ -227,17 +320,18 @@ def test_symlink_environment_is_rejected(checkout, tmp_path, monkeypatch):
     assert process.calls == [] and list(outside.iterdir()) == []
 
 
-@pytest.mark.parametrize("failure", ["environment", "runtime", "platform"])
+@pytest.mark.parametrize("failure", ["interpreter", "runtime", "platform"])
 def test_preflight_failure_blocks_launch_without_reinstalling(checkout, ready, failure):
     ready.failures[failure] = 1
     assert asset_manager.run_asset_manager("run", start=checkout) == 1
     assert not any("install" in call[0] or "gui" in call[0] for call in ready.calls)
 
 
-def test_failed_pip_install_preserves_environment_and_exit_code(checkout, ready):
+@pytest.mark.parametrize("mode", ["run", "upgrade"])
+def test_failed_pip_install_preserves_environment_and_exit_code(checkout, ready, mode):
     ready.installed = False
     ready.failures["install"] = 42
-    assert asset_manager.run_asset_manager("run", start=checkout) == 42
+    assert asset_manager.run_asset_manager(mode, start=checkout) == 42
     assert not any("gui" in call[0] for call in ready.calls)
     assert (checkout / ".venv/pyvenv.cfg").is_file()
 
@@ -286,7 +380,10 @@ def test_pipeline_tests_need_no_qt_or_godot(checkout, ready):
     assert "tools/AssetManager/PyGameTools/.tests" in ready.calls[-1][0]
 
 
-def test_execute_uses_checkout_env_timeout_and_disables_pip_redirection(monkeypatch, tmp_path):
+@pytest.mark.parametrize("module", ["pip", "ensurepip"])
+def test_execute_uses_checkout_env_timeout_and_disables_pip_redirection(
+    monkeypatch, tmp_path, module,
+):
     observed = []
     for name in ("PIP_TARGET", "PIP_PREFIX", "PIP_ROOT", "PIP_USER"):
         monkeypatch.setenv(name, "unsafe-redirect")
@@ -297,7 +394,8 @@ def test_execute_uses_checkout_env_timeout_and_disables_pip_redirection(monkeypa
         return subprocess.CompletedProcess(command, 0, "", "")
 
     monkeypatch.setattr(subprocess, "run", process)
-    asset_manager._execute(["local-python", "-m", "pip", "check"], tmp_path,
+    arguments = ["check"] if module == "pip" else ["--upgrade"]
+    asset_manager._execute(["local-python", "-m", module, *arguments], tmp_path,
                            capture=True, offscreen=True, timeout=30)
     options = observed[0]
     assert options["cwd"] == tmp_path and options["timeout"] == 30
@@ -371,3 +469,36 @@ def test_control_works_from_unrelated_directory_without_activating_venv(tmp_path
     assert result.returncode == 0, result.stderr
     assert str(REPOSITORY / "tools/AssetManager/studio.py") in result.stdout
     assert str(tmp_path / "local project") in result.stdout
+
+
+@pytest.mark.skipif(importlib.util.find_spec("ensurepip") is None, reason="ensurepip unavailable")
+def test_install_repairs_real_venv_without_pip_and_reuses_it(checkout, monkeypatch):
+    """Exercise the reported bootstrap failure offline with real venv and ensurepip."""
+
+    environment = asset_manager.StudioEnvironment(checkout, core=True)
+    subprocess.run(
+        [sys.executable, "-m", "venv", "--without-pip", str(environment.venv)],
+        check=True, capture_output=True, text=True, timeout=30,
+    )
+    assert environment.probe("environment", report=False) == 1
+    sentinel = environment.venv / "keep.txt"
+    sentinel.write_text("preserve existing files", encoding="utf-8")
+    execute = asset_manager._execute
+    bootstraps = []
+
+    def offline_execute(command, root, **options):
+        # The unrelated Studio packages are fixtures; bootstrap and its probes are real.
+        if "asset_manager_probe.py" in command[2] and command[3] in {"packages", "runtime"}:
+            checks = [{"name": command[3], "ok": True, "detail": "Offline package fixture"}]
+            return subprocess.CompletedProcess(command, 0, json.dumps(checks), "")
+        if "ensurepip" in command:
+            bootstraps.append(command)
+        assert not ("pip" in command and "install" in command), "Unexpected network installation"
+        return execute(command, root, **options)
+
+    monkeypatch.setattr(asset_manager, "_execute", offline_execute)
+    assert asset_manager.run_asset_manager("install", start=checkout, core=True) == 0
+    assert environment.probe("environment", report=False) == 0
+    assert asset_manager.run_asset_manager("install", start=checkout, core=True) == 0
+    assert len(bootstraps) == 1
+    assert sentinel.read_text(encoding="utf-8") == "preserve existing files"

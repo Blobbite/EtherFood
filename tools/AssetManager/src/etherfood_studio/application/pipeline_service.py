@@ -29,11 +29,13 @@ class PipelineService:
         require(record.kind == "pipeline", "Pipeline-Karte auswählen.")
         require(record.data.get("project_id") == self.project_id,
                 "Pipeline gehört nicht zum geöffneten Projekt.")
+        require(record.owner_id == self.project_id,
+                "Pipeline muss direkt zum geöffneten Projekt gehören.")
         validate_recipe(record.data["recipe"], self.manifests())
         return record
 
     def create(self, title, template_id="empty"):
-        return self.project.create_card("pipeline", title, self.global_id,
+        return self.project.create_card("pipeline", title, self.project_id,
             {"project_id": self.project_id, "recipe": template(template_id)})
 
     def save(self, identifier, data, expected_revision):
@@ -50,7 +52,7 @@ class PipelineService:
     def assign(self, recipe_id, *, asset_id=None, type_id=None, capabilities=(), overrides=None):
         recipe = self.recipe(recipe_id)
         require(not (asset_id and type_id), "Asset oder Typregel wählen, nicht beides.")
-        owner = asset_id or self.global_id
+        owner = asset_id or self.project_id
         if asset_id:
             AssetService(self.project).asset(asset_id)
         if type_id:
@@ -93,7 +95,7 @@ class PipelineService:
         recipe = self.catalog.get(data["recipe_id"])
         require(recipe.kind == "pipeline" and recipe.data.get("project_id") == self.project_id,
                 "Zuweisung benötigt ein Rezept desselben Projekts.")
-        require(record.owner_id == (data["asset_id"] or self.global_id),
+        require(record.owner_id == (data["asset_id"] or self.project_id),
                 "Besitzer und Pipeline-Zuweisung widersprechen sich.")
         if data["asset_id"]:
             require(self.catalog.get(data["asset_id"]).kind == "asset", "Asset-Ziel fehlt.")

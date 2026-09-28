@@ -105,7 +105,7 @@ def test_project_context_and_card_creation_undo(tmp_path, qt_app, monkeypatch):
     root.mkdir()
     window.new_project(root, "Projektgrenze")
     project = window.project
-    owner = next(r.id for r in project.cards() if r.kind == "global")
+    owner = project.project().id
     menu = window.navigation.menu(owner)
     names = {a.objectName() for a in menu.actions()}
     assert {"context_pipeline_new", "context_pipeline_template", "context_pipeline_import"} <= names
@@ -283,6 +283,7 @@ def test_asset_workspace_invalid_requirements_show_error_without_raising(editor,
 
 
 def test_profile_dialog_custom_profile_reaches_recipe_and_asset_forms(editor, monkeypatch):
+    editor.mutate("Grafikvorlage", lambda state: state.update(recipe=template("graphics")))
     before = deepcopy(editor.state)
 
     def add_custom(dialog):
@@ -296,7 +297,9 @@ def test_profile_dialog_custom_profile_reaches_recipe_and_asset_forms(editor, mo
         return dialog.result()
 
     monkeypatch.setattr(ProfileDialog, "exec", add_custom)
-    QTest.mouseClick(editor.findChild(QPushButton, "pipeline_profiles"), Qt.LeftButton)
+    action = editor.findChild(QPushButton, "pipeline_profiles")
+    assert action is not None
+    QTest.mouseClick(action, Qt.LeftButton)
     assert editor.state == before
     targets = {editor.targets.item(i).data(Qt.UserRole): editor.targets.item(i)
                for i in range(editor.targets.count())}
@@ -370,7 +373,7 @@ def test_saved_recipe_redo_restores_parameters_and_layout_without_builds(editor)
     assert not any(record.kind == "build" for record in editor.project.catalog.records())
 
 
-def test_context_actions_global_only_and_archive_restore_preserve_recipe(tmp_path, qt_app,
+def test_context_actions_project_only_and_archive_restore_preserve_recipe(tmp_path, qt_app,
                                                                         monkeypatch):
     window = MainWindow(QSettings(str(tmp_path / "contexts.ini"), QSettings.IniFormat))
     root = tmp_path / "contexts"
@@ -388,11 +391,11 @@ def test_context_actions_global_only_and_archive_restore_preserve_recipe(tmp_pat
     window.refresh()
     create_actions = {"context_pipeline_new", "context_pipeline_template",
                       "context_pipeline_import"}
-    for record in (project.project(), act, asset, recipe):
+    for record in (project.catalog.get(service.global_id), act, asset, recipe):
         menu = window.navigation.menu(record.id)
         assert not create_actions.intersection(a.objectName() for a in menu.actions())
         menu.deleteLater()
-    menu = window.navigation.menu(service.global_id)
+    menu = window.navigation.menu(service.project_id)
     assert create_actions <= {a.objectName() for a in menu.actions()}
     menu.deleteLater()
     opened = []

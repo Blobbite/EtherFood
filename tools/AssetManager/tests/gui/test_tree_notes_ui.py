@@ -213,7 +213,7 @@ def test_postit_create_edit_filter_pin_and_restart_use_existing_documents(window
     record = window.notes.selected()
     assert record.kind == "document" and record.owner_id == ids["one"]
     assert record.data["note_color"] == "blue" and record.data["note_pinned"]
-    assert DocumentService(window.project).documents(ids["one"])[0] == record
+    assert record in DocumentService(window.project).documents(ids["one"])
     window.notes.color.setCurrentIndex(window.notes.color.findData("pink"))
     assert window.notes.notes.count() == 0
     window.notes.color.setCurrentIndex(0)

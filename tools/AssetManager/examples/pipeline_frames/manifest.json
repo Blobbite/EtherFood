@@ -1,0 +1,54 @@
+{
+  "contract": "studio-python-step-v2",
+  "id": "python:frame-selection",
+  "name": "Frameauswahl und Timing",
+  "version": "1.0.0",
+  "description": "Wählt vorhandene Frames aus; Framezahl und FPS bleiben getrennt.",
+  "source": "select_frames.py",
+  "entry_point": "apply",
+  "inputs": {
+    "image": "image"
+  },
+  "outputs": {
+    "image": "image"
+  },
+  "capabilities": [
+    "animated"
+  ],
+  "dependencies": [],
+  "parameters": {
+    "frames": {
+      "type": "integer",
+      "default": 8,
+      "minimum": 1,
+      "maximum": 64,
+      "label": "Zielframes"
+    },
+    "fps": {
+      "type": "number",
+      "default": 8.0,
+      "minimum": 0.01,
+      "maximum": 240,
+      "label": "Wiedergabe-FPS",
+      "disabled_if": {
+        "timing": [
+          "keep_duration"
+        ]
+      }
+    },
+    "timing": {
+      "type": "choice",
+      "default": "keep_fps",
+      "choices": [
+        "keep_fps",
+        "keep_duration"
+      ],
+      "label": "Timing-Modus",
+      "choice_labels": {
+        "keep_fps": "Wiedergabe-FPS beibehalten",
+        "keep_duration": "Animationsdauer beibehalten"
+      }
+    }
+  },
+  "actions": []
+}

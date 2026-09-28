@@ -39,7 +39,8 @@ def test_documentation_button_creates_document_not_post_it(window, qt_app, monke
     window.tabs.setCurrentWidget(window.documents)
     button = window.documents.findChild(QPushButton, "new_document")
     assert button.text() == "+ Dokumentation"
-    assert "+ Dokumentation" in window.documents.state.text()
+    assert "Struktur automatisch" in window.documents.state.text()
+    assert window.documents.current.data["automation"] == "section"
     assert "+ Dokumentation" in window.documents.editor.placeholderText()
     dialogs = []
 
@@ -73,7 +74,7 @@ def test_context_note_opens_notes_dashboard(window):
     editor.save()
     assert window.tabs.currentWidget() == window.notes
     assert is_note(window.notes.editor.current)
-    assert window.documents.current is None
+    assert window.documents.current.data["automation"] == "section"
     assert window.notes.notes.count() == 1
 
 

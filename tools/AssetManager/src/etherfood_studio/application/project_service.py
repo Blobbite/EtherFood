@@ -18,6 +18,10 @@ class ProjectService:
     def __init__(self, catalog: Catalog, config: Configuration | None = None) -> None:
         self.catalog = catalog
         self.config = config or Configuration({"WORKSPACE_ROOT": catalog.path.parent})
+        from .project_files import ProjectFiles
+        self.files = ProjectFiles(self)
+        if catalog.db.execute("SELECT 1 FROM sqlite_master WHERE name='card_paths'").fetchone():
+            self.catalog.projection = self.files
 
     @classmethod
     def new(cls, directory: Path, title: str,
@@ -59,9 +63,12 @@ class ProjectService:
             if not read_only:
                 from .profile_service import ProfileService
                 with catalog.transaction():
+                    from ..storage.file_changes import FileChanges
+                    FileChanges.recover(catalog)
                     ProfileService(service).ensure()
                     service.validate_structure()
                     JobStore(catalog).recover()
+                    catalog.projection_dirty = True
             else:
                 service.validate_structure()
         except Exception:
@@ -153,6 +160,8 @@ class ProjectService:
             validate_relation(record, target, "belongs_to", self.catalog.relations())
         elif record.kind in {"task", "issue", "document"}:
             if record.kind == "document":
+                if record.data.get("automation"):
+                    raise StudioError("validation", "Grunddokumente folgen ihrem Bereich.")
                 if record.data.get("document_type") != "manual":
                     raise StudioError("validation", "Generierte Berichte bleiben schreibgeschützt.")
                 if any(row.id != record.id and row.kind == "document"
@@ -234,6 +243,8 @@ class ProjectService:
 
     def archive(self, identifier: str, archived: bool, expected_revision: int) -> Record:
         record = self.catalog.get(identifier)
+        if record.kind == "document" and record.data.get("automation"):
+            raise StudioError("validation", "Grunddokument zusammen mit dem Bereich archivieren.")
         if record.kind in {"project", "global"}:
             raise StudioError("validation", "Projektrahmen kann nicht archiviert werden.")
         self._check_revision(record, expected_revision)
@@ -338,6 +349,9 @@ class ProjectService:
     def import_snapshot(self, content: str) -> None:
         with self.catalog.transaction():
             self.catalog.import_snapshot(content)
+            from ..storage.migrations import PIPELINE_PROJECT_OWNERSHIP
+            for statement in PIPELINE_PROJECT_OWNERSHIP:
+                self.catalog.db.execute(statement)
             self.validate_structure()
 
     def demo(self) -> dict[str, str]:

@@ -27,6 +27,7 @@ class DocumentEditor(QWidget):
         self.service: DocumentService | None = None
         self.owner_id: str | None = None
         self.current: Record | None = None
+        self.navigate = None
         self.dirty = False
         self._loading = False
         layout = QVBoxLayout(self)
@@ -42,6 +43,8 @@ class DocumentEditor(QWidget):
         self.state = label("Karte auswählen und Dokumentation anlegen.", "document_state")
         layout.addWidget(self.state)
         self.editor = LiveMarkdownEditor()
+        self.editor.local_link = self.follow_link
+        self.editor.local_resource = self.local_resource
         self.editor.setObjectName("markdown_editor")
         self.editor.setAccessibleName("Markdown-Text bearbeiten")
         self.editor.setPlaceholderText("Noch kein Dokument. Über + Dokumentation anlegen.")
@@ -88,6 +91,8 @@ class DocumentEditor(QWidget):
 
     def show_card(self, owner_id: str) -> bool:
         if owner_id == self.owner_id:
+            if not self.dirty:
+                self.refresh_documents(self.current.id if self.current else None)
             return True
         if not self.confirm_discard():
             return False
@@ -115,6 +120,7 @@ class DocumentEditor(QWidget):
         if not self.service:
             return False
         if self.current and self.current.id == identifier:
+            self.refresh_current()
             return True
         record = self.service.catalog.get(identifier)
         if record.kind != "document" or is_note(record) != self.notes_only \
@@ -123,6 +129,11 @@ class DocumentEditor(QWidget):
         self.owner_id = record.owner_id
         self.refresh_documents(identifier)
         return True
+
+    def refresh_current(self):
+        if self.service and self.current and not self.dirty and \
+                self.service.catalog.get(self.current.id) != self.current:
+            self.refresh_documents(self.current.id)
 
     def _load(self, identifier: str | None) -> None:
         self._loading = True
@@ -141,6 +152,9 @@ class DocumentEditor(QWidget):
         self.state.setText(f"Revision {self.current.revision_no} · "
                            + ("Bericht (nur lesen)" if generated else "gespeichert")
                            if self.current else "Noch kein Dokument. + Dokumentation wählen.")
+        if self.current and self.current.data.get("automation") == "section":
+            self.state.setText(f"Revision {self.current.revision_no} · Struktur automatisch · "
+                               "Eigene Beschreibung unterhalb der Übersicht bearbeiten")
 
     def _select_document(self, index: int) -> None:
         if not self.confirm_discard():
@@ -183,6 +197,30 @@ class DocumentEditor(QWidget):
         self.editor.setFocus()
         self.saved.emit()
         return record
+
+    def follow_link(self, url):
+        if not self.service or not self.current:
+            return
+        try:
+            target = self.service.resolve_link(self.service.path(self.current.id), url.path())
+            if target and target["kind"] == "document":
+                (self.navigate or self.open_document)(target["id"])
+            elif target and target["kind"] == "index" and self.confirm_discard():
+                from .project_links import ProjectMarkdownView
+                dialog = ProjectMarkdownView(self.service, target["path"], self)
+                dialog.exec()
+                dialog.deleteLater()
+        except (StudioError, OSError) as error:
+            show_error(self, error)
+
+    def local_resource(self, kind, url):
+        if self.service and self.current:
+            from .project_links import image_resource
+            try:
+                return image_resource(self.service, self.service.path(self.current.id), kind, url)
+            except (StudioError, OSError):
+                pass
+        return None
 
     def new_document(self) -> None:
         if not self.confirm_discard() or not self.owner_id:

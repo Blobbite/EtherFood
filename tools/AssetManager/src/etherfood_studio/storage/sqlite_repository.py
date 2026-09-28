@@ -31,6 +31,9 @@ class Catalog:
         self.path = real_path(path, must_exist=not create)
         self._lock = RLock()
         self._depth = 0
+        self.projection = None
+        self.projection_dirty = False
+        self.projection_builds = set()
         self.last_backup: Path | None = None
         if create:
             target = safe_target(self.path.parent, self.path.name)
@@ -86,17 +89,30 @@ class Catalog:
             outer = self._depth == 0
             if outer:
                 self.db.execute("BEGIN IMMEDIATE")
+                self.projection_dirty = False
+                self.projection_builds = set()
             self._depth += 1
+            files = None
             try:
                 yield
                 if outer:
+                    if self.projection is not None and self.projection_dirty:
+                        files = self.projection.prepare()
                     self.db.execute("COMMIT")
             except Exception:
                 if outer and self.db.in_transaction:
                     self.db.execute("ROLLBACK")
+                if files is not None:
+                    files.rollback()
                 raise
             finally:
                 self._depth -= 1
+            if files is not None:
+                # A committed journal may safely be cleaned on the next project open.
+                try:
+                    files.finish()
+                except OSError:
+                    pass
 
     @staticmethod
     def _decode(row: sqlite3.Row) -> Record:
@@ -144,6 +160,13 @@ class Catalog:
         self._history(record)
 
     def _history(self, record: Record) -> None:
+        if record.kind in {"project", "global", "act", "chapter", "package", "asset",
+                           "pipeline", "note", "source_revision", "document", "task", "issue",
+                           "pipeline_assignment"} or record.kind == "build" and \
+                record.data.get("published"):
+            self.projection_dirty = True
+        if record.kind == "build" and record.data.get("published"):
+            self.projection_builds.add(record.id)
         self.db.execute("INSERT INTO revisions VALUES (?,?,?)", (
             record.id, record.revision_no, canonical(asdict(record)),
         ))
@@ -187,11 +210,13 @@ class Catalog:
         with self.transaction():
             self.db.execute("INSERT INTO relations VALUES (?,?,?,?)",
                             (identifier, source, target, kind))
+            self.projection_dirty = True
         return identifier
 
     def remove_relation(self, identifier: str) -> None:
         with self.transaction():
             self.db.execute("DELETE FROM relations WHERE id=?", (identifier,))
+            self.projection_dirty = True
 
     def layout(self, identifier: str) -> dict:
         row = self.db.execute(
@@ -214,6 +239,8 @@ class Catalog:
                 raise StudioError("validation", "Kartengröße außerhalb zulässiger Grenzen.")
         if "collapsed" in data and not isinstance(data["collapsed"], bool):
             raise StudioError("validation", "Ungültiger Gruppenzustand.")
+        if "document_visible" in data and type(data["document_visible"]) is not bool:
+            raise StudioError("validation", "Ungültige Dokumentanzeige im Canvas.")
         if "manual" in data:
             if not isinstance(data["manual"], dict) or set(data["manual"]) - {"x", "y"}:
                 raise StudioError("validation", "Ungültige gespeicherte Anordnung.")

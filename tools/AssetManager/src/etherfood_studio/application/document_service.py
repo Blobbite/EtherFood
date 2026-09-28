@@ -1,6 +1,7 @@
 """Revisioned Markdown and safe attachments, without generated story content."""
 
 import hashlib
+import os
 from pathlib import Path
 
 from ..domain.models import MAX_TEXT, Record, StudioError
@@ -26,8 +27,10 @@ class DocumentService:
         self.blobs = BlobStore(self.catalog, project.config.roots["WORKSPACE_ROOT"], project.config)
 
     def documents(self, owner_id: str) -> list[Record]:
-        return [row for row in self.catalog.records()
+        rows = [row for row in self.catalog.records()
                 if row.kind == "document" and row.owner_id == owner_id]
+        return sorted(rows, key=lambda r: ({"index": 0, "section": 1}.get(
+            r.data.get("automation"), 2), r.title.casefold(), r.id))
 
     def create(self, owner_id: str, title: str, body: str = "", *,
                template: str = "Freie Notiz", generated: bool = False) -> Record:
@@ -55,6 +58,12 @@ class DocumentService:
         self.project._check_revision(record, expected_revision)
         if record.kind != "document" or record.data.get("document_type") != "manual":
             raise StudioError("validation", "Generierte Berichte sind hier schreibgeschützt.")
+        if record.data.get("automation"):
+            from .project_documents import START, END, generated
+            content = record.data["body"].split(START)[1].split(END)[0]
+            if generated(body, content) != body:
+                raise StudioError("validation", "Der STUDIO:AUTO-Abschnitt wird automatisch "
+                                  "gepflegt. Eigene Texte unterhalb der Markierungen bearbeiten.")
         return self.catalog.save(record, data=record.data | {"body": body})
 
     def attach(self, identifier: str, source: Path, expected_revision: int) -> Record:
@@ -69,6 +78,8 @@ class DocumentService:
     def rename(self, identifier: str, title: str, expected_revision: int) -> Record:
         record = self.catalog.get(identifier)
         self.project._check_revision(record, expected_revision)
+        if record.data.get("automation"):
+            raise StudioError("validation", "Das Grunddokument gehört fest zum Bereich.")
         if record.kind != "document" or record.data.get("document_type") != "manual":
             raise StudioError("validation", "Generierte Berichte sind hier schreibgeschützt.")
         if any(row.id != identifier and row.title.casefold() == title.strip().casefold()
@@ -123,4 +134,40 @@ class DocumentService:
                 and not self.catalog.get(row.owner_id).archived
                 and row.owner_id in scope
                 and (document_type is None or row.data.get("document_type") == document_type)
-                and needle in (row.title + "\n" + row.data.get("body", "")).casefold()]
+                and needle in self.search_text(row).casefold()]
+
+    @staticmethod
+    def search_text(record):
+        body = record.data.get("body", "")
+        if record.data.get("automation"):
+            from .project_documents import manual_part
+            body = manual_part(body)
+        return record.title + "\n" + body
+
+    def path(self, identifier):
+        row = self.catalog.db.execute(
+            "SELECT * FROM document_files WHERE id=?", (identifier,)).fetchone()
+        if not row:
+            raise StudioError("unavailable", "Dokumentdatei ist noch nicht verfügbar.")
+        return self.project.files.path(row["owner_id"]) / row["path"]
+
+    def resolve_link(self, base, relative):
+        """Only indexed Markdown and hash-verified local images, never arbitrary file reads."""
+        from ..storage.paths import safe_target
+
+        root = self.catalog.path.parent
+        try:
+            candidate = Path(os.path.abspath(base.parent / relative))
+            candidate = safe_target(root, str(candidate.relative_to(root)))
+            for row in self.catalog.db.execute("SELECT * FROM document_files"):
+                if candidate == self.project.files.path(row["owner_id"]) / row["path"]:
+                    return {"kind": "document", "id": row["id"], "path": candidate}
+            for row in self.catalog.db.execute("SELECT * FROM managed_files"):
+                if candidate == self.project.files.path(row["owner_id"]) / row["path"] and \
+                        candidate.suffix in {".md", ".png"} and candidate.is_file() and \
+                        file_hash(candidate) == row["sha256"]:
+                    return {"kind": "image" if candidate.suffix == ".png" else "index",
+                            "path": candidate}
+        except (StudioError, OSError, ValueError):
+            pass
+        return None

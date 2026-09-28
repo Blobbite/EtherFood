@@ -6,11 +6,14 @@ Bildverarbeitung. Die frühere Diagnose-Prüfrunde bleibt historische Referenz;
 die neue Bedienung und Abnahme stehen unter [Projektpipelines](PIPELINES.md).
 Godot-Bereitstellung und persönliche Sichtabnahmen bleiben getrennt.
 
-- [Verbindliche aktuelle Aufgabenplanung: PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md)
+- [Aktuelle Architekturkorrektur: skriptbasierte Canvas-Plattform](../plans/asset-studio-skriptplattform-korrektur.md)
+- [Skriptpakete importieren und Ergebnisse beim Asset ablegen](SKRIPTPAKETE.md)
+- [Stillgelegte Aufgabenplanung: PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md)
 
-Vor Implementierung oder erneuter Issue-Veröffentlichung diese Ergänzung und
-den aktuellen Issue-Stand lesen. Ältere Paketpläne/Ergebnisberichte dokumentieren
-ihren damaligen Stand, keine Aufforderung zum Rückbau vorhandener Pipelines.
+Die alte Studio-/Szeneneditor-Planung wurde am 28.09.2026 auf Benutzerwunsch
+stillgelegt. Die folgenden Bedienbeschreibungen dokumentieren den vorhandenen
+Code. Ihre früheren Folgeaufgaben sind keine aktuelle Umsetzungsreihenfolge.
+Für weitere Arbeit zuerst die Architekturkorrektur und die Benutzerentscheidung lesen.
 
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)
@@ -27,6 +30,7 @@ ihren damaligen Stand, keine Aufforderung zum Rückbau vorhandener Pipelines.
 - [Asset-Anforderungen und lesende Bestandserfassung](INVENTORY.md)
 - [Quellenimport und aktive Lieferungen](SOURCES.md)
 - [Projektweite Canvas-Bildpipelines: Bedienung und Sichtprüfung](PIPELINES.md)
+- [Freie Masterreferenzen und Materialmasken: Paket 8](REFERENZEN_UND_MASKEN.md)
 - [Arbeitsplan und tatsächliche Prüfergebnisse](../plans/asset-studio-projektpipelines.md)
 - [Aufträge und sichere Werkzeugprüfung](JOBS.md)
 - [Buildplan, Cache und Änderungsfolgen](BUILDPLAN.md)
@@ -48,7 +52,7 @@ ihren damaligen Stand, keine Aufforderung zum Rückbau vorhandener Pipelines.
 - [Zwischenpaket 6b: Kanban und getrennte Suche](../plans/asset-studio-kanban.md)
 - [Zwischenpaket 6c: Notizen und Baumzuordnung](../plans/asset-studio-notizen-und-zuordnung.md)
 - [Zwischenpaket 6d: Dokumentation im Canvas](../plans/asset-studio-dokumentation-im-canvas.md)
-- [Ergebnisberichte T001–T018](task-results/index.md)
+- [Ergebnisberichte](task-results/index.md)
 - [Pfadkarte](PATH_MAP.json)
 - [Technische Entscheidung](decisions/0001-lokaler-katalog.md)
 - [Arbeitsplan](../plans/asset-studio-pakete-1-bis-4.md)

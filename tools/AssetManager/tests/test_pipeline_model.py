@@ -101,9 +101,10 @@ def test_recipe_types_cycles_no_implicit_project_dataflow(project):
 def test_pipeline_ownership_archive_undo_and_layout_revision(project):
     service = PipelineService(project)
     commands = Commands(project)
-    identifier = commands.create_card("pipeline", "Vorlage", service.global_id,
+    identifier = commands.create_card("pipeline", "Vorlage", service.project_id,
         {"project_id": service.project_id, "recipe": template("graphics")})
     record = service.recipe(identifier)
+    assert record.owner_id == project.project().id
     commands.layout(identifier, {"x": 250, "y": -140})
     assert service.recipe(identifier).revision_no == record.revision_no
     commands.undo()
@@ -115,6 +116,8 @@ def test_pipeline_ownership_archive_undo_and_layout_revision(project):
     act = project.create_card("act", "Akt", project.project().id)
     with pytest.raises(StudioError):
         project.move(identifier, act.id, service.recipe(identifier).revision_no)
+    with pytest.raises(StudioError):
+        project.move(identifier, service.global_id, service.recipe(identifier).revision_no)
     project.validate_structure()
 
 

@@ -2,7 +2,8 @@
 
 from typing import TYPE_CHECKING, Callable
 
-from PySide6.QtCore import QPoint, Qt
+from PySide6.QtCore import QPoint, Qt, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QInputDialog, QMenu
 
 from ..domain.relations import PARENTS
@@ -28,25 +29,50 @@ class Navigation:
             menu.deleteLater()
 
     def show_canvas(self, point: QPoint) -> None:
+        if not self.window.project:
+            return
         card = self.window.canvas.card_at(self.window.canvas.mapToScene(point))
         if card:
             menu = self.menu(card.identifier)
-            menu.exec(self.window.canvas.viewport().mapToGlobal(point))
-            menu.deleteLater()
-        elif len(self.window.canvas.selected_ids()) > 1:
-            menu = QMenu(self.window)
-            self.window.canvas_actions.add_arrangements(menu)
-            menu.exec(self.window.canvas.viewport().mapToGlobal(point))
-            menu.deleteLater()
-        elif self.window.project and self.window.selected_id and \
-                self.window.project.catalog.get(self.window.selected_id).kind == "global":
-            menu = self.menu(self.window.selected_id)
-            menu.exec(self.window.canvas.viewport().mapToGlobal(point))
-            menu.deleteLater()
+        else:
+            selected = self.window.selected_id
+            if len(self.window.canvas.selected_ids()) <= 1 and selected and \
+                    self.window.project.catalog.get(selected).kind == "global":
+                menu = self.menu(selected)
+                menu.addSeparator()
+            else:
+                menu = QMenu(self.window)
+                self.window.canvas_actions.add_arrangements(menu)
+            self.add_pipeline_actions(menu)
+        menu.exec(self.window.canvas.viewport().mapToGlobal(point))
+        menu.deleteLater()
+
+    def add_pipeline_actions(self, menu: QMenu) -> None:
+        menu.addSection("Pipelines des Projekts")
+        for title, name, call in (
+            ("Neue Pipeline …", "context_pipeline_new", lambda: self.window.create_pipeline()),
+            ("Pipeline aus Vorlage …", "context_pipeline_template",
+             lambda: self.window.create_pipeline(choose_template=True)),
+            ("Pipeline importieren …", "context_pipeline_import", self.window.import_pipeline),
+        ):
+            item = menu.addAction(kind_icon("pipeline"), title)
+            item.setObjectName(name)
+            item.triggered.connect(call)
 
     def _on_card(self, identifier: str, call: Callable) -> None:
         if self.window.select_card(identifier):
             call()
+
+    def open_folder(self, identifier):
+        from ..domain.models import StudioError
+        from .common import show_error
+
+        try:
+            path = self.window.project.files.path(identifier)
+            if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
+                raise StudioError("unavailable", "Ordner konnte nicht geöffnet werden.")
+        except (StudioError, OSError) as error:
+            show_error(self.window, error)
 
     def menu(self, identifier: str) -> QMenu:
         window = self.window
@@ -62,23 +88,26 @@ class Navigation:
         if record.kind in {"document", "task", "issue"}:
             action("Öffnen / Bearbeiten", "context_edit", record.kind,
                    lambda: window.open_content(identifier, edit=True))
-            if record.kind == "document" and record.data["document_type"] == "manual":
+            if record.kind == "document" and record.data.get("automation"):
+                visible = window.project.catalog.layout(identifier).get("document_visible", False)
+                action("Im Canvas ausblenden" if visible else "Im Canvas einblenden",
+                       "context_document_canvas", "document",
+                       lambda: self.document_canvas(identifier, not visible))
+            if record.kind == "document" and record.data["document_type"] == "manual" and \
+                    not record.data.get("automation"):
                 action("Umbenennen …", "context_rename", "document",
                        lambda: self.rename_document(identifier))
             return menu
+        action("Ordner öffnen", "context_folder", "document",
+               lambda: self.open_folder(identifier))
         action("Dokumente / Notiz öffnen", "context_open", "document",
                lambda: self._on_card(identifier, self.open_notes))
         if not record.archived:
             if record.kind == "pipeline":
                 action("Pipeline öffnen …", "context_pipeline_open", "pipeline",
                        lambda: window.open_pipeline(identifier))
-            if record.kind == "global":
-                action("Neue Pipeline …", "context_pipeline_new", "pipeline",
-                       lambda: window.create_pipeline())
-                action("Pipeline aus Vorlage …", "context_pipeline_template", "pipeline",
-                       lambda: window.create_pipeline(choose_template=True))
-                action("Pipeline importieren …", "context_pipeline_import", "pipeline",
-                       window.import_pipeline)
+            if record.kind == "project":
+                self.add_pipeline_actions(menu)
                 menu.addSeparator()
             if record.kind == "asset":
                 action("Asset-Menü öffnen …", "context_asset_workspace", "asset",
@@ -108,6 +137,17 @@ class Navigation:
                    "context_archive", record.kind,
                    lambda: self._on_card(identifier, window.archive_dialog))
         return menu
+
+    def document_canvas(self, identifier, visible):
+        window = self.window
+        if not window.prepare_content_change():
+            return
+        data = window.project.catalog.layout(identifier) | {"document_visible": visible}
+        window.perform(lambda: window.commands.layout(identifier, data))
+        window.refresh()
+        if visible:
+            window.tabs.setCurrentIndex(0)
+            window.canvas.focus_card(identifier)
 
     def open_notes(self) -> None:
         if self.window.project.catalog.get(self.window.selected_id).kind == "note":
