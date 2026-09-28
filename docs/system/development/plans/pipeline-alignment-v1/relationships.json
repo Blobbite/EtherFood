@@ -1,0 +1,1407 @@
+{
+  "format": "etherfood-planning-relationships",
+  "version": 1,
+  "amendment": "PIPELINE-ALIGNMENT-V1",
+  "scope": "read-only inventory; no edge changes planned",
+  "edges_added": [],
+  "edges_removed": [],
+  "relationships": [
+    {
+      "issue": 1,
+      "plan_id": "ROOT",
+      "updated_at": "2026-09-26T09:24:06Z",
+      "parent": null,
+      "sub_issues": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 2,
+      "plan_id": "PHASE-A",
+      "updated_at": "2026-09-26T09:24:03Z",
+      "parent": 1,
+      "sub_issues": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 3,
+      "plan_id": "PHASE-B",
+      "updated_at": "2026-09-26T12:52:29Z",
+      "parent": 1,
+      "sub_issues": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        56,
+        57,
+        58,
+        59
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 4,
+      "plan_id": "PHASE-C",
+      "updated_at": "2026-09-26T08:09:07Z",
+      "parent": 1,
+      "sub_issues": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 5,
+      "plan_id": "PHASE-D",
+      "updated_at": "2026-09-26T08:09:09Z",
+      "parent": 1,
+      "sub_issues": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 6,
+      "plan_id": "PHASE-E",
+      "updated_at": "2026-09-26T08:09:11Z",
+      "parent": 1,
+      "sub_issues": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 7,
+      "plan_id": "PHASE-F",
+      "updated_at": "2026-09-26T08:09:13Z",
+      "parent": 1,
+      "sub_issues": [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 8,
+      "plan_id": "T001",
+      "updated_at": "2026-09-26T08:34:20Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [],
+      "blocking": [
+        55,
+        42,
+        41,
+        9
+      ]
+    },
+    {
+      "issue": 9,
+      "plan_id": "T002",
+      "updated_at": "2026-09-26T08:34:22Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        8
+      ],
+      "blocking": [
+        15,
+        10
+      ]
+    },
+    {
+      "issue": 10,
+      "plan_id": "T003",
+      "updated_at": "2026-09-26T08:49:37Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        9
+      ],
+      "blocking": [
+        54,
+        24,
+        16,
+        11
+      ]
+    },
+    {
+      "issue": 11,
+      "plan_id": "T004",
+      "updated_at": "2026-09-26T08:49:39Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        10
+      ],
+      "blocking": [
+        51,
+        41,
+        20,
+        16,
+        13,
+        12
+      ]
+    },
+    {
+      "issue": 12,
+      "plan_id": "T005",
+      "updated_at": "2026-09-26T08:49:41Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        11
+      ],
+      "blocking": [
+        51,
+        47,
+        46,
+        43,
+        40,
+        27,
+        24,
+        22,
+        21,
+        13
+      ]
+    },
+    {
+      "issue": 13,
+      "plan_id": "T006",
+      "updated_at": "2026-09-26T08:58:16Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        12,
+        11
+      ],
+      "blocking": [
+        48,
+        36,
+        20,
+        17,
+        16,
+        15,
+        14
+      ]
+    },
+    {
+      "issue": 14,
+      "plan_id": "T007",
+      "updated_at": "2026-09-26T08:58:18Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        13
+      ],
+      "blocking": [
+        49,
+        48,
+        39,
+        19,
+        15
+      ]
+    },
+    {
+      "issue": 15,
+      "plan_id": "T008",
+      "updated_at": "2026-09-26T08:58:19Z",
+      "parent": 2,
+      "sub_issues": [],
+      "blocked_by": [
+        14,
+        13,
+        9
+      ],
+      "blocking": [
+        50,
+        48,
+        45,
+        39,
+        25,
+        24,
+        23,
+        20,
+        18,
+        16
+      ]
+    },
+    {
+      "issue": 16,
+      "plan_id": "T009",
+      "updated_at": "2026-09-26T09:23:41Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        15,
+        13,
+        11,
+        10
+      ],
+      "blocking": [
+        54,
+        38,
+        23,
+        21,
+        19,
+        17
+      ]
+    },
+    {
+      "issue": 17,
+      "plan_id": "T010",
+      "updated_at": "2026-09-26T09:23:43Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        16,
+        13
+      ],
+      "blocking": [
+        19,
+        18
+      ]
+    },
+    {
+      "issue": 18,
+      "plan_id": "T011",
+      "updated_at": "2026-09-26T09:23:46Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        17,
+        15
+      ],
+      "blocking": []
+    },
+    {
+      "issue": 19,
+      "plan_id": "T012",
+      "updated_at": "2026-09-26T09:23:48Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        17,
+        16,
+        14
+      ],
+      "blocking": [
+        49
+      ]
+    },
+    {
+      "issue": 20,
+      "plan_id": "T013",
+      "updated_at": "2026-09-26T15:09:53Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        15,
+        13,
+        11
+      ],
+      "blocking": [
+        50,
+        42,
+        39,
+        36,
+        35,
+        32,
+        27,
+        26,
+        25,
+        23,
+        22,
+        21
+      ]
+    },
+    {
+      "issue": 21,
+      "plan_id": "T014",
+      "updated_at": "2026-09-26T15:09:54Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        20,
+        16,
+        12
+      ],
+      "blocking": [
+        55,
+        22
+      ]
+    },
+    {
+      "issue": 22,
+      "plan_id": "T015",
+      "updated_at": "2026-09-27T10:06:27Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        21,
+        20,
+        12
+      ],
+      "blocking": [
+        41,
+        27,
+        26,
+        25,
+        24,
+        23
+      ]
+    },
+    {
+      "issue": 23,
+      "plan_id": "T016",
+      "updated_at": "2026-09-27T10:06:28Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [
+        22,
+        20,
+        16,
+        15
+      ],
+      "blocking": [
+        52,
+        38,
+        37,
+        36,
+        28
+      ]
+    },
+    {
+      "issue": 24,
+      "plan_id": "T017",
+      "updated_at": "2026-09-27T13:26:35Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        22,
+        15,
+        12,
+        10
+      ],
+      "blocking": [
+        51,
+        43,
+        37,
+        35,
+        31,
+        30,
+        29,
+        25
+      ]
+    },
+    {
+      "issue": 25,
+      "plan_id": "T018",
+      "updated_at": "2026-09-27T13:26:36Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        24,
+        22,
+        20,
+        15
+      ],
+      "blocking": [
+        51,
+        50,
+        40,
+        37,
+        35,
+        33,
+        32,
+        31,
+        30,
+        29,
+        26
+      ]
+    },
+    {
+      "issue": 26,
+      "plan_id": "T019",
+      "updated_at": "2026-09-26T07:57:32Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        25,
+        22,
+        20
+      ],
+      "blocking": [
+        34,
+        30,
+        27
+      ]
+    },
+    {
+      "issue": 27,
+      "plan_id": "T020",
+      "updated_at": "2026-09-26T07:57:34Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        26,
+        22,
+        20,
+        12
+      ],
+      "blocking": [
+        34,
+        30,
+        29,
+        28
+      ]
+    },
+    {
+      "issue": 28,
+      "plan_id": "T021",
+      "updated_at": "2026-09-26T07:57:36Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        27,
+        23
+      ],
+      "blocking": [
+        29
+      ]
+    },
+    {
+      "issue": 29,
+      "plan_id": "T022",
+      "updated_at": "2026-09-26T07:57:38Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        28,
+        27,
+        25,
+        24
+      ],
+      "blocking": [
+        52,
+        30
+      ]
+    },
+    {
+      "issue": 30,
+      "plan_id": "T023",
+      "updated_at": "2026-09-26T07:57:41Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        29,
+        27,
+        26,
+        25,
+        24
+      ],
+      "blocking": [
+        52,
+        37,
+        34,
+        33,
+        31
+      ]
+    },
+    {
+      "issue": 31,
+      "plan_id": "T024",
+      "updated_at": "2026-09-26T07:57:43Z",
+      "parent": 4,
+      "sub_issues": [],
+      "blocked_by": [
+        30,
+        25,
+        24
+      ],
+      "blocking": [
+        52,
+        37,
+        34,
+        33,
+        32
+      ]
+    },
+    {
+      "issue": 32,
+      "plan_id": "T025",
+      "updated_at": "2026-09-26T07:57:46Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        31,
+        25,
+        20
+      ],
+      "blocking": [
+        52,
+        44,
+        42,
+        39,
+        37,
+        33
+      ]
+    },
+    {
+      "issue": 33,
+      "plan_id": "T026",
+      "updated_at": "2026-09-26T07:57:48Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        32,
+        31,
+        30,
+        25
+      ],
+      "blocking": [
+        52,
+        42,
+        38,
+        37,
+        35,
+        34
+      ]
+    },
+    {
+      "issue": 34,
+      "plan_id": "T027",
+      "updated_at": "2026-09-26T07:57:50Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        33,
+        31,
+        30,
+        27,
+        26
+      ],
+      "blocking": [
+        52,
+        39,
+        38,
+        37
+      ]
+    },
+    {
+      "issue": 35,
+      "plan_id": "T028",
+      "updated_at": "2026-09-26T07:57:52Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        33,
+        25,
+        24,
+        20
+      ],
+      "blocking": [
+        53,
+        42,
+        38,
+        37,
+        36
+      ]
+    },
+    {
+      "issue": 36,
+      "plan_id": "T029",
+      "updated_at": "2026-09-26T07:57:54Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        35,
+        23,
+        20,
+        13
+      ],
+      "blocking": [
+        53,
+        50,
+        49,
+        44,
+        42,
+        40,
+        39,
+        37
+      ]
+    },
+    {
+      "issue": 37,
+      "plan_id": "T030",
+      "updated_at": "2026-09-26T07:57:56Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        36,
+        35,
+        34,
+        33,
+        32,
+        31,
+        30,
+        25,
+        24,
+        23
+      ],
+      "blocking": [
+        52,
+        50,
+        38
+      ]
+    },
+    {
+      "issue": 38,
+      "plan_id": "T031",
+      "updated_at": "2026-09-26T07:57:59Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        37,
+        35,
+        34,
+        33,
+        23,
+        16
+      ],
+      "blocking": [
+        54,
+        52,
+        39
+      ]
+    },
+    {
+      "issue": 39,
+      "plan_id": "T032",
+      "updated_at": "2026-09-26T07:58:02Z",
+      "parent": 5,
+      "sub_issues": [],
+      "blocked_by": [
+        38,
+        36,
+        34,
+        32,
+        20,
+        15,
+        14
+      ],
+      "blocking": [
+        52,
+        48,
+        45,
+        40
+      ]
+    },
+    {
+      "issue": 40,
+      "plan_id": "T033",
+      "updated_at": "2026-09-26T07:58:04Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        39,
+        36,
+        25,
+        12
+      ],
+      "blocking": [
+        53,
+        52,
+        51,
+        49,
+        48,
+        46,
+        45,
+        43,
+        42,
+        41
+      ]
+    },
+    {
+      "issue": 41,
+      "plan_id": "T034",
+      "updated_at": "2026-09-26T07:58:06Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        40,
+        22,
+        11,
+        8
+      ],
+      "blocking": [
+        55,
+        52,
+        51,
+        48
+      ]
+    },
+    {
+      "issue": 42,
+      "plan_id": "T035",
+      "updated_at": "2026-09-26T07:58:09Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        40,
+        36,
+        35,
+        33,
+        32,
+        20,
+        8
+      ],
+      "blocking": [
+        53,
+        52,
+        46,
+        44,
+        43
+      ]
+    },
+    {
+      "issue": 43,
+      "plan_id": "T036",
+      "updated_at": "2026-09-26T07:58:11Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        42,
+        40,
+        24,
+        12
+      ],
+      "blocking": [
+        53,
+        52,
+        47,
+        46,
+        45,
+        44
+      ]
+    },
+    {
+      "issue": 44,
+      "plan_id": "T037",
+      "updated_at": "2026-09-26T07:58:13Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        43,
+        42,
+        36,
+        32
+      ],
+      "blocking": [
+        53,
+        52,
+        49,
+        46,
+        45
+      ]
+    },
+    {
+      "issue": 45,
+      "plan_id": "T038",
+      "updated_at": "2026-09-26T07:58:15Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        44,
+        43,
+        40,
+        39,
+        15
+      ],
+      "blocking": [
+        53,
+        52,
+        49,
+        48,
+        47,
+        46
+      ]
+    },
+    {
+      "issue": 46,
+      "plan_id": "T039",
+      "updated_at": "2026-09-26T07:58:18Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        45,
+        44,
+        43,
+        42,
+        40,
+        12
+      ],
+      "blocking": [
+        55,
+        53,
+        52,
+        51,
+        48,
+        47
+      ]
+    },
+    {
+      "issue": 47,
+      "plan_id": "T040",
+      "updated_at": "2026-09-26T07:58:20Z",
+      "parent": 6,
+      "sub_issues": [],
+      "blocked_by": [
+        46,
+        45,
+        43,
+        12
+      ],
+      "blocking": [
+        55,
+        53,
+        52,
+        51,
+        48
+      ]
+    },
+    {
+      "issue": 48,
+      "plan_id": "T041",
+      "updated_at": "2026-09-26T07:58:22Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        47,
+        46,
+        45,
+        41,
+        40,
+        39,
+        15,
+        14,
+        13
+      ],
+      "blocking": [
+        55,
+        53,
+        52,
+        51,
+        50,
+        49
+      ]
+    },
+    {
+      "issue": 49,
+      "plan_id": "T042",
+      "updated_at": "2026-09-26T07:58:25Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        48,
+        45,
+        44,
+        40,
+        36,
+        19,
+        14
+      ],
+      "blocking": [
+        55,
+        54,
+        53
+      ]
+    },
+    {
+      "issue": 50,
+      "plan_id": "T043",
+      "updated_at": "2026-09-26T07:58:27Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        48,
+        37,
+        36,
+        25,
+        20,
+        15
+      ],
+      "blocking": [
+        54,
+        53
+      ]
+    },
+    {
+      "issue": 51,
+      "plan_id": "T044",
+      "updated_at": "2026-09-26T07:58:30Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        48,
+        47,
+        46,
+        41,
+        40,
+        25,
+        24,
+        12,
+        11
+      ],
+      "blocking": [
+        55,
+        54,
+        53,
+        52
+      ]
+    },
+    {
+      "issue": 52,
+      "plan_id": "T045",
+      "updated_at": "2026-09-26T07:58:32Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        51,
+        48,
+        47,
+        46,
+        45,
+        44,
+        43,
+        42,
+        41,
+        40,
+        39,
+        38,
+        37,
+        34,
+        33,
+        32,
+        31,
+        30,
+        29,
+        23
+      ],
+      "blocking": [
+        55,
+        54
+      ]
+    },
+    {
+      "issue": 53,
+      "plan_id": "T046",
+      "updated_at": "2026-09-26T07:58:34Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        51,
+        50,
+        49,
+        48,
+        47,
+        46,
+        45,
+        44,
+        43,
+        42,
+        40,
+        36,
+        35
+      ],
+      "blocking": [
+        55,
+        54
+      ]
+    },
+    {
+      "issue": 54,
+      "plan_id": "T047",
+      "updated_at": "2026-09-26T07:58:36Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        53,
+        52,
+        51,
+        50,
+        49,
+        38,
+        16,
+        10
+      ],
+      "blocking": [
+        55
+      ]
+    },
+    {
+      "issue": 55,
+      "plan_id": "T048",
+      "updated_at": "2026-09-26T07:58:39Z",
+      "parent": 7,
+      "sub_issues": [],
+      "blocked_by": [
+        54,
+        53,
+        52,
+        51,
+        49,
+        48,
+        47,
+        46,
+        41,
+        21,
+        8
+      ],
+      "blocking": [
+        65,
+        61,
+        60
+      ]
+    },
+    {
+      "issue": 56,
+      "plan_id": null,
+      "updated_at": "2026-09-26T14:29:28Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 57,
+      "plan_id": null,
+      "updated_at": "2026-09-26T14:29:30Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 58,
+      "plan_id": null,
+      "updated_at": "2026-09-26T14:29:33Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 59,
+      "plan_id": null,
+      "updated_at": "2026-09-26T14:29:35Z",
+      "parent": 3,
+      "sub_issues": [],
+      "blocked_by": [],
+      "blocking": []
+    },
+    {
+      "issue": 60,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:23:19Z",
+      "parent": null,
+      "sub_issues": [
+        61,
+        62,
+        63,
+        64
+      ],
+      "blocked_by": [
+        55
+      ],
+      "blocking": []
+    },
+    {
+      "issue": 61,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:23:33Z",
+      "parent": 60,
+      "sub_issues": [
+        65,
+        66,
+        67
+      ],
+      "blocked_by": [
+        55
+      ],
+      "blocking": [
+        69,
+        68,
+        62
+      ]
+    },
+    {
+      "issue": 62,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:23:44Z",
+      "parent": 60,
+      "sub_issues": [
+        68,
+        69,
+        70
+      ],
+      "blocked_by": [
+        61
+      ],
+      "blocking": [
+        71,
+        63
+      ]
+    },
+    {
+      "issue": 63,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:23:55Z",
+      "parent": 60,
+      "sub_issues": [
+        71,
+        72,
+        73
+      ],
+      "blocked_by": [
+        62
+      ],
+      "blocking": [
+        74,
+        64
+      ]
+    },
+    {
+      "issue": 64,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:06Z",
+      "parent": 60,
+      "sub_issues": [
+        74,
+        75,
+        76
+      ],
+      "blocked_by": [
+        63
+      ],
+      "blocking": []
+    },
+    {
+      "issue": 65,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:18Z",
+      "parent": 61,
+      "sub_issues": [],
+      "blocked_by": [
+        55
+      ],
+      "blocking": [
+        66
+      ]
+    },
+    {
+      "issue": 66,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:23Z",
+      "parent": 61,
+      "sub_issues": [],
+      "blocked_by": [
+        65
+      ],
+      "blocking": [
+        67
+      ]
+    },
+    {
+      "issue": 67,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:28Z",
+      "parent": 61,
+      "sub_issues": [],
+      "blocked_by": [
+        66
+      ],
+      "blocking": [
+        69,
+        68
+      ]
+    },
+    {
+      "issue": 68,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:33Z",
+      "parent": 62,
+      "sub_issues": [],
+      "blocked_by": [
+        61,
+        67
+      ],
+      "blocking": [
+        70
+      ]
+    },
+    {
+      "issue": 69,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:40Z",
+      "parent": 62,
+      "sub_issues": [],
+      "blocked_by": [
+        61,
+        67
+      ],
+      "blocking": [
+        70
+      ]
+    },
+    {
+      "issue": 70,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:47Z",
+      "parent": 62,
+      "sub_issues": [],
+      "blocked_by": [
+        69,
+        68
+      ],
+      "blocking": [
+        71
+      ]
+    },
+    {
+      "issue": 71,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:24:54Z",
+      "parent": 63,
+      "sub_issues": [],
+      "blocked_by": [
+        62,
+        70
+      ],
+      "blocking": [
+        73,
+        72
+      ]
+    },
+    {
+      "issue": 72,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:25:01Z",
+      "parent": 63,
+      "sub_issues": [],
+      "blocked_by": [
+        71
+      ],
+      "blocking": [
+        73
+      ]
+    },
+    {
+      "issue": 73,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:25:06Z",
+      "parent": 63,
+      "sub_issues": [],
+      "blocked_by": [
+        72,
+        71
+      ],
+      "blocking": [
+        75,
+        74
+      ]
+    },
+    {
+      "issue": 74,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:25:13Z",
+      "parent": 64,
+      "sub_issues": [],
+      "blocked_by": [
+        63,
+        73
+      ],
+      "blocking": [
+        75
+      ]
+    },
+    {
+      "issue": 75,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:25:19Z",
+      "parent": 64,
+      "sub_issues": [],
+      "blocked_by": [
+        74,
+        73
+      ],
+      "blocking": [
+        76
+      ]
+    },
+    {
+      "issue": 76,
+      "plan_id": null,
+      "updated_at": "2026-09-27T14:25:26Z",
+      "parent": 64,
+      "sub_issues": [],
+      "blocked_by": [
+        75
+      ],
+      "blocking": []
+    }
+  ]
+}

@@ -3,6 +3,11 @@
 Paket 5 umfasst T013/#20 und T014/#21. Keine Originale werden kopiert,
 verschoben, repariert oder verarbeitet. Es entsteht keine Freigabe.
 
+Aktuelle Profil-/Auftragsregeln folgen
+[PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md).
+Quellenkopierimport und echte Projektpipelines sind inzwischen vorhanden;
+sie bleiben gesonderte Aktionen, keine Nebenwirkung der lesenden Inventur.
+
 ## Bedienung
 
 1. Asset-Karte auswählen (zum Beispiel den Demo-Helden).
@@ -12,8 +17,10 @@ verschoben, repariert oder verarbeitet. Es entsteht keine Freigabe.
 3. Richtungen in Reihenfolge, Grafikprofile und Frames wählen. FPS stehen
    separat je Pose. Pose-Anzeigenamen dürfen sich ändern, ihre IDs bleiben.
 4. **Matrix prüfen**, anschließend speichern. Die Standardfigur erwartet
-   200 Varianten je Spritesheet-Pose. Eine Textur erwartet fünf Grafikprofile,
-   ohne Posen/Frames. Ein `single_image` wie Jump hat ein Bild, keine FPS/Loop.
+   bei acht Richtungen und fünf aktiven Grafik-/Frameprofilen 200 Varianten je
+   Spritesheet-Pose. Maßgeblich sind die angeforderten aktiven Projektprofile,
+   auch bei drei oder zusätzlichen Profilen. Eine Textur verlangt keine
+   Posen/Frames. Ein `single_image` wie Jump hat ein Bild, keine FPS/Loop.
 5. **Asset-Menü → Quellen / Revisionen → Vorhandenen Bestand lesend erfassen …**,
    gewünschten Ordner auswählen und **Lesend erfassen**.
    Der Scan läuft im Hintergrund und lässt sich abbrechen; kein automatischer
@@ -43,8 +50,9 @@ und verwaltete Quellkopien sind Aufgaben T015/T016, nicht Teil dieses Pakets.
 
 ## Erkennung und Grenzen
 
-Bekannt sind die Grafikordner `comic_high`, `comic_mid`, `comic_low`,
-`pixel_high`, `pixel_low`, Frameordner `spritesheet-framN` und Dateiraster
+Standard-Grafikordner sind `comic_high`, `comic_mid`, `comic_low`,
+`pixel_high`, `pixel_low`; zusätzliche Schlüssel folgen der Projektprofilauflösung.
+Bekannt sind außerdem Frameordner `spritesheet-framN` und Dateiraster
 `_4x2_` usw. Pose-Exportnamen und `N,NO,O,SO,S,SW,W,NW` werden als getrennte
 Werte behandelt. Rasterprodukt und Frameordner müssen zusammenpassen.
 Die gewählte Wurzel darf auch direkt ein Grafik-/Frameordner sein.
@@ -78,7 +86,7 @@ eine Sicherung. Wurzel-UUID und relative Pfade sind fachliche Verweise,
 lokale absolute Wurzeln werden nicht in Metadaten-Snapshots exportiert.
 Nach Übertragung auf einen anderen Rechner ist erneut zu erfassen; ein
 alter Verweis beweist nicht, dass die Datei dort vorhanden oder freigegeben ist.
-Der Workflow wartet weiterhin auf einen späteren verwalteten Quellimport.
+Eine lesende Beobachtung ersetzt nicht den gesonderten verwalteten Quellimport.
 
 `asset-manager import` in Control bleibt **Tool-Umgebung vorbereiten**. Diese
 Bestandserfassung erfolgt innerhalb des Studios; die beiden Vorgänge sind

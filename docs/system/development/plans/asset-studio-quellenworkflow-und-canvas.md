@@ -3,7 +3,11 @@
 Fortschreibung: Der Canvas-Nachtest ist vom Benutzer vollständig bestätigt.
 Abschnitt A (T015/#22 und T016/#23) ist inzwischen in
 [Paket 6](asset-studio-paket-6.md) technisch umgesetzt. Die nachfolgenden
-Abschnitte B–D und die automatische Gesamterzeugung bleiben offen.
+Abschnitte B–D sind durch das Pipelinepaket `2286d2f` teilweise technisch
+umgesetzt; Worker, Buildgraph und echte Bildadapter nicht erneut neu bauen.
+Vollständige Master-/Maskenverwaltung, variable Timingdetails und ausdrücklich
+aktivierbare Importautomatik bleiben gesonderte Restarbeit nach
+[PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md).
 Die folgenden Ausgangs-/Ergebnisabschnitte dokumentieren den damaligen Stand.
 
 ## Zweck und Ausgangslage
@@ -32,7 +36,7 @@ Keine Quellbilder bearbeiten, keine Freigabe übertragen, keine neuen
 Animationen erzeugen. Der Quellenbutton und die Pipeline werden in diesem
 Abschnitt geplant, nicht durch einen funktionslosen Knopf vorgetäuscht.
 
-## Nächster durchgängiger Arbeitsablauf (noch nicht implementiert)
+## Ursprünglich geplanter Arbeitsablauf (historischer Ausgangsstand)
 
 1. Anforderungen bleiben am Asset: Posen, geordnete Richtungen, Grafikprofile,
    Framezahl und FPS getrennt. Neben **Anker Y** erhält jede Posenzeile

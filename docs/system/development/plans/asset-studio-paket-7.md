@@ -1,5 +1,11 @@
 # Paket 7 – Notizen trennen, Aufträge und Buildplanung
 
+Historischer Paketbericht zu `4ef37bd`/`4b16da4`: Die damalige Begrenzung auf
+Diagnose/Help ist durch das spätere Bildpipelinepaket `2286d2f` erweitert.
+Aktuelle Restaufträge und Vertrauensgrenzen folgen
+[PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md), nicht einem erneuten
+Neubau oder Rückbau der vorhandenen Worker-/Graphdienste.
+
 ## Auftrag und Ausgangslage
 
 Der Benutzer beauftragt am 27.09.2026 die vollständige Umsetzung von T017 und

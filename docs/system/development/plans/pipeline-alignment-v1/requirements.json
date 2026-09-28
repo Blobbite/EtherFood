@@ -1,0 +1,2066 @@
+{
+  "format": "etherfood-planning-requirement-alignment",
+  "version": 1,
+  "amendment": "PIPELINE-ALIGNMENT-V1",
+  "rule": "No original R/T IDs removed or renumbered. Per-issue exact old/new wording and preserved checkboxes are in issue-updates.json. Technical existence is not human acceptance.",
+  "pipeline_requirements": [
+    {
+      "id": "PA-01",
+      "primary_issue": 25,
+      "primary_plan_id": "T018",
+      "requirements": [
+        "R02",
+        "R06",
+        "R20",
+        "R34"
+      ],
+      "consuming_or_adjacent_issues": [
+        37,
+        50
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-02",
+      "primary_issue": 37,
+      "primary_plan_id": "T030",
+      "requirements": [
+        "R01",
+        "R04",
+        "R17",
+        "R30"
+      ],
+      "consuming_or_adjacent_issues": [
+        23,
+        25,
+        50
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-03",
+      "primary_issue": 33,
+      "primary_plan_id": "T026",
+      "requirements": [
+        "R07",
+        "R13",
+        "R14",
+        "R17",
+        "R22",
+        "R28"
+      ],
+      "consuming_or_adjacent_issues": [
+        20,
+        21,
+        35,
+        38,
+        39
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-04",
+      "primary_issue": 33,
+      "primary_plan_id": "T026",
+      "requirements": [
+        "R14",
+        "R16",
+        "R28",
+        "R29"
+      ],
+      "consuming_or_adjacent_issues": [
+        31,
+        34,
+        35,
+        42
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-05",
+      "primary_issue": 30,
+      "primary_plan_id": "T023",
+      "requirements": [
+        "R08",
+        "R10",
+        "R11",
+        "R12",
+        "R14",
+        "R16"
+      ],
+      "consuming_or_adjacent_issues": [
+        26,
+        27,
+        28,
+        29,
+        34
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-06",
+      "primary_issue": 32,
+      "primary_plan_id": "T025",
+      "requirements": [
+        "R09",
+        "R13",
+        "R15",
+        "R16"
+      ],
+      "consuming_or_adjacent_issues": [
+        31,
+        38,
+        42
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-07",
+      "primary_issue": 20,
+      "primary_plan_id": "T013",
+      "requirements": [
+        "R06",
+        "R07",
+        "R17",
+        "R30"
+      ],
+      "consuming_or_adjacent_issues": [
+        23,
+        25,
+        37
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-08",
+      "primary_issue": 25,
+      "primary_plan_id": "T018",
+      "requirements": [
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R32",
+        "R33"
+      ],
+      "consuming_or_adjacent_issues": [
+        24,
+        30,
+        31,
+        33,
+        37,
+        51
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-09",
+      "primary_issue": 37,
+      "primary_plan_id": "T030",
+      "requirements": [
+        "R21",
+        "R25",
+        "R26",
+        "R36"
+      ],
+      "consuming_or_adjacent_issues": [
+        22,
+        27,
+        39,
+        45,
+        46
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-10",
+      "primary_issue": 24,
+      "primary_plan_id": "T017",
+      "requirements": [
+        "R19",
+        "R30",
+        "R32",
+        "R33",
+        "R36"
+      ],
+      "consuming_or_adjacent_issues": [
+        25,
+        37,
+        50
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-11",
+      "primary_issue": 50,
+      "primary_plan_id": "T043",
+      "requirements": [
+        "R20",
+        "R30",
+        "R32",
+        "R34"
+      ],
+      "consuming_or_adjacent_issues": [
+        22,
+        24,
+        25,
+        37,
+        51
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    },
+    {
+      "id": "PA-12",
+      "primary_issue": 42,
+      "primary_plan_id": "T035",
+      "requirements": [
+        "R14",
+        "R15",
+        "R16",
+        "R20",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R31",
+        "R33",
+        "R34",
+        "R35",
+        "R36"
+      ],
+      "consuming_or_adjacent_issues": [
+        20,
+        25,
+        33,
+        35,
+        36,
+        38,
+        39,
+        40,
+        41,
+        44,
+        48,
+        49,
+        51,
+        52,
+        53
+      ],
+      "contract_source": "../asset-studio-github-issues.md",
+      "implementation_ownership": "Primärer Integrationsverantwortlicher; angrenzende Liefergegenstände laut verbindlicher PA-Tabelle, keine doppelten Implementierungen."
+    }
+  ],
+  "original_requirements": [
+    {
+      "id": "R01",
+      "previous_requirement": "Zentrales lokales Python-Dashboard statt manueller Ordnersuche",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T002",
+        "T003",
+        "T009",
+        "T030",
+        "T041"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Vorhandenes lokales Dashboard; Pipeline-Editor und Aufträge integrieren statt zweites UI/Runner-System.",
+      "primary_integration_issue": 37,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-02",
+        "PA-08"
+      ],
+      "interface": "Gemeinsame Canvas-/Jobdienste",
+      "acceptance": "Echter Bildlauf über gemeinsame UI/Dienste, Navigation bleibt bedienbar.",
+      "evidence_or_open_remainder": "Dashboard und Editor vorhanden; Queue-/Automatikrest bei #37, Gesamtverlauf #48."
+    },
+    {
+      "id": "R02",
+      "previous_requirement": "Projektweiter oberer Rahmen für Held, Effekte und Grundlagen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T006",
+        "T010",
+        "T041"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Genau ein Global-/Skriptbereich pro Projekt; Rezepte dort zentral, Vorlagenkopien lokal.",
+      "primary_integration_issue": 25,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-01"
+      ],
+      "interface": "Projekt-ID, globaler Rahmen, RecipeRevision",
+      "acceptance": "Zwei Projekte teilen keine Rezepte/Zuweisungen ohne Kopierimport.",
+      "evidence_or_open_remainder": "Projektlokale Karten/Rezepte in 2286d2f; menschliche Sichtprüfung offen."
+    },
+    {
+      "id": "R03",
+      "previous_requirement": "Akte und Kapitel anlegen, ordnen, aufklappen und verwalten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T006",
+        "T010",
+        "T011"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Akte/Kapitel, Baum, Ordnung und Undo bleiben unverändert; Pipelinekarten erzeugen keine zweite Hierarchie.",
+      "primary_integration_issue": 18,
+      "original_owners_retained": true,
+      "alignment": [],
+      "interface": "bestehende Relation-/Canvasdienste",
+      "acceptance": "Bestandsprüfungen für Identitäten, Ordnung und Aufklappen erhalten.",
+      "evidence_or_open_remainder": "T006/T010/T011 abgeschlossen; kein neuer Auftrag aus dieser Ergänzung."
+    },
+    {
+      "id": "R04",
+      "previous_requirement": "Nebenkarten und sichtbare Verbindungen mit eindeutiger Bedeutung",
+      "previous_origin": "Nutzer + Präzisierung",
+      "original_tasks": [
+        "T006",
+        "T007",
+        "T010",
+        "T011"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Vorhandene organisatorische Kanten erhalten; technische typisierte Pipelinekanten und Assetzuweisung davon getrennt.",
+      "primary_integration_issue": 37,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-02",
+        "PA-08"
+      ],
+      "interface": "CardLayout vs RecipeConnection vs Assignment",
+      "acceptance": "Layoutbewegung erzeugt keinen Build, Projektpfeil keine Ausführung.",
+      "evidence_or_open_remainder": "Trennung implementiert; Integration/Sichtabnahme separat offen."
+    },
+    {
+      "id": "R05",
+      "previous_requirement": "Dokumente, Anforderugnen, Notizen und Anhänge direkt im Dashboard",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T007",
+        "T012",
+        "T042"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Vorhandene Dokumente/Notizen/Anforderungen/Anhänge erhalten; Pipelineangaben nur bei generierten Berichten ergänzen.",
+      "primary_integration_issue": 49,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-12"
+      ],
+      "interface": "Dokumentrevision, Buildschnappschuss",
+      "acceptance": "Kein Überschreiben manueller Texte, keine erfundenen Tests.",
+      "evidence_or_open_remainder": "Inhaltsoberflächen vorhanden; automatische Exporte in T042 offen."
+    },
+    {
+      "id": "R06",
+      "previous_requirement": "Globale und akt-/kapitelbezogene Inhalte ohne doppelte Assets",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T006",
+        "T013",
+        "T029",
+        "T041",
+        "T046"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Assetidentität/Scope/Verwendung getrennt, Rezeptreferenzen statt Kopien; Paketmitglieder weiterhin gepinnt.",
+      "primary_integration_issue": 20,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-01",
+        "PA-07",
+        "PA-12"
+      ],
+      "interface": "AssetService, Assignment, PackageRevision",
+      "acceptance": "Zwei Kapitel verwenden dasselbe Asset/Paket, kein Quell-/Rezeptduplikat.",
+      "evidence_or_open_remainder": "Asset-/Zuweisungsgrundlage vorhanden, Paketversionen/Verbraucher offen."
+    },
+    {
+      "id": "R07",
+      "previous_requirement": "Variable Richtungszahlen je Asset und optional je Pose",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T013",
+        "T016",
+        "T019",
+        "T031",
+        "T045"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Reale Typfähigkeiten und Richtungen inkl. NPC; freie Masterreferenzen separat aus T019, keine pauschale Umklassifizierung.",
+      "primary_integration_issue": 20,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-07"
+      ],
+      "interface": "AssetDefinition und ReferenceSelection",
+      "acceptance": "NPC zwei/vier Richtungen, Held acht; kein SW/SO- oder Posenfallback.",
+      "evidence_or_open_remainder": "Assettypen geprüft; freie Masterprofilbildung bleibt offen."
+    },
+    {
+      "id": "R08",
+      "previous_requirement": "Posen und Source-Einzelbilder verwalten und erhalten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T013",
+        "T015",
+        "T016",
+        "T023"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Einzelbilder und Posenquellen getrennt erhalten; SourceColor nur expliziter Einzelbildfarbschritt.",
+      "primary_integration_issue": 22,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-05",
+        "PA-11"
+      ],
+      "interface": "SourceRevision, Color-Step",
+      "acceptance": "Einzelbild erhält keine künstliche Animation, Quelle bytegleich.",
+      "evidence_or_open_remainder": "Quellenimport und SourceColor vorhanden; vollständige Abnahme separat."
+    },
+    {
+      "id": "R09",
+      "previous_requirement": "Externe Animation; importierte 16er-Sheets statt neuer Animationserzeugung",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T015",
+        "T016",
+        "T024",
+        "T045"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Externe Animation bleibt Pflichtquelle; importierte 16er und eigenständige andere Originale, Fram8/16 alternative Aufbereitung.",
+      "primary_integration_issue": 31,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-06"
+      ],
+      "interface": "SourceRevision, Raster, source_frame_indices",
+      "acceptance": "16×1/1×16/4×4 passend; keine erfundenen Zwischenbilder oder überschriebenen 8er-Originale.",
+      "evidence_or_open_remainder": "Import/prepare/reduce vorhanden, Gesamtweg bei T045 offen."
+    },
+    {
+      "id": "R10",
+      "previous_requirement": "Masterreferenz für Farben ausdrücklich auswählen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T019",
+        "T021",
+        "T023"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Masterreferenz explizit auswählen, alte Farbprofilformate erhalten; optionale Farbe verlangt keine globale Maskenpflicht.",
+      "primary_integration_issue": 26,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-05"
+      ],
+      "interface": "ReferenceSelection, Farbprofilrevision",
+      "acceptance": "Quellhashbindung, tatsächliche Materialabdeckung, unbekanntes Profil abweisen.",
+      "evidence_or_open_remainder": "Adapter vorhanden; variable Masterprofil-Erstellung/GUI in T019/T021 offen."
+    },
+    {
+      "id": "R11",
+      "previous_requirement": "Masken vorschlagen, Materialbereiche festlegen, korrigieren und bestätigen",
+      "previous_origin": "Nutzer + technische Grenze",
+      "original_tasks": [
+        "T020",
+        "T021",
+        "T022",
+        "T032"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Maskenentwurf, Labels, Vorschläge, Korrektur und echte Sichtbestätigung bleiben; technische Farbprüfung ersetzt sie nicht.",
+      "primary_integration_issue": 27,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-05",
+        "PA-09"
+      ],
+      "interface": "MaskRevision mit SourceHash und Materialrevision",
+      "acceptance": "Bewegte Labels, Unsicherheit, ganze IDs, technische/visuelle Bestätigung getrennt.",
+      "evidence_or_open_remainder": "Maskenressourcen/-validierung vorhanden; T020–T022 und Reviews nicht erledigt."
+    },
+    {
+      "id": "R12",
+      "previous_requirement": "Automatische Farbkorrektur auf Grundlage der vorhandenen Werkzeuge",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T019",
+        "T023",
+        "T027"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Source/Spritesheet-Farbkerne wiederverwenden, Modi alternativ; Endfarbgarantie nach Skalierung bleibt eigener T027-Auftrag.",
+      "primary_integration_issue": 30,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-05"
+      ],
+      "interface": "Farbressourcen/Adapter, finale Farbpolitik",
+      "acceptance": "soft/fixed/material Inputs und fehlende/falsche Masken; echte PNGs; finale Palette separat.",
+      "evidence_or_open_remainder": "Grundfarbe und Reihenfolgeprüfung vorhanden; volle Material-Endprüfung offen."
+    },
+    {
+      "id": "R13",
+      "previous_requirement": "Frame-Stufen 8/10/12/14/16 automatsich verwalten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T013",
+        "T024",
+        "T025",
+        "T030"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "16→8/10/12/14 direkt aus Quelle nach floor(16*k/N), unabhängige Originale schützen; Framezahl ist keine FPS.",
+      "primary_integration_issue": 31,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-06"
+      ],
+      "interface": "Frameauswahl/Geometrie und getrennter Timingvertrag",
+      "acceptance": "Legacyindizes in allen Richtungen, Pflichtframekonflikt an T025 melden.",
+      "evidence_or_open_remainder": "Frameadapter vorhanden; zusätzliche Timing-/HTML-/Maskenresttests offen."
+    },
+    {
+      "id": "R14",
+      "previous_requirement": "Fünf vorhandene Grafikstufen automatsich erzeugen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T026",
+        "T027",
+        "T028",
+        "T030"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Fünf Standards erhalten, nicht als globale Pflichtanzahl; angeforderte aktive Projektprofile plus interne Abhängigkeiten.",
+      "primary_integration_issue": 33,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-03",
+        "PA-04",
+        "PA-05"
+      ],
+      "interface": "ProfileService, BuildGraph, alle Profilverbraucher",
+      "acceptance": "Fünf Standards, drei aktive und zusätzliches Profil; High intern für Low, deaktiviert not_required.",
+      "evidence_or_open_remainder": "Dynamische Profile und Bildableitungen vorhanden; Verbraucherabnahme bleibt."
+    },
+    {
+      "id": "R15",
+      "previous_requirement": "Framezahl, FPS und Dauer getrennt behandeln; alte Semantik erhalten",
+      "previous_origin": "Technische Präzisierung",
+      "original_tasks": [
+        "T025",
+        "T031",
+        "T035",
+        "T045"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Quell-/Zielframes, FPS, Dauer, Loop, Preview getrennt; variable Dauern, geschützte Frames und Ereignisse weiterhin Pflicht.",
+      "primary_integration_issue": 32,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-06",
+        "PA-12"
+      ],
+      "interface": "Timing und Exportmetadaten",
+      "acceptance": "2 s bei 16/8 FPS und 8/4 FPS, variable Summe, 750-ms-Ereignis, Legacy8/8=1s.",
+      "evidence_or_open_remainder": "Gleichmäßiges Timing vorhanden; variable Dauern/Events/Pflichtframes/Godot offen."
+    },
+    {
+      "id": "R16",
+      "previous_requirement": "Zuschnitt, Anker, Maßstab und Masken räumlich konsistent halten",
+      "previous_origin": "Technische Präzisierung",
+      "original_tasks": [
+        "T024",
+        "T026",
+        "T027",
+        "T028",
+        "T035"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Proportional auf Frameebene, gleiche Geometrie für Masken/Anker/Crop/logische Größe; Pixelverfahren/Palette erhalten.",
+      "primary_integration_issue": 33,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-04",
+        "PA-05",
+        "PA-12"
+      ],
+      "interface": "FrameGeometry, Profilskalierung, RuntimePayload",
+      "acceptance": "512×256 halb=256×128; max128=128×64, klein nicht größer; Low128→115; logischer Fußanker stabil.",
+      "evidence_or_open_remainder": "Grundgeometrie vorhanden; Materialgrenz-/Paket-/Godot-Integration offen."
+    },
+    {
+      "id": "R17",
+      "previous_requirement": "Held-Menü mit allen kombinierbaren Posen, Richtugnen und Varianten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T016",
+        "T031",
+        "T032"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Vorhandenes Asset-Menü zeigt wirksame Zuweisung/Revision/Profile/Abweichungen und gemeinsame dynamische Variantenansicht.",
+      "primary_integration_issue": 23,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-02",
+        "PA-03",
+        "PA-07"
+      ],
+      "interface": "AssetWorkspace, ProfileService, ResultService",
+      "acceptance": "Alle tatsächlichen Profile/Posen/Richtungen erreichbar ohne zweites Ergebnissystem.",
+      "evidence_or_open_remainder": "Menü, Pipelineansicht und Ergebnisstatus vorhanden; Reviews/HTMLrest offen."
+    },
+    {
+      "id": "R18",
+      "previous_requirement": "Fehler mit genauer Variante und Version als Aufgabenkarte dokumentieren",
+      "previous_origin": "Nutzer + Präzisierung",
+      "original_tasks": [
+        "T007",
+        "T012",
+        "T032",
+        "T041"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Fehlerkarten weiterhin an exakte Version/Variante, jetzt auch Rezept-/Profilrevision binden.",
+      "primary_integration_issue": 39,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-12"
+      ],
+      "interface": "Task-Fundstelle mit Build/Recipe/Variant-ID",
+      "acceptance": "Späterer Klick öffnet genau denselben Inhalt; bloßes Anschauen keine Freigabe.",
+      "evidence_or_open_remainder": "Aufgaben-/Issueverwaltung vorhanden; vollständige Reviewintegration offen."
+    },
+    {
+      "id": "R19",
+      "previous_requirement": "Automatische Ablage in konfigurierten richtigen Bereichen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T001",
+        "T005",
+        "T015",
+        "T017",
+        "T033",
+        "T036",
+        "T039"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Konfigurierte Schreibgrenzen, Arbeitskopien und spätere kontrollierte Godot-Bereiche unverändert.",
+      "primary_integration_issue": 24,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-08",
+        "PA-12"
+      ],
+      "interface": "BlobStore/Workspace/Candidate/Deployment",
+      "acceptance": "Originalhashgleichheit, keine Hardlinks, keine Fremddateilöschung.",
+      "evidence_or_open_remainder": "Quellen/Workerbereiche vorhanden; Kandidat/Godot-Deployment getrennt offen."
+    },
+    {
+      "id": "R20",
+      "previous_requirement": "Quellen-, Build- und Kandidatenversionierung mit Herkunft",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T004",
+        "T015",
+        "T018",
+        "T033",
+        "T034",
+        "T041"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Vorhandene Revisionierung um konkrete Rezeptrevision, wirksame Profile/Overrides, Tool-/Pluginhashes ergänzen.",
+      "primary_integration_issue": 25,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-01",
+        "PA-08",
+        "PA-12"
+      ],
+      "interface": "Immutable BuildSnapshot -> Candidate -> History",
+      "acceptance": "Rezeptänderung verändert laufenden Job/historischen Build nicht.",
+      "evidence_or_open_remainder": "Buildsnapshots implementiert; Kandidat/Git/gesamter Verlauf noch offen."
+    },
+    {
+      "id": "R21",
+      "previous_requirement": "Automatische Schrittkette mit externen und menschlichen Prüfpunkten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T008",
+        "T017",
+        "T018",
+        "T030"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Bewusste Opt-in-Automatik nach stabilem Quellenimport erhalten; kein Start durch Rezeptimport/Zuweisung; Prüfschranken bleiben.",
+      "primary_integration_issue": 37,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-09"
+      ],
+      "interface": "Importabschluss -> vorhandener JobService, Freigabestatus separat",
+      "acceptance": "Masken-/Godot-/menschliche Stopps werden nicht übersprungen, Doppelstart verhindert.",
+      "evidence_or_open_remainder": "Explizite Jobs vorhanden; vollständige stabile-Import-Automatik nicht implementiert."
+    },
+    {
+      "id": "R22",
+      "previous_requirement": "Nur betroffene Ergebnisse neu bauen; unvollständige Outputs erkennen",
+      "previous_origin": "Technische Präzisierung",
+      "original_tasks": [
+        "T014",
+        "T018",
+        "T024",
+        "T026",
+        "T044"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Nur abhängige aktive Bildinputs invalidieren, Layout/inaktive Parameter nicht; vollständige Ergebnisse erneut prüfen.",
+      "primary_integration_issue": 25,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-08"
+      ],
+      "interface": "Fingerprints, BuildCache, Resultdigests",
+      "acceptance": "Comic Low allein vs Palette gemeinsam; beschädigt/unvollständig/abgebrochen kein Erfolg.",
+      "evidence_or_open_remainder": "DAG/Cache und Bildzweige geprüft; übergreifende Verbraucherregression bleibt."
+    },
+    {
+      "id": "R23",
+      "previous_requirement": "Ausgewählte Version im Godot-Testbereich bereitstellen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T035",
+        "T036"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Godot-Testexport erhält angeforderte Profile und vollständige Metadaten, portable Pfade unverändert.",
+      "primary_integration_issue": 42,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-12"
+      ],
+      "interface": "Candidate -> ExportBundle -> Testdeployment",
+      "acceptance": "Gleiche Payloadhashes in Test/Runtime, unbekannter Key blockiert.",
+      "evidence_or_open_remainder": "Studio-Metadaten vorhanden; echter Godot-Export/Test noch offen."
+    },
+    {
+      "id": "R24",
+      "previous_requirement": "Godot technisch prüfen und manuelle Spiel-/Sichtprüfung festhalten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T037",
+        "T038",
+        "T045",
+        "T046"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Technische und visuelle Godot-Prüfung mit dynamischen Profilen, nicht Prüfung durch Studio-Logs ersetzen.",
+      "primary_integration_issue": 44,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-12"
+      ],
+      "interface": "Enginebericht an Build/Candidate/Export/Deployment binden",
+      "acceptance": "Headless ist keine Sichtabnahme; fehlende Engine nicht passed.",
+      "evidence_or_open_remainder": "Frühere Pipelineprüfungen ohne Godot, E2E weiterhin offen."
+    },
+    {
+      "id": "R25",
+      "previous_requirement": "Freigabe exakt an den geprüften Inhalt binden",
+      "previous_origin": "Nutzer + technische Grenze",
+      "original_tasks": [
+        "T032",
+        "T033",
+        "T037",
+        "T038"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Freigabe exakt an geprüften Inhalt/Scope mit Rezept-/Profil-/Toolkontext, nicht latest oder neue Importkopie.",
+      "primary_integration_issue": 45,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-09",
+        "PA-12"
+      ],
+      "interface": "Review/Approval/Candidate-Digests",
+      "acceptance": "Neue Maske oder Rezeptrevision erbt keine fremde Abnahme.",
+      "evidence_or_open_remainder": "Buildbindung vorhanden, vollständige Kandidat-/Godot-Freigabe offen."
+    },
+    {
+      "id": "R26",
+      "previous_requirement": "Geprüftes Paket in regulären Godot-Bereich übernehmen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T035",
+        "T038",
+        "T039"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Nur geprüfte Pakete kontrolliert übernehmen; Studio-Profiländerung ist keine automatische Gameaktivierung.",
+      "primary_integration_issue": 46,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-09",
+        "PA-12"
+      ],
+      "interface": "ExportBundle, DeploymentJournal",
+      "acceptance": "Import-/Test-/Runtimegrenzen, finale Ladetests und Rollback erhalten.",
+      "evidence_or_open_remainder": "Promotionanforderungen nicht umgeplant, kein Erfolgsnachweis hier."
+    },
+    {
+      "id": "R27",
+      "previous_requirement": "Testkopien erst nach erfolgreicher Übernahme gezielt entfernen",
+      "previous_origin": "Nutzer + Schutzregel",
+      "original_tasks": [
+        "T039",
+        "T040"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Testkopien erst nach erfolgreicher Übernahme gezielt mit Besitz-/Hashprüfung entfernen.",
+      "primary_integration_issue": 47,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-08",
+        "PA-12"
+      ],
+      "interface": "Deployment-Besitzliste und Journal",
+      "acceptance": "Fremde Dateien/Originale/Pins nie aufgrund Ordnernamen löschen.",
+      "evidence_or_open_remainder": "T039/T040 unverändert; keine produktive Bereinigung ausgeführt."
+    },
+    {
+      "id": "R28",
+      "previous_requirement": "Statische Texturen ohne Frame-/GIF-Pflicht verarbeiten",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T013",
+        "T028",
+        "T029",
+        "T046"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Statische Rezepte verwenden gemeinsame Profile, niemals künstliche Frames/FPS/Loop/GIF; Paketvertrag zusätzlich.",
+      "primary_integration_issue": 35,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-03",
+        "PA-04",
+        "PA-12"
+      ],
+      "interface": "static_image, gemeinsamer ProfileService",
+      "acceptance": "Statisches Bild drei/fünf/eigene Profile, keine Animationsparameter.",
+      "evidence_or_open_remainder": "Echte statische PNG-Verarbeitung vorhanden; Textur-CLI/Ränder offen."
+    },
+    {
+      "id": "R29",
+      "previous_requirement": "Tempelpakete mit Boden, Decke, Säulen und gemeinsamem Maßstab",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T028",
+        "T029",
+        "T037",
+        "T046"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Tempelrolle/Boden/Decke/Säule, gepinnte Mitglieder und gemeinsamer Paketmaßstab weiterhin verbindlich.",
+      "primary_integration_issue": 36,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-04",
+        "PA-12"
+      ],
+      "interface": "PackageRevision, Weltmaßstab, Anker",
+      "acceptance": "Kachelanschlüsse gleich über konfigurierte Profile; kein Level-Editor.",
+      "evidence_or_open_remainder": "Unabhängige per-Bild-Maxkante ersetzt nicht Paketmaßstabsprüfung; Umfang offen."
+    },
+    {
+      "id": "R30",
+      "previous_requirement": "Neue Inhaltstypen und Workflows über Vorlagen ergänzen",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T008",
+        "T013",
+        "T043",
+        "T046"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Typ-/Vorlagenbibliothek nutzt gemeinsamen Rezepteditor; eingebaut plus explizit registriert/hashfreigegeben, kein Marketplacepflichtumfang.",
+      "primary_integration_issue": 50,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-02",
+        "PA-07",
+        "PA-10",
+        "PA-11"
+      ],
+      "interface": "Manifest aus #24, Rezept #25, Editor #37, Profile #33",
+      "acceptance": "Vier ursprüngliche Beispiele bleiben; sichere Kopierimporte/Revisionen/Graustufenbeispiel ohne Spezial-UI.",
+      "evidence_or_open_remainder": "Bildvorlagen/Import/Plugincontract vorhanden; volle Typbibliothek/Abnahme offen."
+    },
+    {
+      "id": "R31",
+      "previous_requirement": "Automatische Dokumentation und portable Berichte",
+      "previous_origin": "Nutzer",
+      "original_tasks": [
+        "T007",
+        "T012",
+        "T042"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Portable Berichte aus konsistenten Snapshots, Rezept/Profil/Tools ergänzt; manuelle Texte und historische Testgrenzen erhalten.",
+      "primary_integration_issue": 49,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-12"
+      ],
+      "interface": "Dokumentexport mit Snapshot und relativem Ressourcenbezug",
+      "acceptance": "Keine privaten Pfade/Freigaben exportieren; fehlende Tests nicht als passed.",
+      "evidence_or_open_remainder": "Bedienberichte vorhanden; automatische Generatoren weiterhin eigener Umfang."
+    },
+    {
+      "id": "R32",
+      "previous_requirement": "Vorhandene Quellen, eigene Framevarianten und Skripte schützen",
+      "previous_origin": "Bestandsvertrag",
+      "original_tasks": [
+        "T001",
+        "T005",
+        "T014",
+        "T015",
+        "T024",
+        "T034",
+        "T048"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Originale, unabhängige Framevarianten und CLI-Wege erhalten; Migration/Build nur mit geprüften Kopien.",
+      "primary_integration_issue": 31,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-06",
+        "PA-08",
+        "PA-12"
+      ],
+      "interface": "SourceRevision und kopierter Job-Workspace",
+      "acceptance": "Bytegleiche Originale, keine verschiebenden Starter auf Originalpfaden.",
+      "evidence_or_open_remainder": "Quellen-/Worker-Schutz vorhanden; Gesamtkette/realer Pilot separat offen."
+    },
+    {
+      "id": "R33",
+      "previous_requirement": "Abbruch, volle Datenträger, Wiederherstellung und Rollback",
+      "previous_origin": "Technische Schutzregel",
+      "original_tasks": [
+        "T005",
+        "T017",
+        "T039",
+        "T040",
+        "T044"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Bestehende Abbruch-/Recovery-Regeln auch für Rezepte, importierte Ressourcen und Profilrevisionen; keine falschen Erfolge.",
+      "primary_integration_issue": 51,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-08",
+        "PA-12"
+      ],
+      "interface": "Job/Import/Deployment-Journale, Restore",
+      "acceptance": "Diskfull, Crash, Kinderabbruch, alter Erfolg erhalten; keine halben Publikationen.",
+      "evidence_or_open_remainder": "Job-Recovery vorhanden, vollständiger Backup-/Deployment-Recoveryrest offen."
+    },
+    {
+      "id": "R34",
+      "previous_requirement": "Metadatenmigration, lokaler Katalog und gezielte Git-Anbindung",
+      "previous_origin": "Technische Planentscheidung",
+      "original_tasks": [
+        "T002",
+        "T004",
+        "T034",
+        "T044"
+      ],
+      "treatment": "präzisiert",
+      "current_meaning": "Projektkatalog/Migration idempotent und transaktional; sichere Metadatenexporte ohne portable Codefreigabe.",
+      "primary_integration_issue": 51,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-01",
+        "PA-03",
+        "PA-11",
+        "PA-12"
+      ],
+      "interface": "Katalogversion, Sicherung, Exportvertrag",
+      "acceptance": "Fünf Keys einmalig, fremde Gitänderungen erhalten, Restore ohne Liveverknüpfung.",
+      "evidence_or_open_remainder": "Migration6/Projektprofile vorhanden; vollständiger Restore/Gitdienst offen."
+    },
+    {
+      "id": "R35",
+      "previous_requirement": "Installation, GUI-/Godot-Tests und reale Pilotmigration",
+      "previous_origin": "Umsetzungsanforderung",
+      "original_tasks": [
+        "T003",
+        "T045",
+        "T046",
+        "T047",
+        "T048"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Installation/GUI/Godot/realer Pilot bleiben ursprüngliche Pflichten; Pipeline-Teiltests ersetzen sie nicht.",
+      "primary_integration_issue": 52,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-12"
+      ],
+      "interface": "Betriebsbericht, E2E, Pilotbericht",
+      "acceptance": "Fehlende Plattform skipped/blocked; reale Freigaben nur mit echter Sichtung.",
+      "evidence_or_open_remainder": "Control-/Studio-Einstieg vorhanden; Gesamtpilot/Godot-Abnahme offen."
+    },
+    {
+      "id": "R36",
+      "previous_requirement": "Keine unbelegten Testerfolge, Maskenfreigaben oder vorhandenen Features",
+      "previous_origin": "Quellen- und Prüfgrenze",
+      "original_tasks": [
+        "T001",
+        "T019",
+        "T022",
+        "T027",
+        "T028",
+        "T032",
+        "T037",
+        "T038",
+        "T048"
+      ],
+      "treatment": "unverändert gültig",
+      "current_meaning": "Keine unbelegten Erfolge oder Material-/menschlichen Freigaben; geplant/technisch/getestet/abgenommen/abgeschlossen getrennt.",
+      "primary_integration_issue": 55,
+      "original_owners_retained": true,
+      "alignment": [
+        "PA-09",
+        "PA-12"
+      ],
+      "interface": "Ergebnisbericht und konkrete Prüfnachweise",
+      "acceptance": "Historische Tests datiert, nicht ausgeführte Checks ausdrücklich offen.",
+      "evidence_or_open_remainder": "Diese Änderung prüft nur Planung; keinerlei neue Anwendungs-/Godot-Testerfolge."
+    }
+  ],
+  "tasks": [
+    {
+      "plan_id": "T001",
+      "issue": 8,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/001-bestand-und-schreibgrenzen/p.md",
+      "original_requirements": [
+        "R19",
+        "R32",
+        "R36"
+      ],
+      "original_dependencies": [],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T002",
+      "issue": 9,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/002-architektur-und-vertraege/p.md",
+      "original_requirements": [
+        "R01",
+        "R34"
+      ],
+      "original_dependencies": [
+        "T001"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T003",
+      "issue": 10,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/003-python-grundgeruest/p.md",
+      "original_requirements": [
+        "R01",
+        "R35"
+      ],
+      "original_dependencies": [
+        "T002"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T004",
+      "issue": 11,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/004-katalog-und-migrationen/p.md",
+      "original_requirements": [
+        "R20",
+        "R34"
+      ],
+      "original_dependencies": [
+        "T003"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T005",
+      "issue": 12,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/005-pfade-und-objektspeicher/p.md",
+      "original_requirements": [
+        "R19",
+        "R32",
+        "R33"
+      ],
+      "original_dependencies": [
+        "T004"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T006",
+      "issue": 13,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/006-akte-kapitel-und-globale-inhalte/p.md",
+      "original_requirements": [
+        "R02",
+        "R03",
+        "R04",
+        "R06"
+      ],
+      "original_dependencies": [
+        "T004",
+        "T005"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T007",
+      "issue": 14,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/007-dokumente-notizen-und-aufgaben/p.md",
+      "original_requirements": [
+        "R04",
+        "R05",
+        "R18",
+        "R31"
+      ],
+      "original_dependencies": [
+        "T006"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T008",
+      "issue": 15,
+      "phase": "A",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/008-workflow-und-statusmodell/p.md",
+      "original_requirements": [
+        "R21",
+        "R30"
+      ],
+      "original_dependencies": [
+        "T002",
+        "T006",
+        "T007"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T009",
+      "issue": 16,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/009-gui-und-projektstart/p.md",
+      "original_requirements": [
+        "R01"
+      ],
+      "original_dependencies": [
+        "T003",
+        "T004",
+        "T006",
+        "T008"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T010",
+      "issue": 17,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/010-canvas-hierarchie/p.md",
+      "original_requirements": [
+        "R02",
+        "R03",
+        "R04"
+      ],
+      "original_dependencies": [
+        "T006",
+        "T009"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T011",
+      "issue": 18,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/011-canvas-verbindungen-und-undo/p.md",
+      "original_requirements": [
+        "R03",
+        "R04"
+      ],
+      "original_dependencies": [
+        "T008",
+        "T010"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T012",
+      "issue": 19,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/012-dokumentations-und-aufgaben-gui/p.md",
+      "original_requirements": [
+        "R05",
+        "R18",
+        "R31"
+      ],
+      "original_dependencies": [
+        "T007",
+        "T009",
+        "T010"
+      ],
+      "current_issue_state": "CLOSED",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T013",
+      "issue": 20,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/013-assettypen-posen-und-richtungen/p.md",
+      "original_requirements": [
+        "R06",
+        "R07",
+        "R08",
+        "R13",
+        "R28",
+        "R30"
+      ],
+      "original_dependencies": [
+        "T004",
+        "T006",
+        "T008"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T014",
+      "issue": 21,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/014-bestandsimport-lesend/p.md",
+      "original_requirements": [
+        "R22",
+        "R32"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T009",
+        "T013"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T015",
+      "issue": 22,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/015-quellen-und-spritesheet-import/p.md",
+      "original_requirements": [
+        "R08",
+        "R09",
+        "R19",
+        "R20",
+        "R32"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T013",
+        "T014"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T016",
+      "issue": 23,
+      "phase": "B",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/016-asset-anlage-und-held-menue/p.md",
+      "original_requirements": [
+        "R07",
+        "R08",
+        "R09",
+        "R17"
+      ],
+      "original_dependencies": [
+        "T008",
+        "T009",
+        "T013",
+        "T015"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T017",
+      "issue": 24,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/017-worker-und-pipeline-adapter/p.md",
+      "original_requirements": [
+        "R19",
+        "R21",
+        "R33"
+      ],
+      "original_dependencies": [
+        "T003",
+        "T005",
+        "T008",
+        "T015"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T018",
+      "issue": 25,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/018-buildplan-cache-und-invalidation/p.md",
+      "original_requirements": [
+        "R20",
+        "R21",
+        "R22"
+      ],
+      "original_dependencies": [
+        "T008",
+        "T013",
+        "T015",
+        "T017"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T019",
+      "issue": 26,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/019-masterreferenzen-und-profilversionen/p.md",
+      "original_requirements": [
+        "R07",
+        "R10",
+        "R12",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T013",
+        "T015",
+        "T018"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T020",
+      "issue": 27,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/020-materialmasken-und-quellbindung/p.md",
+      "original_requirements": [
+        "R11"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T013",
+        "T015",
+        "T019"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T021",
+      "issue": 28,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/021-maskeneditor-und-materialauswahl/p.md",
+      "original_requirements": [
+        "R10",
+        "R11"
+      ],
+      "original_dependencies": [
+        "T016",
+        "T020"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T022",
+      "issue": 29,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/022-automatische-maskenvorschlaege/p.md",
+      "original_requirements": [
+        "R11",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T017",
+        "T018",
+        "T020",
+        "T021"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T023",
+      "issue": 30,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/023-farbkorrektur-pipeline/p.md",
+      "original_requirements": [
+        "R08",
+        "R10",
+        "R12"
+      ],
+      "original_dependencies": [
+        "T017",
+        "T018",
+        "T019",
+        "T020",
+        "T022"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T024",
+      "issue": 31,
+      "phase": "C",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/024-frameableitung-und-geometrie/p.md",
+      "original_requirements": [
+        "R09",
+        "R13",
+        "R16",
+        "R22",
+        "R32"
+      ],
+      "original_dependencies": [
+        "T017",
+        "T018",
+        "T023"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T025",
+      "issue": 32,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/025-timing-und-animationsevents/p.md",
+      "original_requirements": [
+        "R13",
+        "R15"
+      ],
+      "original_dependencies": [
+        "T013",
+        "T018",
+        "T024"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T026",
+      "issue": 33,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/026-grafikstufen-spritesheets/p.md",
+      "original_requirements": [
+        "R14",
+        "R16",
+        "R22"
+      ],
+      "original_dependencies": [
+        "T018",
+        "T023",
+        "T024",
+        "T025"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T027",
+      "issue": 34,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/027-materialfarben-nach-skalierung/p.md",
+      "original_requirements": [
+        "R12",
+        "R14",
+        "R16",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T019",
+        "T020",
+        "T023",
+        "T024",
+        "T026"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T028",
+      "issue": 35,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/028-statische-texturpipeline/p.md",
+      "original_requirements": [
+        "R14",
+        "R16",
+        "R28",
+        "R29",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T013",
+        "T017",
+        "T018",
+        "T026"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T029",
+      "issue": 36,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/029-assetpakete-und-tempel/p.md",
+      "original_requirements": [
+        "R06",
+        "R28",
+        "R29"
+      ],
+      "original_dependencies": [
+        "T006",
+        "T013",
+        "T016",
+        "T028"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T030",
+      "issue": 37,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/030-pipeline-bedienung-im-dashboard/p.md",
+      "original_requirements": [
+        "R01",
+        "R13",
+        "R14",
+        "R21"
+      ],
+      "original_dependencies": [
+        "T016",
+        "T017",
+        "T018",
+        "T023",
+        "T024",
+        "T025",
+        "T026",
+        "T027",
+        "T028",
+        "T029"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T031",
+      "issue": 38,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/031-integrierte-vorschauen/p.md",
+      "original_requirements": [
+        "R07",
+        "R15",
+        "R17"
+      ],
+      "original_dependencies": [
+        "T009",
+        "T016",
+        "T026",
+        "T027",
+        "T028",
+        "T030"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T032",
+      "issue": 39,
+      "phase": "D",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/032-variantenpruefung-und-fehlerkarten/p.md",
+      "original_requirements": [
+        "R11",
+        "R17",
+        "R18",
+        "R25",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T007",
+        "T008",
+        "T013",
+        "T025",
+        "T027",
+        "T029",
+        "T031"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T033",
+      "issue": 40,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/033-kandidaten-und-versionsarchiv/p.md",
+      "original_requirements": [
+        "R19",
+        "R20",
+        "R25"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T018",
+        "T029",
+        "T032"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T034",
+      "issue": 41,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/034-git-und-quellenrevisionen/p.md",
+      "original_requirements": [
+        "R20",
+        "R32",
+        "R34"
+      ],
+      "original_dependencies": [
+        "T001",
+        "T004",
+        "T015",
+        "T033"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T035",
+      "issue": 42,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/035-godot-exportvertrag/p.md",
+      "original_requirements": [
+        "R15",
+        "R16",
+        "R23",
+        "R26"
+      ],
+      "original_dependencies": [
+        "T001",
+        "T013",
+        "T025",
+        "T026",
+        "T028",
+        "T029",
+        "T033"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T036",
+      "issue": 43,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/036-godot-testbereitstellung/p.md",
+      "original_requirements": [
+        "R19",
+        "R23"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T017",
+        "T033",
+        "T035"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T037",
+      "issue": 44,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/037-godot-tests-und-abnahmeszene/p.md",
+      "original_requirements": [
+        "R24",
+        "R25",
+        "R29",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T025",
+        "T029",
+        "T035",
+        "T036"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T038",
+      "issue": 45,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/038-freigabe-und-pruefbindungen/p.md",
+      "original_requirements": [
+        "R24",
+        "R25",
+        "R26",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T008",
+        "T032",
+        "T033",
+        "T036",
+        "T037"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T039",
+      "issue": 46,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/039-runtime-promotion-und-rollback/p.md",
+      "original_requirements": [
+        "R19",
+        "R26",
+        "R27",
+        "R33"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T033",
+        "T035",
+        "T036",
+        "T037",
+        "T038"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T040",
+      "issue": 47,
+      "phase": "E",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/040-testbereich-sicher-aufraeumen/p.md",
+      "original_requirements": [
+        "R27",
+        "R33"
+      ],
+      "original_dependencies": [
+        "T005",
+        "T036",
+        "T038",
+        "T039"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T041",
+      "issue": 48,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/041-versionsvergleich-und-projektfortschritt/p.md",
+      "original_requirements": [
+        "R01",
+        "R02",
+        "R06",
+        "R18",
+        "R20"
+      ],
+      "original_dependencies": [
+        "T006",
+        "T007",
+        "T008",
+        "T032",
+        "T033",
+        "T034",
+        "T038",
+        "T039",
+        "T040"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T042",
+      "issue": 49,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/042-automatische-dokumentation-und-export/p.md",
+      "original_requirements": [
+        "R05",
+        "R31"
+      ],
+      "original_dependencies": [
+        "T007",
+        "T012",
+        "T029",
+        "T033",
+        "T037",
+        "T038",
+        "T041"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T043",
+      "issue": 50,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/043-erweiterbare-vorlagen-und-typen/p.md",
+      "original_requirements": [
+        "R30"
+      ],
+      "original_dependencies": [
+        "T008",
+        "T013",
+        "T018",
+        "T029",
+        "T030",
+        "T041"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T044",
+      "issue": 51,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/044-backup-recovery-und-speicherpflege/p.md",
+      "original_requirements": [
+        "R22",
+        "R33",
+        "R34"
+      ],
+      "original_dependencies": [
+        "T004",
+        "T005",
+        "T017",
+        "T018",
+        "T033",
+        "T034",
+        "T039",
+        "T040",
+        "T041"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T045",
+      "issue": 52,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/045-e2e-held-und-npc/p.md",
+      "original_requirements": [
+        "R07",
+        "R09",
+        "R15",
+        "R24",
+        "R35"
+      ],
+      "original_dependencies": [
+        "T016",
+        "T022",
+        "T023",
+        "T024",
+        "T025",
+        "T026",
+        "T027",
+        "T030",
+        "T031",
+        "T032",
+        "T033",
+        "T034",
+        "T035",
+        "T036",
+        "T037",
+        "T038",
+        "T039",
+        "T040",
+        "T041",
+        "T044"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T046",
+      "issue": 53,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/046-e2e-tempel-und-globale-verwendung/p.md",
+      "original_requirements": [
+        "R06",
+        "R24",
+        "R28",
+        "R29",
+        "R30",
+        "R35"
+      ],
+      "original_dependencies": [
+        "T028",
+        "T029",
+        "T033",
+        "T035",
+        "T036",
+        "T037",
+        "T038",
+        "T039",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T044"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": true
+    },
+    {
+      "plan_id": "T047",
+      "issue": 54,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/047-paketierung-ci-und-betrieb/p.md",
+      "original_requirements": [
+        "R35"
+      ],
+      "original_dependencies": [
+        "T003",
+        "T009",
+        "T031",
+        "T042",
+        "T043",
+        "T044",
+        "T045",
+        "T046"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    },
+    {
+      "plan_id": "T048",
+      "issue": 55,
+      "phase": "F",
+      "original_path": "tools/AssetManager/works/EtherFood_Codex_Aufgabenplan/aufgaben/048-pilotmigration-und-abschluss/p.md",
+      "original_requirements": [
+        "R32",
+        "R35",
+        "R36"
+      ],
+      "original_dependencies": [
+        "T001",
+        "T014",
+        "T034",
+        "T039",
+        "T040",
+        "T041",
+        "T042",
+        "T044",
+        "T045",
+        "T046",
+        "T047"
+      ],
+      "current_issue_state": "OPEN",
+      "current_instruction": "PIPELINE-ALIGNMENT-V1 plus retained original requirements plus newest live issue/comments/checkout; historical status is not current progress",
+      "amended": false
+    }
+  ]
+}

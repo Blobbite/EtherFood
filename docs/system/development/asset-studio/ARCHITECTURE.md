@@ -1,5 +1,10 @@
 # Architektur und Datenverträge (T002)
 
+Für aktuelle Implementierungsaufträge gilt die präzisierende
+[Issue-/Anforderungszuordnung PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md).
+Sie erhält diesen gemeinsamen Unterbau; historische Modellvorbereitungen sind
+kein Auftrag, inzwischen vorhandene Dienste ein zweites Mal zu implementieren.
+
 ## Schichten und Zuständigkeiten
 
 `tools/AssetManager/src/etherfood_studio/` ist ein eigenes Python-Paket.

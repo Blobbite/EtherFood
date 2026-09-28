@@ -1,0 +1,873 @@
+{
+  "format": "etherfood-planning-alignment-verification",
+  "version": 1,
+  "amendment": "PIPELINE-ALIGNMENT-V1",
+  "verified_at": "2026-09-28 04:12:48 UTC",
+  "baseline_commit": "75467357a7d87d94c19db1c2d5de1082363be782",
+  "github": {
+    "repository": "Blobbite/EtherFood",
+    "read_issues": 76,
+    "changed_issues": [
+      1,
+      3,
+      4,
+      5,
+      6,
+      7,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      44,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53
+    ],
+    "unchanged_issues": [
+      2,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      28,
+      43,
+      45,
+      46,
+      47,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76
+    ],
+    "before_each_write_reread": true,
+    "only_issue_body_written": true,
+    "individual_readback_verified": true,
+    "independent_final_readback_verified": true,
+    "preservation_errors": [],
+    "comments_added": 0,
+    "issues_created": 0,
+    "issues_closed": 0,
+    "issues_reopened": 0,
+    "issues_deleted": 0,
+    "title_changes": 0,
+    "assignee_label_milestone_state_changes": 0,
+    "open_or_merged_prs_found": 0,
+    "pr_mutations": 0,
+    "project_fields": "Not read: token lacks read:project. Not changed. No ProjectV2 synchronization claimed.",
+    "issues": [
+      {
+        "issue": 1,
+        "plan_id": "ROOT",
+        "updated_at": "2026-09-28T04:07:03Z",
+        "state": "OPEN",
+        "title": "🧰 EtherFood Asset Studio · Projektablauf und Godot-Integration",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:roadmap"
+        ],
+        "milestone": null,
+        "comment_count": 1,
+        "before_sha256": "1d2bd8f1f804864bee89df881235aaa38407d4d4237e6da40cb3394ea4696130",
+        "after_sha256": "195e936fa17d99ec47468e0e5cbbb64a0cdb8ab384226412363ff1864ba51ede"
+      },
+      {
+        "issue": 3,
+        "plan_id": "PHASE-B",
+        "updated_at": "2026-09-28T04:07:03Z",
+        "state": "OPEN",
+        "title": "🖥️ Phase B · Dashboard und Asset-Anlage",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:phase",
+          "area:ui"
+        ],
+        "milestone": {
+          "number": 2,
+          "title": "🖥️ Asset Studio · Phase B: Dashboard und Asset-Anlage"
+        },
+        "comment_count": 2,
+        "before_sha256": "7c39befdff6fafcf326f38654d163d403c035bd553e3ef524903c16b4bf05c27",
+        "after_sha256": "b2664197e5abc706c44da60ec62b6c860535827a06fa479416918eead6345409"
+      },
+      {
+        "issue": 4,
+        "plan_id": "PHASE-C",
+        "updated_at": "2026-09-28T04:07:03Z",
+        "state": "OPEN",
+        "title": "🎨 Phase C · Aufträge, Farben und Frame-Verarbeitung",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:phase",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 0,
+        "before_sha256": "2fc6e8c371d49fb95a27271555cf0d360ab4c371138dee1251f7d6711f6e1889",
+        "after_sha256": "7a0d2d9247806a90de4d54e21916f9a059a9723b0dbb15df7615723b4418dbdc"
+      },
+      {
+        "issue": 5,
+        "plan_id": "PHASE-D",
+        "updated_at": "2026-09-28T04:07:05Z",
+        "state": "OPEN",
+        "title": "🔍 Phase D · Varianten, Texturen und Sichtprüfung",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:phase",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "d568283ecbc356b87cccb3ead1f556bd2ae7a97beab0de8c4e263eb030d22833",
+        "after_sha256": "2feb2b3b5f624beba2343d0d8286d06f25002fc7c395c3c29d2bb677b0befaa6"
+      },
+      {
+        "issue": 6,
+        "plan_id": "PHASE-E",
+        "updated_at": "2026-09-28T04:07:05Z",
+        "state": "OPEN",
+        "title": "🎮 Phase E · Versionen und Godot-Freigabe",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:phase",
+          "area:godot"
+        ],
+        "milestone": {
+          "number": 5,
+          "title": "🎮 Asset Studio · Phase E: Versionen und Godot-Freigabe"
+        },
+        "comment_count": 0,
+        "before_sha256": "48cb928d8eb31ca51f91a6df4a0b31e5ee65053bdda277244926ae20e75f05c8",
+        "after_sha256": "bf402fa00fa44a67b779f922351a01d0e2b642f1baebd6a7c79a187eff9bc35a"
+      },
+      {
+        "issue": 7,
+        "plan_id": "PHASE-F",
+        "updated_at": "2026-09-28T04:07:05Z",
+        "state": "OPEN",
+        "title": "🏁 Phase F · Betrieb und Gesamtprüfung",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:phase",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "b1b575e7aebc7b4d49df069430bc9c2d251bdb0ed88108b59cc2654c251f7409",
+        "after_sha256": "be95b2509978ee916066ab45425e75eaf0468bc4a1e0803db447eb241a75c3fe"
+      },
+      {
+        "issue": 20,
+        "plan_id": "T013",
+        "updated_at": "2026-09-28T04:07:07Z",
+        "state": "OPEN",
+        "title": "🧩 T013 · Asset-Typen, Posen und variable Richtungen modellieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:ui"
+        ],
+        "milestone": {
+          "number": 2,
+          "title": "🖥️ Asset Studio · Phase B: Dashboard und Asset-Anlage"
+        },
+        "comment_count": 1,
+        "before_sha256": "3eae6cdad3c16932c61c3f0ff0fe0fa9c6295f70bd74ee20a3c31a5f24c7cc9b",
+        "after_sha256": "dc0eb38b34760dde4973c9b2778f05a798f80da98f0c736d5221e1efad72ad80"
+      },
+      {
+        "issue": 21,
+        "plan_id": "T014",
+        "updated_at": "2026-09-28T04:07:07Z",
+        "state": "OPEN",
+        "title": "📥 T014 · Vorhandenen Asset-Bestand lesend erfassen und zuordnen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:ui"
+        ],
+        "milestone": {
+          "number": 2,
+          "title": "🖥️ Asset Studio · Phase B: Dashboard und Asset-Anlage"
+        },
+        "comment_count": 1,
+        "before_sha256": "b080e0cca141b9149a6337b3139d3a2d1048bd60e35eacb5d85a4a3e9ae66d6d",
+        "after_sha256": "483d3f00815a4bb2ebff8717903c3262a09aab7f196b5a32f5f36a480af0cd0c"
+      },
+      {
+        "issue": 22,
+        "plan_id": "T015",
+        "updated_at": "2026-09-28T04:07:07Z",
+        "state": "OPEN",
+        "title": "🎞️ T015 · Quellbilder und externe Animationslieferungen importieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:ui"
+        ],
+        "milestone": {
+          "number": 2,
+          "title": "🖥️ Asset Studio · Phase B: Dashboard und Asset-Anlage"
+        },
+        "comment_count": 3,
+        "before_sha256": "fa705bfead1705aee18105595a390f391ad9cead6a429b5339bc5a1dd485ad29",
+        "after_sha256": "7b223537477bd4056c9cde92c67dc30bdeb476bd08672b1d60717bcadefb189c"
+      },
+      {
+        "issue": 23,
+        "plan_id": "T016",
+        "updated_at": "2026-09-28T04:07:09Z",
+        "state": "OPEN",
+        "title": "🦸 T016 · NPC-Anlage, Vorlagen und Held-Menü implementieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:ui"
+        ],
+        "milestone": {
+          "number": 2,
+          "title": "🖥️ Asset Studio · Phase B: Dashboard und Asset-Anlage"
+        },
+        "comment_count": 3,
+        "before_sha256": "b4ecc5ae042b3ca98b6e27d1263dbba57b5a4f08fab5b2ae9fbd8e75d774d62e",
+        "after_sha256": "e8af38ee8cfb20a28969495e67fd45486fed660b7f662dfdf4ab4b085c95a631"
+      },
+      {
+        "issue": 24,
+        "plan_id": "T017",
+        "updated_at": "2026-09-28T04:07:09Z",
+        "state": "OPEN",
+        "title": "⚙️ T017 · Arbeitsprozesse und gemeinsame Pipeline-Adapter bauen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 1,
+        "before_sha256": "6605ed1f1155be079d9c9328ba1b504b869b6f7ff1afc87dfd6996b9edf60951",
+        "after_sha256": "b798e63f28d00aa91fe32cdfec3afebb09023b18bf0ee8fe32362b67114cb4ad"
+      },
+      {
+        "issue": 25,
+        "plan_id": "T018",
+        "updated_at": "2026-09-28T04:06:32Z",
+        "state": "OPEN",
+        "title": "♻️ T018 · Build-Abhängigkeiten, Cache und Änderungsfolgen umsetzen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 1,
+        "before_sha256": "4ede9562899d7ce1d60bc2fa7a386725c3c2fb80d58fda89a01395405f6743cd",
+        "after_sha256": "f6df88b59276f174a0028b6349c35f9e710bb529e6dceb3eb04298d0110ceb39"
+      },
+      {
+        "issue": 26,
+        "plan_id": "T019",
+        "updated_at": "2026-09-28T04:07:09Z",
+        "state": "OPEN",
+        "title": "🎨 T019 · Freie Masterreferenzen und variable Richtungssets unterstützen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 0,
+        "before_sha256": "940be813b2c6aacef9bce6a846a0c93d9a2e614f652d82704f8cb94d9e38449f",
+        "after_sha256": "4c8544ca6429f8b979ad8659b070194c4935f6d1173c71393cbe2dbbcecd1351"
+      },
+      {
+        "issue": 27,
+        "plan_id": "T020",
+        "updated_at": "2026-09-28T04:07:11Z",
+        "state": "OPEN",
+        "title": "🎭 T020 · Materialdefinitionen, Maskenrevisionen und Validierung bauen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 0,
+        "before_sha256": "5f89116862ec6477dcb08ddf34acc7c634efbe78ad845e4b6eb10eabef5ccaed",
+        "after_sha256": "e19bbc664a827d83f7f0696d7ae2a903bc8e76175573d86e36997476e5dd6e84"
+      },
+      {
+        "issue": 29,
+        "plan_id": "T022",
+        "updated_at": "2026-09-28T04:07:12Z",
+        "state": "OPEN",
+        "title": "✨ T022 · Automatische Maskenvorschläge mit Unsicherheitsanzeige entwickeln",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 0,
+        "before_sha256": "028985b3753bd3bca06a3804ce5c7d28f79240e591c4cc3fb91a5c6be5959e46",
+        "after_sha256": "1187674f7186a91f6f61185d27eefaf91f1fc9d3adfa9c4a65b28dda05efcacd"
+      },
+      {
+        "issue": 30,
+        "plan_id": "T023",
+        "updated_at": "2026-09-28T04:07:11Z",
+        "state": "OPEN",
+        "title": "🌈 T023 · SourceColor und SpritesheetColor in die Build-Pipeline einbinden",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 0,
+        "before_sha256": "e820b129447b78908c1d6c159bc31da448c838093c284b04f95f7938d01fb20b",
+        "after_sha256": "57ae2ae6e0abc89a34c423a7894d472dc4d9a07dc7bae49d8f33ba69c9a8a204"
+      },
+      {
+        "issue": 31,
+        "plan_id": "T024",
+        "updated_at": "2026-09-28T04:07:13Z",
+        "state": "OPEN",
+        "title": "🎞️ T024 · Frame-Abstufungen, Raster und Anker sicher ableiten",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 3,
+          "title": "🎨 Asset Studio · Phase C: Aufträge, Farben und Frame-Verarbeitung"
+        },
+        "comment_count": 0,
+        "before_sha256": "a79ac0e48ef0cebc68260bd8a79e0f35d230b0909edd05c13c5bdc1f2eb97d0c",
+        "after_sha256": "eeee01b468f487634460d931d93c96616fc677ef699234fe612ca90dd3ae452d"
+      },
+      {
+        "issue": 32,
+        "plan_id": "T025",
+        "updated_at": "2026-09-28T04:07:14Z",
+        "state": "OPEN",
+        "title": "⏱️ T025 · Timing-Profile und gemeinsame Animationszeit ergänzen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "8ef888d384e7bc31b859e1b86de64784c3758b0603f088c79e11c26edba72146",
+        "after_sha256": "137547b7bf3c004aaa9a27a8d9b47861b0c4b75eb7400d03af4fc4b19aaf3ec7"
+      },
+      {
+        "issue": 33,
+        "plan_id": "T026",
+        "updated_at": "2026-09-28T04:07:13Z",
+        "state": "OPEN",
+        "title": "🖼️ T026 · Grafikstufen für Spritesheets integrieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "f8d74f8ce326ebd016abc5ab5c732bb5068ebadb5b663e3dd2efd1810efb8986",
+        "after_sha256": "c403040c40bc4e93fb2ef02c56a1288c991e589db08a029c1421efa1abdf1ffe"
+      },
+      {
+        "issue": 34,
+        "plan_id": "T027",
+        "updated_at": "2026-09-28T04:07:15Z",
+        "state": "OPEN",
+        "title": "🎯 T027 · Exakte Farbprüfung und optionale Material-Nachzuordnung implementieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "8ba758b01a37552c54c8c1bf20dc00f9de3c8ae77ccdb2c50ac6a62f8a338c6f",
+        "after_sha256": "ae1f077243afb7ac76464cf5b42f6edfdaf4f88b9eba4e1f0b60cbaa0a213153"
+      },
+      {
+        "issue": 35,
+        "plan_id": "T028",
+        "updated_at": "2026-09-28T04:07:16Z",
+        "state": "OPEN",
+        "title": "🧱 T028 · Statische Grafik- und Texturverarbeitung implementieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "5f196e141ff1d895e619490549fc161c885bd621ad3d6982d467b4ce80da589d",
+        "after_sha256": "a7e18119738c0b94bcf1a7b2c64fc20823802a7244e5f146cc9fad2ae194091b"
+      },
+      {
+        "issue": 36,
+        "plan_id": "T029",
+        "updated_at": "2026-09-28T04:07:15Z",
+        "state": "OPEN",
+        "title": "🏛️ T029 · Asset-Pakete und Tempel-Arbeitsbereich umsetzen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "ac878b35a8ca8194aae876254cb2b855a5c006775a606f1eba0916d4a4b7ca6c",
+        "after_sha256": "345939edfad736ef2412cdf7200eddf4b713964a8df87269e2eea4082517878f"
+      },
+      {
+        "issue": 37,
+        "plan_id": "T030",
+        "updated_at": "2026-09-28T04:07:17Z",
+        "state": "OPEN",
+        "title": "🎛️ T030 · Automatische Schrittketten und Auftragsbedienung integrieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "aa5214dbca9b2910f1567e8980f9dc013610e77cf9b653aa1c383c6c28150665",
+        "after_sha256": "e337bfe234e2705f72d103da86b5d67ff8f491c180af7f1834ccabad825a683d"
+      },
+      {
+        "issue": 38,
+        "plan_id": "T031",
+        "updated_at": "2026-09-28T04:07:18Z",
+        "state": "OPEN",
+        "title": "👀 T031 · HTML-Vergleiche im Asset-Menü sicher wiederverwenden",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "226c4470e0bd3e4d24b323d65362356a7a5fb41e7251b80af90f9963ccf945b9",
+        "after_sha256": "e7143f292d0c6e4c3323afbe6b701b8035ae5c9a0faaaea32cb50f6456b81ae9"
+      },
+      {
+        "issue": 39,
+        "plan_id": "T032",
+        "updated_at": "2026-09-28T04:07:18Z",
+        "state": "OPEN",
+        "title": "🔍 T032 · Variantenmatrix, Prüfcheckliste und Sichtbefunde implementieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:pipeline"
+        ],
+        "milestone": {
+          "number": 4,
+          "title": "🔍 Asset Studio · Phase D: Varianten, Texturen und Sichtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "8c7340757a886407eb5bfd326623b80d8eae03b153a497a4ee152c36f5e118ea",
+        "after_sha256": "771c4e53db4f4a21c545e4005acf14ee5ccd4c0fab4f23e66a6f88f38bcb02ea"
+      },
+      {
+        "issue": 40,
+        "plan_id": "T033",
+        "updated_at": "2026-09-28T04:07:20Z",
+        "state": "OPEN",
+        "title": "📦 T033 · Unveränderliche Kandidaten und Versionsarchiv implementieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:godot"
+        ],
+        "milestone": {
+          "number": 5,
+          "title": "🎮 Asset Studio · Phase E: Versionen und Godot-Freigabe"
+        },
+        "comment_count": 0,
+        "before_sha256": "58b20ace870335e73f210333373e3990ed2049fbf0935aa568b0075deedf3551",
+        "after_sha256": "df904a1837083a7711f78f945d7526ecf397635e78e3f040a416f8270c49164e"
+      },
+      {
+        "issue": 41,
+        "plan_id": "T034",
+        "updated_at": "2026-09-28T04:07:20Z",
+        "state": "OPEN",
+        "title": "🌿 T034 · Git-Anbindung und Quellenrevisionen ergänzen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:godot"
+        ],
+        "milestone": {
+          "number": 5,
+          "title": "🎮 Asset Studio · Phase E: Versionen und Godot-Freigabe"
+        },
+        "comment_count": 0,
+        "before_sha256": "9166334e9b4fb9af0642717fe76b4f552dceb687fb7a15d535dabcc2afbc812b",
+        "after_sha256": "f5a26609e6e479ffe3322346f76f0680ef7f5617543e70b0faf703fd93bc3b2a"
+      },
+      {
+        "issue": 42,
+        "plan_id": "T035",
+        "updated_at": "2026-09-28T04:07:20Z",
+        "state": "OPEN",
+        "title": "🎮 T035 · Godot-Export und portable Runtime-Ressourcen implementieren",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:godot"
+        ],
+        "milestone": {
+          "number": 5,
+          "title": "🎮 Asset Studio · Phase E: Versionen und Godot-Freigabe"
+        },
+        "comment_count": 0,
+        "before_sha256": "2c946fae3a484ec8d55952140b88b7d2205652aa70441bea472499c7104705f9",
+        "after_sha256": "f67bb55b0ba892939309e68ffceb7485128643a05aa6d73e3cb73dd1da3a6965"
+      },
+      {
+        "issue": 44,
+        "plan_id": "T037",
+        "updated_at": "2026-09-28T04:07:22Z",
+        "state": "OPEN",
+        "title": "🎮 T037 · Godot-Testszene, technische Prüfungen und manuelle Abnahme bauen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:godot"
+        ],
+        "milestone": {
+          "number": 5,
+          "title": "🎮 Asset Studio · Phase E: Versionen und Godot-Freigabe"
+        },
+        "comment_count": 0,
+        "before_sha256": "ef2d9c4b7e36509cef541e1b31c93e35de79618dc463ec80dc596271f7b19f3a",
+        "after_sha256": "670f10b29f908b3003c2a80cb71540003899008c91adcdf0c5b2a85b629f405d"
+      },
+      {
+        "issue": 48,
+        "plan_id": "T041",
+        "updated_at": "2026-09-28T04:07:22Z",
+        "state": "OPEN",
+        "title": "📊 T041 · Versionsverlauf, Vergleich und Dashboard-Fortschritt vervollständigen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "de37d7bf93e82843af68a100ef148ab6edfca9c875feb6e07f96b7da35ea3431",
+        "after_sha256": "c472fa00cea610dfe51d8475efe0f18e0cfc7bbd2af1a523294871c13072d40e"
+      },
+      {
+        "issue": 49,
+        "plan_id": "T042",
+        "updated_at": "2026-09-28T04:07:22Z",
+        "state": "OPEN",
+        "title": "📖 T042 · Projekt- und Asset-Dokumentation automatisch erzeugen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "c0a37e273192425f7c24d741f89087540c97a16557045f3d87e7c615b124a731",
+        "after_sha256": "ea4d92fa17f2096cb253d5bfda015e9a12295a2acb104bdc32777ac8213cd278"
+      },
+      {
+        "issue": 50,
+        "plan_id": "T043",
+        "updated_at": "2026-09-28T04:06:35Z",
+        "state": "OPEN",
+        "title": "🧩 T043 · Erweiterbare Kartentypen und Pipeline-Vorlagen bereitstellen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "009bb3a16cf29c07d44ae4e04a9d79ef708f2c359e990bd64b3607898deb54c3",
+        "after_sha256": "ed25e33ce376100742ec6d1ce8105b337eca797f037d490cfff6b02a98e0ffe4"
+      },
+      {
+        "issue": 51,
+        "plan_id": "T044",
+        "updated_at": "2026-09-28T04:07:24Z",
+        "state": "OPEN",
+        "title": "💾 T044 · Sicherung, Wiederherstellung und Speicherpflege absichern",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "2cddfab5c129fb239eb5a9ef5923a322cbf13a2b08bb1378e6f8f377341173cd",
+        "after_sha256": "c40ee23ffbb54a794b761e564356915b8f427923c7de16d436b0c9d641baf7c9"
+      },
+      {
+        "issue": 52,
+        "plan_id": "T045",
+        "updated_at": "2026-09-28T04:07:25Z",
+        "state": "OPEN",
+        "title": "🦸 T045 · Gesamtablauf für Held und NPCs mit weniger Richtungen testen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "20159959d56609f451ad3a0bb0104f642bbb024edcfbf4405453bd40838b2546",
+        "after_sha256": "42a241be0c035392ff0022d9ee4420875eb0785de72f339fca44ce0e25f27fac"
+      },
+      {
+        "issue": 53,
+        "plan_id": "T046",
+        "updated_at": "2026-09-28T04:07:24Z",
+        "state": "OPEN",
+        "title": "🏛️ T046 · Tempelpaket, globale Effekte und gemeinsame Verwendung testen",
+        "assignees": [],
+        "labels": [
+          "asset-studio",
+          "type:task",
+          "area:quality"
+        ],
+        "milestone": {
+          "number": 6,
+          "title": "🏁 Asset Studio · Phase F: Betrieb und Gesamtprüfung"
+        },
+        "comment_count": 0,
+        "before_sha256": "9df26caf1dd2e3e30ca2f4e3cd232ea9180e28420aba27c67d307d7c3eef73f8",
+        "after_sha256": "71f0c33e4540fe2f732264bc992b7adab741bbfd6731f2fb39e51e2f4071e059"
+      }
+    ]
+  },
+  "relationships": {
+    "issues": 76,
+    "blocking_edges": 251,
+    "original_task_blocking_edges": 227,
+    "parent_child_edges": 74,
+    "added": [],
+    "removed": [],
+    "acyclic": true,
+    "text_matches_native": true,
+    "issue50_blocked_by_issue37": true,
+    "issue37_blocked_by_issue50": false
+  },
+  "historical_package": {
+    "ok": true,
+    "tasks": 48,
+    "requirements": 36,
+    "local_links_checked": 955,
+    "hashes_checked": 81,
+    "changed_files": 0
+  },
+  "planning_checks": {
+    "ok": true,
+    "scope": "read_only_planning_checks",
+    "files": [
+      "README.md",
+      "docs/system/development/asset-studio/ARCHITECTURE.md",
+      "docs/system/development/asset-studio/INVENTORY.md",
+      "docs/system/development/asset-studio/index.md",
+      "docs/system/development/plans/asset-studio-github-issues.md",
+      "docs/system/development/plans/asset-studio-paket-7.md",
+      "docs/system/development/plans/asset-studio-projektpipelines.md",
+      "docs/system/development/plans/asset-studio-quellenworkflow-und-canvas.md",
+      "docs/system/development/plans/index.md",
+      "docs/system/development/plans/pipeline-alignment-v1/README.md",
+      "docs/system/development/plans/pipeline-alignment-v1/issue-updates.json",
+      "docs/system/development/plans/pipeline-alignment-v1/relationships.json",
+      "docs/system/development/plans/pipeline-alignment-v1/requirements.json",
+      "docs/system/development/plans/pipeline-alignment-v1/verification.json",
+      "tools/AssetManager/README.md",
+      "tools/AssetManager/works/AGENTS.md",
+      "tools/AssetManager/works/README.md"
+    ],
+    "local_links": 147,
+    "github_links_resolved_against_checkout_and_git_objects": 112,
+    "old_checkboxes_preserved": 306,
+    "additional_open_checkboxes": 64,
+    "requirements": 36,
+    "tasks": 48,
+    "unique_pa_owners": 12,
+    "graph_issues": 76,
+    "native_task_dependencies": 227,
+    "all_native_dependencies": 251,
+    "parent_child_edges": 74,
+    "application_tests_run": false,
+    "stage": "final_report_and_declarative_sources_verified"
+  },
+  "not_executed": [
+    "application tests",
+    "pipeline image processing/tests",
+    "Qt tests",
+    "Godot tests",
+    "productive asset builds",
+    "python tools/control.py check"
+  ],
+  "publication_limit": "No executable publisher exists in repository. Raw historical tasks.json/p.md must not be republished without amendment and current-live-issue reconciliation. Documentation guard is not technical prevention against external publishers.",
+  "commits": {
+    "existing_worktree_snapshot": "7546735",
+    "planning_commit": "See Git history for the commit containing this file; remote HEAD verified at handoff."
+  }
+}

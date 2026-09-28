@@ -6,6 +6,12 @@ Bildverarbeitung. Die frühere Diagnose-Prüfrunde bleibt historische Referenz;
 die neue Bedienung und Abnahme stehen unter [Projektpipelines](PIPELINES.md).
 Godot-Bereitstellung und persönliche Sichtabnahmen bleiben getrennt.
 
+- [Verbindliche aktuelle Aufgabenplanung: PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md)
+
+Vor Implementierung oder erneuter Issue-Veröffentlichung diese Ergänzung und
+den aktuellen Issue-Stand lesen. Ältere Paketpläne/Ergebnisberichte dokumentieren
+ihren damaligen Stand, keine Aufforderung zum Rückbau vorhandener Pipelines.
+
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)
 - [Entwicklung, Tests und lokale Ablage](DEVELOPMENT.md)

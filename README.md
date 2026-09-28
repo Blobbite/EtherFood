@@ -80,8 +80,11 @@ und meldet fehlende Pakete oder Qt-Systembibliotheken. `import` bereitet wie
 
 Für den ersten Start „Neues Projekt“ mit einem leeren Testordner außerhalb
 des Repositorys wählen, danach „Demo anlegen“.
-Die Bildpipelines und die Godot-Bereitstellung sind noch nicht an die Oberfläche
-angebunden. Befehle und Voraussetzungen (einschließlich Qt-Systembibliotheken) stehen unter
+Projektlokale [Canvas-Bildpipelines](docs/system/development/asset-studio/PIPELINES.md)
+sind angebunden; Godot-Bereitstellung und persönliche Pipeline-Abnahme bleiben
+getrennt offen. Aktuelle Aufgaben folgen
+[PIPELINE-ALIGNMENT-V1](docs/system/development/plans/asset-studio-github-issues.md).
+Befehle und Voraussetzungen (einschließlich Qt-Systembibliotheken) stehen unter
 [Entwicklung und Start](docs/system/development/asset-studio/DEVELOPMENT.md),
 die Klickfolge unter [Erste Sichtprüfung](docs/system/development/asset-studio/SICHTPRUEFUNG.md).
 

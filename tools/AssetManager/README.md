@@ -3,7 +3,8 @@
 Lokales Verwaltungswerkzeug neben dem bestehenden `PyGameTools/`.
 Die ersten vier Arbeitspakete umfassen Katalog, sichere Dateiablage,
 Projektkarten, Dokumente/Aufgaben und einen PySide6-Desktop.
-Bildpipelines und Godot-Bereitstellung sind noch nicht angebunden.
+Projektlokale Canvas-Bildpipelines sind inzwischen angebunden;
+Godot-Bereitstellung und persönliche Pipeline-Abnahme bleiben getrennt offen.
 
 Vom Repository-Stamm starten:
 
@@ -25,6 +26,8 @@ Diagnose, Studio- und Pipeline-Tests. Für Tests ohne Qt: `test --core`.
 
 `works/EtherFood_Codex_Aufgabenplan/` bleibt das ursprüngliche, hashgeprüfte
 Auftragspaket. Der tatsächliche Umsetzungsstand steht in den GitHub-Issues,
-im gepflegten Arbeitsplan und den T001–T012-Ergebnisberichten, nicht in den
-ursprünglichen `not_started`-Vorlagen. Lokale Kataloge, Originalkopien und
+in [PIPELINE-ALIGNMENT-V1](../../docs/system/development/plans/asset-studio-github-issues.md)
+und den Ergebnisberichten, nicht in den ursprünglichen `not_started`-Vorlagen.
+Vor Aufgabenbearbeitung oder Issue-Veröffentlichung den
+[aktuellen Planungseinstieg](works/README.md) verwenden. Lokale Kataloge, Originalkopien und
 Generatorausgaben gehören nicht nach Git.

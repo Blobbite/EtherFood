@@ -54,6 +54,12 @@ Der technische Zielzustand für den aktuellen Importplan ist unter
 
 ## Planarchiv
 
+Aktuelle Studio-Aufträge verwenden
+[PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md) mit der R-/T-Zuordnung.
+Historische Paketpläne und der hashgeschützte Originalaufgabenplan sind nicht
+allein als heutiger Implementierungs- oder Veröffentlichungsauftrag zu verwenden.
+Die separate Szeneneditor-Roadmap wird dadurch nicht umgeplant.
+
 Abgeschlossene und historische Pläne bleiben über den automatisch gepflegten
 Inhaltsblock erreichbar. Ihr Text beschreibt den damaligen Stand und darf
 deshalb frühere Pfade als historische Fakten nennen.

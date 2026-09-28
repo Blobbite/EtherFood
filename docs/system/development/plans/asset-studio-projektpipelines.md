@@ -1,5 +1,12 @@
 # Projektweite, Canvas-integrierte Bildpipelines
 
+Dieser Plan bewahrt Umsetzung und tatsächlich damalige Prüfergebnisse von
+`2286d2f`/`f8c9991`. Die aktuelle Verteilung der Restarbeit auf bestehende Issues
+ist in [PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md) verbindlich ergänzt.
+Die folgende Ausgangslage ist historisch, nicht der heutige Funktionsstand.
+Die dort erwähnte Agentenfreigabe gilt nicht für den späteren reinen
+Planungsauftrag. Persönliche Pipeline-Sichtabnahme bleibt separat offen.
+
 ## Auftrag und Bestandsaufnahme
 
 Der neue Auftrag ersetzt die zurückgestellte Bedienplanung für T017/T018.
