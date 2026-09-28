@@ -868,6 +868,8 @@
   "publication_limit": "No executable publisher exists in repository. Raw historical tasks.json/p.md must not be republished without amendment and current-live-issue reconciliation. Documentation guard is not technical prevention against external publishers.",
   "commits": {
     "existing_worktree_snapshot": "7546735",
-    "planning_commit": "See Git history for the commit containing this file; remote HEAD verified at handoff."
+    "planning_commit": "ee773204b791726b47b8b965ea260821b882c741",
+    "planning_remote_head_verified": true,
+    "followup_scope": "Documentation-only delivery note and trailing-blank-line correction; see subsequent Git history. No further issue changes."
   }
 }

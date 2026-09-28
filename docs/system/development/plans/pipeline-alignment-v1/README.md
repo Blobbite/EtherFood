@@ -4,6 +4,11 @@ Stand: 28.09.2026. Dies ist ein Änderungsnachweis, keine zweite Roadmap.
 Verbindlicher Einstieg bleibt die Ergänzung im vorhandenen
 [GitHub-Aufgabenplan](../asset-studio-github-issues.md).
 
+Git-Übergabe: Der vorhandene Stand wurde separat als `7546735` gesichert.
+Die 17 ausschließlich dokumentarischen/deklarativen Planungsdateien wurden
+als `ee77320` committed, nach `main` gepusht und per Remote-Hash bestätigt.
+Dieser anschließende Berichtsnachtrag ändert keine weitere Issue-Beschreibung.
+
 ## 1. Tatsächlich angepasste Issues
 
 35 Beschreibungen gespeichert und anschließend unabhängig erneut gelesen.
@@ -184,4 +189,3 @@ Opt-in-Importautomatik/Queue-Rest, HTML-/Reviewintegration, Archiv-/Backup-/
 Godot-/Gesamtabnahme. Bereits vorhandene Teilfunktionen sind zu verwenden,
 nicht neu auszuschreiben. Die neue persönliche Pipeline-Sichtprüfung bleibt
 offen. Nach diesem Planungsauftrag beginnt keine Implementierung automatisch.
-

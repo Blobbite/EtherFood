@@ -43,7 +43,8 @@ Meilensteine oder Statusfelder beiläufig setzen.
   anschließend gespeicherte Inhalte und Beziehungen erneut prüfen.
 - [x] Deklarative Quellen, Links, Abhängigkeiten und eigenen Diff prüfen;
   abschließend 76 Issues erneut lesen: 35 geändert, 41 unverändert.
-- [ ] Ausschließlich eigene Planungsänderungen committen/pushen; Abschluss berichten.
+- [x] Ausschließlich eigene Planungsänderungen committen/pushen: `ee77320`,
+  17 Markdown-/JSON-Dateien; Remote-Hash bestätigt. Abschlussnachweis ergänzt.
 
 Nachgewiesener `main`-Bestand vor diesem Auftrag: `2286d2f` enthält echte
 Bildpipelines, `f8c9991` ihren Ergebnisbericht. T013/T014 sind bereits technisch
