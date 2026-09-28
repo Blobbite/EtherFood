@@ -1,9 +1,9 @@
 # Architektur und Datenverträge (T002)
 
-Für aktuelle Implementierungsaufträge gilt die präzisierende
-[Issue-/Anforderungszuordnung PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md).
-Sie erhält diesen gemeinsamen Unterbau; historische Modellvorbereitungen sind
-kein Auftrag, inzwischen vorhandene Dienste ein zweites Mal zu implementieren.
+Für den aktuellen Umbau gilt die
+[Korrektur zur skriptbasierten Canvas-Plattform](../plans/asset-studio-skriptplattform-korrektur.md).
+Die frühere Issue-Reihenfolge ist stillgelegt. Der gemeinsame Unterbau bleibt
+erhalten; vorhandene Dienste werden nicht parallel neu implementiert.
 
 ## Schichten und Zuständigkeiten
 
@@ -16,8 +16,20 @@ Der bestehende `g2dtool`-Start und die PyGameTools-Starter bleiben erhalten.
 | application | Anwendungsdienste, Befehle, Konflikte | domain, storage-Schnittstellen |
 | storage | SQLite, sichere Pfade, Blobs, Journale | domain, Standardbibliothek; Pillow bei Bildimport |
 | pipelines | registrierte Adapter, Auftragsverträge und Supervisor | domain/storage; kein Qt |
+| packages | deklarative Vorlagen, Python-Verarbeitung und bewusst aufgerufene UI-Dienste | Discovery: nur JSON; Verarbeitung: pipelines/domain; UI-Dienste: ui/application |
 | godot | späterer Export/Deployment-Adapter | application/domain; kein Qt |
 | ui | PySide6-Desktop | application; kein SQL in Widgets |
+
+`domain.pipeline_recipes` liest ausschließlich deklarative mitgelieferte Manifeste.
+Der gemeinsame Runner lädt die Verarbeitung erst bei der Ausführung. Der UI-Host
+erzeugt Parameter und optionale Aktionen aus diesen Manifesten. Freier Python-Code
+bleibt im gesonderten, hashgebundenen Pluginvertrag.
+
+Migration 9 und `ProjectDocuments` ergänzen `ProjectFiles` um kataloggebundene
+Markdown-Dateien. Grunddokumente besitzen eine feste Identität pro Besitzer;
+Automatikblöcke und eigene Texte bleiben getrennt. Katalog, Kartenordner und
+Dokumente werden gemeinsam mit dem vorhandenen Dateijournal abgeglichen.
+Die genaue Ablage und Bedienung stehen unter [Skriptpakete](SKRIPTPAKETE.md).
 
 CLI und GUI verwenden dieselben Dienste. Importe starten keine Arbeit.
 Noch nicht implementierte Pipeline-/Godot-Aktionen werden deaktiviert.
@@ -121,8 +133,12 @@ Echte Bildrezepte verwenden inzwischen denselben Buildplan und Cache.
 
 Migration 6 ergänzt die lokale, hashgebundene Pluginregistrierung. Projektprofile
 liegen versioniert am bestehenden Projektobjekt. Rezepte sind `pipeline`-Karten
-unter dessen einzigem globalen Rahmen; `pipeline_assignment`-Objekte verweisen
-auf sie. Knotenlayouts bleiben in `layouts`, technische Verbindungen und Parameter
+direkt unter dem Projekt, als Geschwister des einzigen globalen Rahmens;
+`pipeline_assignment`-Objekte verweisen auf sie. Projektstandard- und Typregeln
+gehören zum Projekt, explizite Zuweisungen zum jeweiligen Asset. Migration 7
+übernimmt ältere Besitzer transaktional mit Sicherung und zusätzlicher Revision;
+IDs, Rezeptdaten und historische Snapshots bleiben erhalten. Knotenlayouts
+bleiben in `layouts`, technische Verbindungen und Parameter
 im Rezept. Projektbeziehungen erhalten keine ausführbare Bedeutung.
 
 `PipelineService`/`ProfileService` verwalten Revisionen und Zuweisungsprioritäten.
@@ -135,3 +151,18 @@ Arbeiter führen diese Dienste außerhalb des UI-Threads aus, kein zweiter Runne
 erst nach ausdrücklicher Freigabe im Worker. `PipelineExchange` übernimmt geprüfte,
 eigenständige Rezeptkopien ohne Assets, Jobs oder lokale Codefreigaben. Details,
 Austauschschemata und tatsächliche Grenzen: [Projektpipelines](PIPELINES.md).
+
+## Ergänzung: Skriptpakete und lesbare Asset-Ablage
+
+`studio-python-step-v2` ergänzt den bestehenden Bildadapter um ein echtes
+Python-Ergebnis mit Geometrie-Metadaten. Parameter und optionale Bedienaktionen
+kommen aus dem Paketmanifest. Der generische UI-Einstieg lädt freigegebenen
+Paketcode ausschließlich bei ausdrücklichem Aufruf. Verarbeitung und optionale
+GUI-Aktionen haben getrennte Lebenszyklen; v1 bleibt kompatibel.
+
+Migration 8 ergänzt `card_paths`, `managed_files`, `asset_publications` und
+`file_commits`. `ProjectFiles` bildet fachlichen Besitz als Ordner ab. Die äußere
+Katalogtransaktion koordiniert Änderungen mit einem wiederaufnehmbaren
+Dateijournal. Layoutänderungen lösen keinen Ordnerabgleich oder Bildbuild aus.
+Vollständige Bildläufe veröffentlichen geprüfte Kopien beim Asset; der gemeinsame
+Job-Cache bleibt erhalten. Bedienung und Grenzen: [Skriptpakete](SKRIPTPAKETE.md).

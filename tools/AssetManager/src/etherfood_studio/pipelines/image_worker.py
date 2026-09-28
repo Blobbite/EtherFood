@@ -1,6 +1,7 @@
 """Isolated worker entry; Python extensions are trusted code, not a security sandbox."""
 
 import json
+from copy import deepcopy
 from importlib.metadata import version
 from pathlib import Path
 import sys
@@ -11,6 +12,7 @@ from PIL import Image  # noqa: E402
 from etherfood_studio.domain.assets import require  # noqa: E402
 from etherfood_studio.pipelines.image_adapter import ImageAdapter, load_input  # noqa: E402
 from etherfood_studio.pipelines.image_processing import transform  # noqa: E402
+from etherfood_studio.pipelines.python_contract import result_metadata  # noqa: E402
 from etherfood_studio.storage.blob_store import file_hash  # noqa: E402
 from etherfood_studio.storage.sqlite_repository import canonical  # noqa: E402
 
@@ -39,10 +41,21 @@ def run(workspace):
         require(file_hash(code) == plugin["code_hash"], "Python-Codehash stimmt nicht.")
         namespace = {"__name__": "studio_trusted_extension", "__file__": str(code)}
         exec(compile(code.read_bytes(), str(code), "exec"), namespace)
-        result = namespace[plugin["entry_point"]](image.copy(), parameters["settings"])
-        require(isinstance(result, Image.Image) and result.size == image.size and
-                result.mode == "RGBA", "Python-Schritt muss ein gleich großes RGBA-Bild liefern.")
-        image = result
+        function = namespace[plugin["entry_point"]]
+        if "manifest" in plugin:
+            result = function(image.copy(), deepcopy(meta), parameters["settings"])
+            require(isinstance(result, tuple) and len(result) == 2,
+                    "Python-Vertrag v2 erwartet (RGBA-Bild, Metadatenänderungen).")
+            image, changes = result
+            require(isinstance(image, Image.Image) and image.mode == "RGBA",
+                    "Python-Schritt muss ein RGBA-Bild liefern.")
+            meta = result_metadata(meta, changes, image.size)
+        else:
+            result = function(image.copy(), parameters["settings"])
+            require(isinstance(result, Image.Image) and result.size == image.size and
+                    result.mode == "RGBA",
+                    "Python-Schritt muss ein gleich großes RGBA-Bild liefern.")
+            image = result
     else:
         image, meta = transform(image, meta, parameters["operation"], parameters["settings"],
                                 resources, profile=parameters["profile"])

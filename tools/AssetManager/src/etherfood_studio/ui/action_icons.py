@@ -10,9 +10,10 @@ from .theme import color
 
 def action_icon(name: str) -> QIcon:
     if name in {"new_asset", "asset_workspace", "new_note", "new_task", "new_issue",
-                "new_document", "add_act", "add_chapter"}:
+                "new_document", "add_act", "add_chapter", "image_pipeline"}:
         from .presentation import kind_icon
-        kind = {"asset_workspace": "asset", "new_document": "document"}.get(
+        kind = {"asset_workspace": "asset", "new_document": "document",
+                "image_pipeline": "pipeline"}.get(
             name, name.removeprefix("new_").removeprefix("add_"))
         return kind_icon(kind)
     if "settings" in name:

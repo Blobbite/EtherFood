@@ -88,7 +88,9 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
     assert definition.directions == ("N", "O", "S", "W")
     assert len(definition.poses) == 2
     root = window.project.catalog.path.parent
-    assert not (root / ".asset-studio").exists()
+    assert not (root / ".asset-studio/jobs").exists()
+    assert not (root / ".asset-studio/objects").exists()
+    assert not list((window.project.files.path(identifier) / "Quellen").iterdir())
     source = tmp_path / "npc_walk_N_4x4.png"
     Image.new("RGBA", (16, 16), (50, 170, 70, 255)).save(source)
     monkeypatch.setattr(QFileDialog, "getOpenFileNames", lambda *args: ([str(source)], ""))
@@ -141,6 +143,9 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
     workspace = AssetWorkspace(assets, identifier)
     assert "1/8" in workspace.workflow.toPlainText()
     assert "stand" in workspace.workflow.toPlainText()
+    saved_doc = next(d for d in workspace.documents.service.documents(identifier)
+                     if d.title == "NPC-Notiz")
+    workspace.documents.open_document(saved_doc.id)
     assert workspace.documents.editor.toPlainText() == "Gehört zu derselben Karte"
     assert SourceImportService(assets).revisions(identifier)[0].id == revision.id
     assert len([c for c in window.project.cards() if c.kind == "asset"]) == 1
@@ -178,7 +183,8 @@ def test_wizard_cancel_and_configuration_template_do_not_import_sources(window, 
     record = wizard.created
     assert record.id != original.id
     assert assets.definition(record.id).poses[0].id != assets.definition(original.id).poses[0].id
-    assert not [r for r in window.project.catalog.records() if r.owner_id == record.id]
+    children = [r for r in window.project.catalog.records() if r.owner_id == record.id]
+    assert len(children) == 1 and children[0].data.get("automation") == "section"
     assert not record.data.get("active_sources") and not record.data.get("approval")
     wizard.deleteLater()
 

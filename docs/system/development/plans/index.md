@@ -10,7 +10,9 @@
 ### Seiten
 - [Arbeitsplan: Asset Manager über Control steuern](asset-manager-control.md)
 - [Asset Studio: zusammenhängende GitHub-Issues](asset-studio-github-issues.md)
+- [Asset Studio: Korrektur zur skriptbasierten Canvas-Plattform](asset-studio-skriptplattform-korrektur.md)
 - [Asset Studio: Pakete 1 bis 4](asset-studio-pakete-1-bis-4.md)
+- [Paket 8: freie Farbreferenzen und Materialmasken](asset-studio-paket-8.md)
 - [Arbeitsplan: <Meilenstein>](_execplan-template.md)
 - [Arbeitsplan: Begehbarer Heldenraum](begehbarer-heldenraum.md)
 - [Arbeitsplan: Bewegungssteuerung V0](bewegungssteuerung-v0.md)
@@ -54,11 +56,12 @@ Der technische Zielzustand für den aktuellen Importplan ist unter
 
 ## Planarchiv
 
-Aktuelle Studio-Aufträge verwenden
-[PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md) mit der R-/T-Zuordnung.
-Historische Paketpläne und der hashgeschützte Originalaufgabenplan sind nicht
-allein als heutiger Implementierungs- oder Veröffentlichungsauftrag zu verwenden.
-Die separate Szeneneditor-Roadmap wird dadurch nicht umgeplant.
+Die bisherigen Studio- und Szeneneditor-Roadmaps sind seit 28.09.2026 auf
+Benutzerwunsch stillgelegt. Die [Skriptplattform-Korrektur](asset-studio-skriptplattform-korrektur.md)
+beschreibt das aktuelle Ziel und den begrenzten nächsten Umsetzungsvorschlag.
+[PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md), Paketpläne und der
+hashgeschützte Originalaufgabenplan bleiben historische Nachweise; aus ihnen
+keine alten Issues erneut veröffentlichen oder deren Umsetzung automatisch fortsetzen.
 
 Abgeschlossene und historische Pläne bleiben über den automatisch gepflegten
 Inhaltsblock erreichbar. Ihr Text beschreibt den damaligen Stand und darf

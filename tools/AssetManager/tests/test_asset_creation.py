@@ -28,8 +28,11 @@ def test_template_only_configuration_fresh_ids_and_atomic_creation(tmp_path):
         assert {p.id for p in template.poses}.isdisjoint(p["id"] for p in data["poses"])
         assert len(expected_sources(template)) == 8
         assert len(template.expected()) == 200
-        assert not [r for r in project.catalog.records() if r.owner_id == new.id]
-        assert not (tmp_path / ".asset-studio").exists()
+        children = [r for r in project.catalog.records() if r.owner_id == new.id]
+        assert len(children) == 1 and children[0].data.get("automation") == "section"
+        assert not (tmp_path / ".asset-studio/jobs").exists()
+        assert not (tmp_path / ".asset-studio/objects").exists()
+        assert not list((project.files.path(new.id) / "Quellen").iterdir())
         before = project.catalog.export_snapshot()
         with pytest.raises(StudioError):
             assets.create("Ungültiger Besitzer", new.id, template.to_data())

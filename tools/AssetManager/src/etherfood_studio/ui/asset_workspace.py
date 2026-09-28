@@ -91,8 +91,10 @@ class AssetWorkspace(QDialog):
                                           self.assign_pipeline))
         pipeline_layout.addWidget(button("Projekt-Rezept öffnen …", "asset_pipeline_open",
                                           self.open_pipeline))
+        self.package_actions = QVBoxLayout()
+        pipeline_layout.addLayout(self.package_actions)
         pipeline_layout.addStretch()
-        self.tabs.addTab(self.pipeline_page, "Pipeline / Farben")
+        self.tabs.addTab(self.pipeline_page, "Pipeline / Werkzeuge")
         results_page = QWidget()
         result_layout = QVBoxLayout(results_page)
         result_layout.addWidget(label("Varianten bleiben Ableitungen dieses Assets. "
@@ -226,6 +228,31 @@ class AssetWorkspace(QDialog):
             dialog.deleteLater()
             self.refresh()
 
+    def package_action(self, node, action_id, recipe_id):
+        from .package_actions import invoke_step
+        try:
+            if self.editor.value().to_data() != self.record.data.get("asset_definition"):
+                raise StudioError("validation", "Anforderungen vor der Werkzeugaktion speichern.")
+            values = invoke_step(self.assets.project, node, action_id, self,
+                                 asset_id=self.identifier, recipe_id=recipe_id)
+            if values is not None and values != node["parameters"]:
+                raise StudioError("validation", "Rezeptparameter im Pipeline-Editor ändern.")
+            self.did_change()
+        except (StudioError, OSError, ValueError) as error:
+            show_error(self, error)
+
+    def refresh_package_actions(self, binding):
+        from ..application.pipeline_actions import PipelineActions
+        while self.package_actions.count():
+            self.package_actions.takeAt(0).widget().deleteLater()
+        if binding:
+            for node, action in PipelineActions(self.assets.project).for_recipe(
+                    binding["data"], "asset"):
+                self.package_actions.addWidget(button(action["name"],
+                    "asset_pipeline_action_" + action["id"],
+                    lambda checked=False, n=node, a=action["id"], r=binding["recipe"].id:
+                        self.package_action(n, a, r)))
+
     def refresh_pipeline(self):
         import json
         from ..application.pipeline_service import PipelineService
@@ -235,7 +262,8 @@ class AssetWorkspace(QDialog):
         self.pipeline_choice.clear()
         for recipe in service.recipes():
             self.pipeline_choice.addItem(recipe.title, recipe.id)
-        text = "Keine Pipeline zugewiesen. Projektweit → Rechtsklick → Pipeline aus Vorlage …"
+        text = "Keine Pipeline zugewiesen. Projektkarte → Rechtsklick → Pipeline aus Vorlage …"
+        binding = None
         if self.record.data.get("asset_definition"):
             try:
                 binding = service.resolve(self.identifier)
@@ -245,9 +273,14 @@ class AssetWorkspace(QDialog):
                     requested = binding["data"]["profiles"] or list(
                         self.assets.definition(self.identifier).graphics)
                     profiles = ProfileService(self.assets.project).profiles()
+                    manifests = service.manifests()
+                    has_profiles = any(manifests.get(n["operation"], {}).get("profile_targets")
+                                       and n["enabled"] for n in binding["data"]["steps"])
+                    targets = ", ".join(profiles[k]["name"] for k in requested
+                                        if profiles[k]["enabled"]) if has_profiles else \
+                        "Ausgaben der verbundenen Skriptschritte"
                     text = (f"Wirksame Pipeline: {record.title} · Revision {record.revision_no}\n"
-                            f"Herkunft: {binding['origin']}\nAngefordert: " + ", ".join(
-                                profiles[k]["name"] for k in requested if profiles[k]["enabled"]) +
+                            f"Herkunft: {binding['origin']}\nAngefordert: " + targets +
                             "\nLokale Abweichungen: " + canonical(
                                 binding["assignment"].data["overrides"]) +
                             "\nErgebnisstatus: aktueller, geprüfter Dry-run erforderlich.")
@@ -263,6 +296,7 @@ class AssetWorkspace(QDialog):
             except StudioError as error:
                 text = "Zuweisung blockiert: " + str(error)
         self.pipeline_info.setText(text)
+        self.refresh_package_actions(binding)
 
     def refresh(self) -> None:
         self.record = self.assets.asset(self.identifier)

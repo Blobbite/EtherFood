@@ -44,8 +44,12 @@ def read_manifest(raw: bytes) -> dict:
 def validate_manifest(data: dict) -> None:
     fields = {"contract", "id", "name", "version", "description", "parameters", "inputs",
               "outputs", "capabilities", "entry_point", "dependencies"}
-    require(isinstance(data, dict) and set(data) == fields and
-            data["contract"] == "studio-python-step-v1", "Unbekannter Erweiterungsvertrag.")
+    require(isinstance(data, dict), "Manifest muss ein Objekt sein.")
+    modern = data.get("contract") == "studio-python-step-v2"
+    if modern:
+        fields |= {"source", "actions"}
+    require(set(data) == fields and data["contract"] in {
+        "studio-python-step-v1", "studio-python-step-v2"}, "Unbekannter Erweiterungsvertrag.")
     for key in ("id", "name", "version", "description", "entry_point"):
         require(isinstance(data[key], str) and 0 < len(data[key].strip()) <= 512 and
                 "\x00" not in data[key], "Ungültiges Manifestfeld: " + key)
@@ -53,7 +57,23 @@ def validate_manifest(data: dict) -> None:
             re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]{0,127}", data["entry_point"]) is not None,
             "Erweiterung benötigt eine stabile ID und einen einfachen Funktionsnamen.")
     require(data["inputs"] == data["outputs"] == {"image": "image"},
-            "Vertrag v1 unterstützt RGBA-Bilder gleicher Geometrie, keine freien Dateipfade.")
+            "Bildschritte benötigen einen typisierten Bildeingang und Bildausgang.")
+    if modern:
+        require(isinstance(data["source"], str) and re.fullmatch(
+            r"[a-zA-Z_][a-zA-Z0-9_-]{0,80}\.py", data["source"]) is not None,
+            "Paketquelle muss eine benachbarte Python-Datei sein.")
+        actions = data["actions"]
+        require(isinstance(actions, list) and len(actions) <= 8, "Zu viele Paketaktionen.")
+        seen = set()
+        for action in actions:
+            require(isinstance(action, dict) and {"id", "name", "entry_point"} <= set(action)
+                    <= {"id", "name", "entry_point", "scope"}
+                    and all(isinstance(v, str) and 0 < len(v) <= 128 for v in action.values())
+                    and action.get("scope", "step") in {"step", "asset", "recipe"}
+                    and action["id"] not in seen and re.fullmatch(
+                        r"[a-zA-Z_][a-zA-Z0-9_]{0,127}", action["entry_point"]) is not None,
+                    "Ungültige oder doppelte Paketaktion.")
+            seen.add(action["id"])
     caps = data["capabilities"]
     require(isinstance(caps, list) and len(caps) <= len(CAPABILITIES) and
             all(isinstance(v, str) and v in CAPABILITIES for v in caps) and
@@ -71,7 +91,24 @@ def validate_manifest(data: dict) -> None:
             expected |= {"minimum", "maximum"}
         elif spec["type"] == "choice":
             expected.add("choices")
-        require(set(spec) == expected, "Nicht unterstützte oder fehlende Parameterfelder.")
+        optional = {"label", "description", "visible_if", "disabled_if", "choice_labels"} \
+            if modern else set()
+        require(expected <= set(spec) <= expected | optional,
+                "Nicht unterstützte oder fehlende Parameterfelder.")
+        for label in {"label", "description"} & set(spec):
+            require(isinstance(spec[label], str) and 0 < len(spec[label]) <= 512,
+                    "Ungültige Parameterbeschriftung.")
+        for rule in {"visible_if", "disabled_if"} & set(spec):
+            require(isinstance(spec[rule], dict) and spec[rule] and
+                    all(k in data["parameters"] and isinstance(values, list) and values and
+                        all(type(v) in {str, int, float, bool} for v in values)
+                        for k, values in spec[rule].items()), "Ungültige Parameterbedingung.")
+        if "choice_labels" in spec:
+            labels = spec["choice_labels"]
+            require(spec["type"] == "choice" and isinstance(labels, dict) and
+                    set(labels) <= set(spec.get("choices", [])) and
+                    all(isinstance(v, str) and 0 < len(v) <= 128 for v in labels.values()),
+                    "Ungültige Auswahlnamen.")
         if spec["type"] in {"integer", "number"}:
             types = {int} if spec["type"] == "integer" else {int, float}
             require(all(type(spec[k]) in types and abs(spec[k]) <= 10 ** 12 and
@@ -117,6 +154,7 @@ def dependency_issues(manifest: dict) -> list[str]:
 
 class PluginService:
     def __init__(self, project):
+        self.project = project
         self.catalog = project.catalog
         self.root = self.catalog.path.parent
         self.store = BlobStore(self.catalog, self.root)
@@ -128,6 +166,56 @@ class PluginService:
             require(manifest["id"] == row["identifier"], "Manifest-ID widerspricht Registrierung.")
             result[manifest["id"]] = manifest
         return result
+
+    def package(self, manifest_path):
+        """Inspect a package without importing code or granting trust."""
+        path = real_path(manifest_path)
+        require(path.is_file() and path.stat().st_size <= MAX_MANIFEST,
+                "Ungültiges Paketmanifest.")
+        manifest = read_manifest(path.read_bytes())
+        require(manifest["contract"] == "studio-python-step-v2",
+                "Paketimport benötigt Vertrag v2; v1 separat registrieren.")
+        source = real_path(path.parent / manifest["source"])
+        require(source.is_file() and 0 < source.stat().st_size <= MAX_CODE,
+                "Paketquelle fehlt oder ist zu groß.")
+        return {"manifest": manifest, "source": source, "code_hash": file_hash(source)}
+
+    def import_package(self, manifest_path, expected_manifest, expected_hash, title):
+        from .pipeline_service import PipelineService
+        from ..domain.pipeline_recipes import step, template
+
+        package = self.package(manifest_path)
+        require(package["manifest"] == expected_manifest and package["code_hash"] == expected_hash,
+                "Paket seit Vorschau geändert; erneut prüfen.")
+        identifier = expected_manifest["id"]
+        require(identifier not in self.manifests(),
+                "Paket-ID existiert bereits; Aktualisierung ausdrücklich im Erweiterungsdialog.")
+        with self.catalog.transaction():
+            registered = self.register(manifest_path, package["source"])
+            require(registered["code_hash"] == expected_hash and
+                    registered["manifest"] == expected_manifest, "Paket während Import verändert.")
+            service = PipelineService(self.project)
+            recipe = template("empty")
+            recipe["category"] = expected_manifest["name"]
+            node = step(identifier, expected_manifest)
+            recipe["steps"].append(node)
+            recipe["connections"].append({"from": recipe["steps"][0]["id"], "out": "image",
+                                           "to": node["id"], "in": "image"})
+            return self.project.create_card("pipeline", title, service.project_id,
+                {"project_id": service.project_id, "recipe": recipe})
+
+    def remove(self, identifier):
+        """Leave recipes and historical builds intact; their missing tool stays visible."""
+        with self.catalog.transaction():
+            self.details(identifier)
+            self.catalog.db.execute("DELETE FROM pipeline_plugins WHERE identifier=?",
+                                    (identifier,))
+
+    def actions(self, identifier):
+        try:
+            return self.trusted(identifier)["manifest"].get("actions", [])
+        except StudioError:
+            return []
 
     def register(self, manifest_path: Path, code_path: Path):
         manifest_path, code_path = real_path(manifest_path), real_path(code_path)
@@ -158,6 +246,7 @@ class PluginService:
             else:
                 self.catalog.db.execute("INSERT INTO pipeline_plugins VALUES (?,?,?,?,NULL)",
                     (data["id"], canonical(data), path, blob["sha256"]))
+            self.catalog.projection_dirty = True
         return self.details(data["id"])
 
     def details(self, identifier):

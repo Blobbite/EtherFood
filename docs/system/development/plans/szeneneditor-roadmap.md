@@ -1,5 +1,10 @@
 # Szeneneditor: nachgelagerte Roadmap
 
+**Stillgelegt am 28.09.2026 auf Benutzerwunsch.** Die SE-Roadmap bleibt
+historisch erhalten; ihre früheren Startbedingungen sind kein aktueller
+Auftrag. Zuerst gilt die [Skriptplattform-Korrektur](asset-studio-skriptplattform-korrektur.md).
+Eine spätere Szenenfunktion wird daraus nicht automatisch neu beauftragt.
+
 [Zur Asset-Studio-Übersicht](../asset-studio/index.md) ·
 [Zu den Arbeitsplänen](index.md)
 

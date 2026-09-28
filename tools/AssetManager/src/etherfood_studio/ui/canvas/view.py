@@ -84,10 +84,16 @@ class Canvas(QGraphicsView):
         self.update_edges()
 
     @staticmethod
+    def content_visible(project, record):
+        return not record.data.get("automation") or \
+            project.catalog.layout(record.id).get("document_visible", False)
+
+    @staticmethod
     def default_positions(project: ProjectService) -> dict[str, dict]:
         cards = project.cards()
         contents = [row for row in project.catalog.records()
-                    if row.kind in {"task", "issue", "document"}]
+                    if row.kind in {"task", "issue", "document"} and
+                    Canvas.content_visible(project, row)]
         positions = {}
         cursor = 0
 
@@ -103,10 +109,12 @@ class Canvas(QGraphicsView):
             cursor += 170 if card.kind == "pipeline" else 125
             children = [row for row in cards if row.owner_id == identifier]
             children.sort(key=lambda row: (
-                row.kind != "global", row.data.get("order", 0), row.title,
+                {"pipeline": 0, "global": 1}.get(row.kind, 2),
+                row.data.get("order", 0), row.title,
             ))
             for child in children:
-                arrange(child.id, depth + (0 if child.kind in {"global", "act"} else 1))
+                arrange(child.id, depth + (0 if child.kind in {"global", "act", "pipeline"}
+                                           else 1))
 
         arrange(project.project().id, 0)
         occupied = []
@@ -171,7 +179,8 @@ class Canvas(QGraphicsView):
                 item.setSelected(True)
         content_edges = []
         for record in project.catalog.records():
-            if record.kind not in {"task", "issue", "document"}:
+            if record.kind not in {"task", "issue", "document"} or \
+                    not self.content_visible(project, record):
                 continue
             if record.owner_id not in self.items_by_id \
                     or project.catalog.layout(record.owner_id).get("collapsed"):

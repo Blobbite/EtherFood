@@ -145,52 +145,9 @@ def expected_metadata(image, metadata, operation, parameters, profile=None):
 
 
 def transform(image, metadata, operation, parameters, resources, *, profile=None):
-    grid, selection, comic, pixel, soft, exact = legacy_modules()
-    meta = expected_metadata(image, metadata, operation, parameters, profile)
-    frames = split_frames(image, metadata["grid"])
-    if operation.startswith("prepare"):
-        box = grid.get_common_content_box(frames)
-        frames = [frame.crop(box) for frame in frames]
-    elif operation == "frames":
-        frames = [frames[i] for i in selection.uniform_indices(len(frames), parameters["frames"])]
-    elif operation == "scale":
-        size = tuple(meta["frame_size"])
-        method = profile["method"]
-        if method == "pixel_low":
-            frames = [f.resize(size, Image.Resampling.NEAREST) for f in frames]
-        elif method == "pixel":
-            frames = [pixel.resize_frame(f, size) for f in frames]
-        else:
-            frames = [f.copy() if f.size == size else comic.resize_frame(f, size) for f in frames]
-        image = grid.pack_frames(frames, tuple(meta["grid"]), optimize=False)
-        if method == "pixel":
-            palette = exact.load_palette(resources["palette"])["colors"] \
-                if "palette" in resources else None
-            image = pixel.finish_sheet(image, profile["colors"], palette)
-        return image, meta
-    elif operation in {"color", "source_color"}:
-        require(operation != "source_color" or meta["kind"] == "single_image",
-                "Source-Farbe verarbeitet nur Einzelbilder, keine Animationserzeugung.")
-        mode = parameters["mode"]
-        if mode == "soft":
-            matcher = soft.ColorMatcher(soft.load_profile(resources["reference"]),
-                                        parameters["strength"], parameters["max_distance"])
-            image = matcher.apply(image)
-        elif mode == "fixed":
-            palette = exact.load_palette(resources["palette"])
-            image = exact.FixedMatcher(palette).apply(image)
-            exact.verify_palette(image, palette)
-        else:
-            palette = exact.load_material_profile(resources["materials"])
-            mask = material_mask(resources["mask"], resources["original"], meta, palette)
-            exact.validate_labels(mask, image, palette["materials"], grid=tuple(meta["grid"]))
-            image = exact.MaterialMatcher(palette).apply(image, mask)
-            exact.verify_palette(image, palette, mask)
-        return image, meta
-    else:
-        require(False, "Nicht registrierte Bildoperation: " + operation)
-    image = grid.pack_frames(frames, tuple(meta["grid"]), optimize=False)
-    return image, meta
+    from ..packages import process
+
+    return process(image, metadata, operation, parameters, resources, profile)
 
 
 def finish_metadata(meta, size):

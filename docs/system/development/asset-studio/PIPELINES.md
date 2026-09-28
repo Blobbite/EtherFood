@@ -6,15 +6,23 @@ Ein erfolgreicher Bildlauf besteht aus geprüften PNG-Dateien und gebundenen
 Geometrie-/Timing-Metadaten. Künstlerische Freigabe und Godot-Bereitstellung
 bleiben davon getrennt.
 
+Der neue Skriptablauf mit einem importierbaren Skalierungspaket ist unter
+[Skriptpakete und Asset-Ablage](SKRIPTPAKETE.md) beschrieben. Die folgenden
+Grafik-/Farb-/Framevorlagen werden von mitgelieferten Python-Paketen bereitgestellt.
+Parameter und optionale Bedienaktionen stammen aus deren Manifesten.
+
 ## Einstieg und Bedienung
 
 1. Studio wie bisher über `python tools/control.py asset-manager run` starten
-   und ein Projekt öffnen. Im Baum **Projekt und Verwendungen → Projektweit**
-   rechtsklicken. Dieser vorhandene globale Projektrahmen ist der gemeinsame
-   Skript-/Pipelinebereich; es wird kein zweiter Global-Rahmen angelegt.
+   und ein Projekt öffnen. Im Baum **Projekt und Verwendungen** oder im Canvas
+   die oberste **Projektkarte** rechtsklicken. Alternativ die freie Canvas-Fläche
+   rechtsklicken oder oben **Pipelines …** wählen.
 2. **Neue Pipeline …**, **Pipeline aus Vorlage …** oder **Pipeline importieren …**
-   wählen. Die Zahnradkarte gehört ausschließlich diesem Projekt. Andere
+   wählen. Die Zahnradkarte liegt direkt unter dem Projekt, auf derselben Ebene
+   wie **Projektweit**, und gehört ausschließlich diesem Projekt. Andere
    Projekte übernehmen ein Rezept nur durch ausdrücklichen Import einer Kopie.
+   Im Baum und in der automatischen Canvas-Anordnung stehen Pipelines vor
+   „Projektweit“. Bereits gespeicherte manuelle Kartenpositionen bleiben erhalten.
 3. Die Karte doppelklicken. Links stehen Verarbeitungsschritte und Bildfluss,
    rechts die Eigenschaften des ausgewählten Schrittes. Einen Knotenanschluss
    auf den nächsten Schritt ziehen. Technische Verbindungen werden auf
@@ -24,7 +32,7 @@ bleiben davon getrennt.
    **Speichern**, **Rückgängig/Wiederholen**, Strg+S/Strg+Z und der
    Speichern-/Verwerfen-Dialog gelten auch hier. Knotenpositionen liegen
    getrennt vom versionierten Rezept. Verschieben baut keine Bilder neu.
-5. Unter **Projektprofile …** gewünschte Grafikstufen konfigurieren. Im Editor
+5. Bei einer Grafikpipeline unter **Projektprofile …** gewünschte Grafikstufen konfigurieren. Im Editor
    können Zielprofile ausdrücklich ausgewählt werden; ohne Auswahl gelten die
    Anforderungen des jeweiligen Assets. Deaktivierte Projektprofile sind
    nicht angefordert. Stabile Schlüssel bleiben erhalten; Anzeigenamen dürfen
@@ -55,6 +63,12 @@ Lauf aus dem Asset-Menü wird sie ebenfalls angestoßen. Die ältere allgemeine
 Workflow-/Sichtabnahmeanzeige wird dadurch nicht als persönliche Freigabe gesetzt.
 
 ## Vorlagen und vorhandene Algorithmen
+
+Eigene Farbprofile und gebundene Masken werden im Asset-Menü unter
+**Pipeline / Farben → Masterreferenzen / Materialien / Masken …** verwaltet.
+Im Rezept kann ein Farbschritt seine Ressourcen **aus diesem Asset** beziehen.
+Der [Bedien- und Versionsvertrag](REFERENZEN_UND_MASKEN.md) beschreibt freie
+Referenzen, Maskenrevisionen und die getrennte Sichtbestätigung.
 
 | Vorlage | Tatsächliche Verarbeitung |
 | --- | --- |
@@ -156,9 +170,11 @@ Plan; sie werden nicht unbemerkt unter einem alten Hash ausgeführt.
 Der vorhandene `BuildGraph` wird vom vorhandenen `BuildPlanner` geplant;
 `JobService`, Supervisor und `BuildCache` bleiben die einzige Ausführungskette.
 Jeder Auftrag erhält echte Dateikopien, keine veränderbaren Hardlinks.
-Originale und historische Quellrevisionen bleiben unverändert. Ergebnisse
-liegen im Projekt unter `.asset-studio/jobs/<Auftrag>/output` und werden als
-Ableitungen desselben Assets katalogisiert, nicht als neue Assets importiert.
+Originale und historische Quellrevisionen bleiben unverändert. Arbeitsausgaben
+liegen intern unter `.asset-studio/jobs/<Auftrag>/output`. Vollständige geprüfte
+Läufe veröffentlichen ihre Bilder zusätzlich unter `Ergebnisse/<Profil>/`
+im Ordner des jeweiligen Assets. Die Ablage folgt dessen Akt-/Kapitel-/Paket-
+Besitz. Ergebnisse bleiben Ableitungen desselben Assets.
 
 Fingerprints berücksichtigen aktive Eingaben/Parameter, Ressourcen,
 Abhängigkeiten und Werkzeughashes. Layout, Anzeigenamen und Parameter
@@ -208,6 +224,10 @@ Das Beispiel unter `tools/AssetManager/examples/pipeline_grayscale/` zeigt
 einen optionalen Graustufen-Schritt. Es wird nicht automatisch in Standardrezepte
 aktiviert. Änderungen am Code/Manifest verlangen eine erneute Freigabe.
 
+Der ergänzende [v2-Vertrag](SKRIPTPAKETE.md) erlaubt Bildgrößenänderungen und
+gebundene Metadaten sowie ausdrücklich geöffnete Paketaktionen. Das importierbare
+Skalierungsbeispiel liegt unter `tools/AssetManager/examples/pipeline_scale/`.
+
 Die versionierten Austauschverträge liegen unter
 `schemas/asset-studio/pipeline-{recipe,export,manifest}-v1.json`.
 Ergänzende Dienstvalidierungen prüfen Graph, Profilbezüge und Dateiinhalte;
@@ -215,8 +235,12 @@ ein formal gültiges JSON-Schema allein ist keine Ausführungsfreigabe.
 
 ## Kompatibilität und Abnahme
 
-Migration 6 erweitert den bestehenden SQLite-Katalog. Die vorhandene
-Migrationssicherung und Transaktionen bleiben erhalten. Fehlen Projektprofile,
+Migration 6 erweitert den bestehenden SQLite-Katalog um die Pluginregistrierung.
+Migration 7 hebt vorhandene Pipeline-Karten und projektweite Zuweisungsregeln
+aus „Projektweit“ direkt unter das Projekt. IDs, Rezepte, Layouts, Asset-Zuweisungen
+und eingefrorene Build-Snapshots bleiben erhalten; die Besitzänderung wird als
+neue Revision protokolliert. Historische Revisionen bleiben unverändert.
+Die vorhandene Migrationssicherung und Transaktionen bleiben erhalten. Fehlen Projektprofile,
 werden die bisherigen fünf Schlüssel einmalig ergänzt. Asset- und Pose-IDs,
 Quellen, FPS und bestehende Layouts werden nicht neu erzeugt. Unbekannte
 Profilkeys werden nicht ersatzweise als `comic_high` verarbeitet.
@@ -251,7 +275,7 @@ Konkrete Grenzen dieser Version:
 
 Für die Sichtprüfung reicht ein Testprojekt:
 
-1. Grafikvorlage unter Projektweit anlegen, Karte öffnen, bewegen, speichern,
+1. Grafikvorlage direkt unter dem Projekt anlegen, Karte öffnen, bewegen, speichern,
    Projekt neu öffnen; Karte und Einstellungen müssen erhalten bleiben.
 2. Einer kleinen importierten Quelle zuweisen, Dry-run prüfen und wirklich
    ausführen. PNG-Ergebnisse/Profilmaße ansehen; Original muss unverändert sein.

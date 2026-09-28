@@ -1,0 +1,233 @@
+{
+  "contract": "studio-bundled-package-v1",
+  "id": "studio:colors",
+  "version": "1",
+  "steps": [
+    {
+      "name": "Spritesheet-Farbverarbeitung",
+      "capabilities": [],
+      "parameters": {
+        "mode": {
+          "type": "choice",
+          "default": "soft",
+          "choices": [
+            "soft",
+            "fixed",
+            "material"
+          ],
+          "label": "Farbmodus"
+        },
+        "reference": {
+          "type": "resource",
+          "default": "",
+          "label": "Referenzprofil",
+          "visible_if": {
+            "mode": [
+              "soft"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets"
+          }
+        },
+        "palette": {
+          "type": "resource",
+          "default": "",
+          "label": "Festpalette",
+          "visible_if": {
+            "mode": [
+              "fixed"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets"
+          }
+        },
+        "materials": {
+          "type": "resource",
+          "default": "",
+          "label": "Materialprofil",
+          "visible_if": {
+            "mode": [
+              "material"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets"
+          }
+        },
+        "mask": {
+          "type": "resource",
+          "default": "",
+          "label": "Labelmaske",
+          "visible_if": {
+            "mode": [
+              "material"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets",
+            "@source": "Nach Quellbindung (importierte Masken)"
+          }
+        },
+        "strength": {
+          "type": "number",
+          "default": 0.6,
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "label": "Stärke",
+          "visible_if": {
+            "mode": [
+              "soft"
+            ]
+          }
+        },
+        "max_distance": {
+          "type": "number",
+          "default": 18.0,
+          "minimum": 1.0,
+          "maximum": 50.0,
+          "label": "Max. Farbdistanz",
+          "visible_if": {
+            "mode": [
+              "soft"
+            ]
+          }
+        }
+      },
+      "id": "color",
+      "version": "1",
+      "description": "Spritesheet-Farbverarbeitung",
+      "inputs": {
+        "image": "image"
+      },
+      "outputs": {
+        "image": "image"
+      },
+      "package": "studio:colors",
+      "actions": [
+        {
+          "id": "references",
+          "name": "Referenzen / Materialien / Masken …",
+          "scope": "asset",
+          "entry_point": "references"
+        }
+      ],
+      "template": "Spritesheet-Farbverarbeitung"
+    },
+    {
+      "name": "Source-Farbverarbeitung",
+      "capabilities": [
+        "static_image"
+      ],
+      "parameters": {
+        "mode": {
+          "type": "choice",
+          "default": "soft",
+          "choices": [
+            "soft",
+            "fixed",
+            "material"
+          ],
+          "label": "Farbmodus"
+        },
+        "reference": {
+          "type": "resource",
+          "default": "",
+          "label": "Referenzprofil",
+          "visible_if": {
+            "mode": [
+              "soft"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets"
+          }
+        },
+        "palette": {
+          "type": "resource",
+          "default": "",
+          "label": "Festpalette",
+          "visible_if": {
+            "mode": [
+              "fixed"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets"
+          }
+        },
+        "materials": {
+          "type": "resource",
+          "default": "",
+          "label": "Materialprofil",
+          "visible_if": {
+            "mode": [
+              "material"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets"
+          }
+        },
+        "mask": {
+          "type": "resource",
+          "default": "",
+          "label": "Labelmaske",
+          "visible_if": {
+            "mode": [
+              "material"
+            ]
+          },
+          "bindings": {
+            "@asset": "Aus Referenzen / Materialien dieses Assets",
+            "@source": "Nach Quellbindung (importierte Masken)"
+          }
+        },
+        "strength": {
+          "type": "number",
+          "default": 0.6,
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "label": "Stärke",
+          "visible_if": {
+            "mode": [
+              "soft"
+            ]
+          }
+        },
+        "max_distance": {
+          "type": "number",
+          "default": 18.0,
+          "minimum": 1.0,
+          "maximum": 50.0,
+          "label": "Max. Farbdistanz",
+          "visible_if": {
+            "mode": [
+              "soft"
+            ]
+          }
+        }
+      },
+      "id": "source_color",
+      "version": "1",
+      "description": "Source-Farbverarbeitung",
+      "inputs": {
+        "image": "image"
+      },
+      "outputs": {
+        "image": "image"
+      },
+      "package": "studio:colors",
+      "actions": [
+        {
+          "id": "references",
+          "name": "Referenzen / Materialien / Masken …",
+          "scope": "asset",
+          "entry_point": "references"
+        }
+      ],
+      "template": "Source-Farbverarbeitung"
+    }
+  ]
+}

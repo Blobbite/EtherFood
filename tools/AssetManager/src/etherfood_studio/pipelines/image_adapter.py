@@ -72,9 +72,11 @@ class ImageAdapter:
             allowed = {"soft": {"reference"}, "fixed": {"palette"},
                        "material": {"materials", "mask", "original"}}[settings["mode"]]
         else:
-            require(isinstance(plugin, dict) and set(plugin) == {
-                "id", "version", "entry_point", "code_hash", "manifest_sha256", "dependencies"}
-                and all(isinstance(v, str) for k, v in plugin.items() if k != "dependencies") and
+            fields = {"id", "version", "entry_point", "code_hash", "manifest_sha256",
+                      "dependencies"}
+            require(isinstance(plugin, dict) and fields <= set(plugin) <= fields | {"manifest"}
+                and all(isinstance(v, str) for k, v in plugin.items()
+                        if k not in {"dependencies", "manifest"}) and
                 plugin["id"].startswith("python:") and bool(plugin["version"]) and
                 plugin["entry_point"].isidentifier() and
                 re.fullmatch(r"[a-f0-9]{64}", plugin["code_hash"]) is not None and
@@ -84,6 +86,17 @@ class ImageAdapter:
                     r"[A-Za-z0-9][A-Za-z0-9_.-]*==[A-Za-z0-9][A-Za-z0-9_.+-]*", v)
                     for v in plugin["dependencies"]),
                 "Ungültiger Python-Erweiterungsvertrag.")
+            if "manifest" in plugin:
+                from ..application.plugin_service import validate_manifest
+                from .fingerprints import digest
+                manifest = plugin["manifest"]
+                validate_manifest(manifest)
+                require(manifest["contract"] == "studio-python-step-v2" and
+                        digest(manifest) == plugin["manifest_sha256"] and all(
+                            plugin[k] == manifest[k] for k in
+                            ("id", "version", "entry_point", "dependencies")),
+                        "Python-Snapshot stimmt nicht mit dem Manifest überein.")
+                validate_parameters(settings, manifest["parameters"])
         require(resources == allowed, "Fehlende oder nicht unterstützte Eingangsressourcen.")
         require(operation == "scale" or profile is None, "Grafikprofil ohne Skalierung.")
         require(operation == "plugin" or plugin is None, "Python-Code ohne Erweiterungsschritt.")
@@ -116,6 +129,13 @@ class ImageAdapter:
         sources = list(PIPELINES.glob("*.py")) + list((PIPELINES.parent / "domain").glob("*.py"))
         sources += list((TOOL_ROOT / "PiplineToos").glob("*.py"))
         sources += list((TOOL_ROOT / "2-SpritesheetResolution-Pipline").glob("*.py"))
+        from ..packages import ROOT, files
+        sources.append(ROOT / "__init__.py")
+        if parameters["operation"] == "plugin":
+            # Trusted user scripts may reuse any shipped algorithm via the public API.
+            sources += [path for path in ROOT.rglob("*") if path.suffix in {".py", ".json"}]
+        else:
+            sources += files(parameters["operation"])
         sources += [Path(Image.__file__), Path(Image.core.__file__), Path(sys.executable)]
         hashes = tuple((str(p), file_hash(p)) for p in sorted(set(sources)))
         return CommandPlan((sys.executable, "-I", "-B", str(script), str(workspace)),
@@ -146,12 +166,17 @@ class ImageAdapter:
                 meta.get("image_sha256") == file_hash(output / "image.png"),
                 "Bild-/Metadatenbindung ist ungültig.")
         source, incoming, resources = load_input(workspace, parameters)
-        expected = expected_metadata(source, incoming, parameters["operation"],
-                                     parameters["settings"], parameters["profile"])
         claimed = {k: v for k, v in meta.items() if k not in {"contract", "image_sha256"}}
-        require(claimed == expected,
-                "Ergebnis widerspricht der geplanten Geometrie, Frameauswahl oder Quellbindung.")
         with Image.open(output / "image.png") as image, source:
+            if parameters["plugin"] and "manifest" in parameters["plugin"]:
+                from .python_contract import verify_result
+                verify_result(incoming, claimed, image.size)
+            else:
+                expected = expected_metadata(source, incoming, parameters["operation"],
+                                             parameters["settings"], parameters["profile"])
+                require(claimed == expected,
+                        "Ergebnis widerspricht der geplanten Geometrie, Frameauswahl "
+                        "oder Quellbindung.")
             require(image.format == "PNG" and image.mode == "RGBA" and
                     getattr(image, "n_frames", 1) == 1,
                     "PNG-Ergebnis passt nicht zu Raster/Frames/Geometrie.")

@@ -7,6 +7,76 @@ Die folgende Ausgangslage ist historisch, nicht der heutige Funktionsstand.
 Die dort erwähnte Agentenfreigabe gilt nicht für den späteren reinen
 Planungsauftrag. Persönliche Pipeline-Sichtabnahme bleibt separat offen.
 
+## Aktuelle Korrektur: Pipelines direkt am Projekt (28.09.2026)
+
+Der Nutzer präzisiert die Besitzebene: Pipeline-Karten sind direkte Bestandteile
+des geöffneten Projekts, als Geschwister von „Projektweit“. Diese Entscheidung
+ersetzt die unten historisch beschriebene Ablage unter dem globalen Rahmen.
+Es entsteht keine zusätzliche Global-Struktur und keine Anwendungsbibliothek.
+
+Ausgangsbefund: Besitzregeln und Kontextmenüs erlauben Pipelines bisher nur unter
+„Projektweit“; der Werkzeugleisteneintrag „Bildpipeline (später)“ ist deaktiviert.
+Der Core-Testlauf scheitert unabhängig davon an der fehlenden Testabhängigkeit
+`markdown-it-py`, die bereits für die GUI festgelegt ist.
+
+1. [x] Besitzregeln, Menüwege, Katalogmigrationen und bestehende Tests prüfen.
+2. [x] Direkte Projektzuordnung und gesicherte Migration vorhandener Rezepte
+   und projektweiter Zuweisungen einschließlich Archiv und Revisionen umsetzen.
+3. [x] Projekt-/Canvas-Menüs und Werkzeugleiste an dieselben Dienste anbinden.
+4. [x] Migration, Erstellung, Import, Undo/Redo und Qt-Bedienung prüfen;
+   vorhandene Markdown-Abhängigkeit für den Core-Testlauf bereitstellen.
+5. [x] Bedienung/Architektur aktualisieren und tatsächliche Ergebnisse festhalten.
+
+Die Migration verwendet die vorhandene Katalogsicherung und eine Transaktion.
+IDs, Rezeptparameter, Quellen, Layouts, Asset-Zuweisungen und eingefrorene Builds
+bleiben erhalten; Besitzänderungen erhalten einen zusätzlichen Historieneintrag.
+Keine Bilder neu erzeugen und keine externen Issues ohne Auftrag verändern.
+Zur Wiederherstellung steht der unveränderte Katalog vor der Migration als
+`.studio-backup-*` neben dem Projektkatalog bereit.
+
+Ergebnis: Neue und importierte Pipeline-Karten liegen direkt am Projekt.
+Projektweite Zuweisungsregeln werden ebenfalls dem Projekt zugeordnet; explizite
+Asset-Zuweisungen behalten ihren Besitzer. Kontextmenüs an Projektkarte und freier
+Canvas-Fläche sowie der aktive Zahnradknopf **Pipelines …** führen zu denselben
+Diensten. Baum und automatische Anordnung zeigen Pipelines vor „Projektweit“;
+manuelle Positionen werden erhalten. Auch alte Metadaten-Snapshots werden beim
+Import auf diese Besitzregeln übernommen.
+
+Die neuen Menütests fanden zusätzlich einen bestehenden Fehler: Nach Rückgängig
+der Pipeline-Erstellung versuchte die Statusanzeige, das archivierte Rezept zu
+öffnen. Sie zeigt nun den Archivstatus an; die Ausführungssperre bleibt bestehen.
+Der bisherige Dashboard-Test für einen deaktivierten Pipeline-Platzhalter ist
+entsprechend dem neuen Verhalten aktualisiert.
+
+Tatsächlich ausgeführte Abschlussprüfungen:
+
+- `python3 tools/control.py asset-manager test --core`: **369 bestanden,
+  3 Qt-Tests übersprungen** (zu diesem Zeitpunkt fehlende Systembibliotheken).
+  Der Markdown-Abbruch ist behoben; die Abhängigkeit gehört nun zum Testpaket.
+- Danach die benötigten Qt-Bibliotheken nur unter `/tmp` entpackt und per
+  `LD_LIBRARY_PATH` für diese Docker-Sitzung bereitgestellt. Die zentrale
+  Steuerung installiert weiterhin keine Betriebssystempakete automatisch.
+- `python3 tools/control.py asset-manager test`: **595 bestanden**, keine
+  übersprungenen oder fehlgeschlagenen Tests (130,98 s), einschließlich Qt,
+  echter Bildverarbeitung, Migration/Backup/Rollback, Archiv, Import und Undo/Redo.
+- Qt-Hauptfenster mit synthetischem Projekt als Screenshot geöffnet und geprüft:
+  Pipeline und Projektweit sind Geschwister; Pipeline-Knopf ist aktiv und zeigt
+  das Zahnrad. Persönliche Desktop-/Wayland-Abnahme **nicht ausgeführt**.
+- Stilprüfung aller 20 geänderten Python-Dateien ohne Befund;
+  `git diff --check` ohne Befund.
+- `python3 tools/control.py check`: **283 bestanden, 37 übersprungen,
+  4 fehlgeschlagen**. Bereits vorhandene Befunde: fehlende Asset-Kategorien,
+  Godot-Fensterkonfiguration sowie fehlende Game-Decision-Dateien und deren Links.
+  Die betroffenen Game-/Testdateien sind gegenüber `HEAD` unverändert.
+  Zusätzlich 1907 bestehende Stilbefunde außerhalb der Änderung.
+  Godot-Import/-Integration **nicht ausgeführt**, da Godot 4 fehlt.
+
+Keine bestehenden Originalbilder oder Produktionsassets verändert. Die Änderungen
+liegen lokal im Arbeitsbaum; kein Commit, Push oder externer Issue-Kommentar.
+
+Bedienhinweis nachgezogen: Auch das Asset-Menü verweist bei fehlender Zuweisung
+jetzt auf **Projektkarte → Rechtsklick → Pipeline aus Vorlage …**.
+
 ## Auftrag und Bestandsaufnahme
 
 Der neue Auftrag ersetzt die zurückgestellte Bedienplanung für T017/T018.

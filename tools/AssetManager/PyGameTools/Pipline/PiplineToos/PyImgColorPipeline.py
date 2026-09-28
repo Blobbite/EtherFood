@@ -205,14 +205,18 @@ def is_reference(source, profile, mode):
     return False
 
 
-def comparison_html(sources, root, profile, strength=None, mode="soft"):
+def comparison_html(sources, root, profile, strength=None, mode="soft", reference_root=None):
     single_only = all(source.grid == (1, 1) for source in sources)
     refs = {r["direction"]: r for r in profile["references"]}
     records = []
     for source in sources:
         match = DIRECTION.search(source.path.stem)
         ref = refs.get(match[1].upper()) if match else None
+        if profile.get("version") == 2:
+            ref = next(r for r in profile["references"] if r["id"] == profile["preview_reference"])
         ref_path = Path(ref["path"]) if ref else None
+        if ref_path and profile.get("version") == 2:
+            ref_path = reference_root / ref_path if reference_root else None
         # Referenz kann auch als bytegleiche Kopie in der neuen Ausgabe liegen.
         matching = next((s for s in sources if ref and s.sha256 == ref["sha256"]
                          and (mode == "soft" or s.path.name.casefold() == Path(ref["path"]).name.casefold())), None)
@@ -260,13 +264,14 @@ background-image:conic-gradient(#666 25%,transparent 0 50%,#666 0 75%,transparen
 .legend{display:flex;flex-wrap:wrap;gap:12px}.legend i{display:inline-block;width:18px;height:18px;margin-right:6px;vertical-align:middle}
 [hidden]{display:none!important}</style>
 <h1>Farbvergleich · Modus MODE</h1>
-<p>Alle acht Stand-Richtungen bilden die gemeinsame Farbreferenz. PRESENTATION
+<p>REFERENCESET PRESENTATION
 REFERENCECOPYNOTICE</p><p>NOTE</p>
 <label>Bild <select id="choice"></select></label><button id="play">Pause</button>
 <label id="frame-control">Frame <input id="frame" type="range" min="0" value="0"></label><span id="counter"></span>
 <p id="state"></p><main><figure><figcaption>Original</figcaption><canvas id="before"></canvas></figure>
 <figure><figcaption id="after-label">Ergebnis · MODE</figcaption><canvas id="after"></canvas></figure>
-<figure><figcaption>Stand · gleiche Richtung</figcaption><canvas id="reference"></canvas></figure>MASKPANEL</main>
+<figure><figcaption>REFERENCECAPTION</figcaption>
+<canvas id="reference"></canvas></figure>MASKPANEL</main>
 LEGEND<details open><summary>DETAILS</summary>SWATCHES
 <p>Maßgeblich sind gespeicherte sRGB-Werte der PNGs. IMAGEFORMATCAVEAT</p></details>
 <script>
@@ -305,7 +310,13 @@ select();requestAnimationFrame(tick);
         "PRESENTATION", "Original und Ergebnis werden als Einzelbilder verglichen." if single_only else "Original und Ergebnis laufen synchron.").replace(
         "IMAGEFORMATCAVEAT", "" if single_only else "GIFs können Farben und Teiltransparenz nur eingeschränkt darstellen.").replace(
         "REFERENCECOPYNOTICE", "Stand-Kopien bleiben unverändert und sind von der Festfarbenprüfung ausgenommen." if any(r['referenceCopy'] for r in records)
-        else "Alle ausgewählten Bilder werden mit demselben Farbprofil korrigiert.").replace("RECORDS", data)
+        else "Alle ausgewählten Bilder werden mit demselben Farbprofil korrigiert.").replace(
+        "REFERENCESET", f"{len(profile['references'])} ausdrücklich gewählte Referenzen "
+        "bilden die gemeinsame Farbreferenz." if profile.get("version") == 2
+        else "Alle acht Stand-Richtungen bilden die gemeinsame Farbreferenz.").replace(
+        "REFERENCECAPTION", "Ausdrücklich gewählte gemeinsame Vorschau-Referenz: " +
+        html.escape(str(profile["preview_reference"])) if profile.get("version") == 2
+        else "Stand · gleiche Richtung").replace("RECORDS", data)
 
 
 def atomic_copy(source, target):
@@ -319,6 +330,11 @@ def atomic_copy(source, target):
 
 
 def validate_options(args):
+    selection = getattr(args, "reference_selection", None)
+    if selection and (args.prepare_masks or args.profile or args.reference
+                      or (not args.export_material_profile and not args.export_fixed_palette
+                          and args.color_mode not in {None, "soft"})):
+        raise ValueError("--reference-selection nur für Profilbildung oder soft verwenden.")
     preparation = any((args.export_fixed_palette, args.export_material_profile, args.prepare_masks))
     if preparation:
         forbidden = {"--color-mode": args.color_mode, "--output-dir": args.output_dir,
@@ -365,12 +381,24 @@ def checked_directory(path, label, must_exist=True):
 
 def input_files(args):
     paths = [p.expanduser().absolute() for p in
-             (args.profile, args.fixed_palette, args.material_profile, args.material_definitions) if p]
+             (args.profile, args.fixed_palette, args.material_profile, args.material_definitions,
+              getattr(args, "reference_selection", None)) if p]
     for path in paths:
         outputs.validate(path)
         if not path.is_file():
             raise ValueError(f"Eingabedatei fehlt: {path}")
     return paths
+
+
+def reference_root(args):
+    path = (getattr(args, "reference_selection", None) or args.profile
+            or args.fixed_palette or args.material_profile)
+    return path.expanduser().absolute().parent if path else None
+
+
+def reference_paths(args, profile):
+    base = reference_root(args) if profile.get("version") == 2 else None
+    return [base / r["path"] if base else Path(r["path"]) for r in profile["references"]]
 
 
 def validate_targets(targets, protected):
@@ -400,6 +428,11 @@ def json_text(value):
 def soft_profile(args, root, *, single_images=False):
     if args.profile:
         return color.load_profile(args.profile.expanduser())
+    if getattr(args, "reference_selection", None):
+        from PyImgReferenceSelection import load_selection, make_profile
+        path = args.reference_selection.expanduser().absolute()
+        selection = load_selection(path)
+        return make_profile(selection, lambda ref: path.parent / ref["path"])
     refs = reference_files(root, args.reference, args.grid, single_images=single_images)
     print("Referenz: Stand, acht Richtungen; alle Frames gleich gewichtet.", flush=True)
     return color.make_profile(refs)
@@ -472,12 +505,20 @@ def export_profile(args, root, sources, protected, *, single_images=False):
         profile, loader = exact.make_palette(soft_profile(args, root, single_images=single_images)), exact.load_palette
     else:
         masks = checked_directory(args.mask_dir, "Maskenordner")
-        refs = reference_files(root, args.reference, args.grid, single_images=single_images)
         definitions = exact.load_definitions(args.material_definitions.expanduser())
-        profile = exact.make_material_profile(refs, definitions, masks, root)
-        protected += [masks / path.relative_to(root) for path, _, _ in refs]
+        if getattr(args, "reference_selection", None):
+            from PyImgReferenceSelection import load_selection, make_profile
+            selection_path = args.reference_selection.expanduser().absolute()
+            selection = load_selection(selection_path)
+            profile = make_profile(selection, lambda ref: selection_path.parent / ref["path"],
+                "material", definitions=definitions, resolve_mask=lambda ref: masks / ref["path"])
+            protected += [masks / ref["path"] for ref in selection["references"]]
+        else:
+            refs = reference_files(root, args.reference, args.grid, single_images=single_images)
+            profile = exact.make_material_profile(refs, definitions, masks, root)
+            protected += [masks / path.relative_to(root) for path, _, _ in refs]
         loader = exact.load_material_profile
-    protected += [Path(r["path"]) for r in profile["references"]]
+    protected += reference_paths(args, profile)
     validate_targets([target], protected)
     if target.exists() and not args.overwrite and loader(target) != profile:
         raise ValueError(f"Vorhandenes Profil weicht ab und bleibt erhalten: {target}; --overwrite verwenden.")
@@ -610,7 +651,7 @@ def run(args, *, single_images=False):
     settings.update({"color_mode": mode, "profile_sha256": color.fingerprint(profile), "fps": None if single_images else 8})
     if single_images:
         settings["source_kind"] = "single_image"
-    protected += [Path(r["path"]) for r in profile["references"]]
+    protected += reference_paths(args, profile)
     profile_path = destination / ".color_profile" / profile_name
     report_path, html_path = destination / "color-build.json", destination / "farbvergleich.html"
     targets = [profile_path, report_path, html_path]
@@ -695,7 +736,8 @@ def run(args, *, single_images=False):
                 with exact.mask_preview(mask, before, profile["materials"]) as preview:
                     color.save_png(preview, preview_path)
             records.append(record)
-    content = comparison_html(sources, destination, profile, args.strength, mode)
+    content = comparison_html(sources, destination, profile, args.strength, mode, reference_root(
+        args))
     report = {"settings": settings, "source_root": str(root), "output_root": str(destination),
               "images": records, "checks": "PNG-Größe, Alpha und unsichtbares RGB exakt; keine Frameverschiebung.",
               "visual_review": "Farben und Materialzuordnung in farbvergleich.html visuell prüfen. "
@@ -718,6 +760,8 @@ def main(argv=None, *, single_images=False):
     reference = parser.add_mutually_exclusive_group()
     reference.add_argument("--reference", type=Path, help="Ordner mit den acht Stand-Originalen; sonst automatisch")
     reference.add_argument("--profile", type=Path, help="Vorhandenes reference-colors.json wiederverwenden")
+    reference.add_argument("--reference-selection", type=Path,
+                           help="Explizite pyimg-reference-selection-JSON für neue v2-Farbprofile")
     parser.add_argument("--color-mode", choices=("soft", "fixed", "material"),
                         help="Farbmodus; Standard soft (bisheriges Verhalten)")
     parser.add_argument("--fixed-palette", type=Path, help="Verbindliche pyimg-fixed-palette-JSON für fixed")

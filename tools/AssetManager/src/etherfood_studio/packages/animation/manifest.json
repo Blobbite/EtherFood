@@ -1,0 +1,98 @@
+{
+  "contract": "studio-bundled-package-v1",
+  "id": "studio:animation",
+  "version": "1",
+  "steps": [
+    {
+      "name": "Spritesheet · 8 Frames",
+      "parameters": {},
+      "capabilities": [
+        "animated"
+      ],
+      "id": "prepare8",
+      "version": "1",
+      "description": "Spritesheet · 8 Frames",
+      "inputs": {
+        "image": "image"
+      },
+      "outputs": {
+        "image": "image"
+      },
+      "package": "studio:animation",
+      "actions": [],
+      "template": "Spritesheets mit 8 Frames"
+    },
+    {
+      "name": "Spritesheet · 16 Frames",
+      "parameters": {},
+      "capabilities": [
+        "animated"
+      ],
+      "id": "prepare16",
+      "version": "1",
+      "description": "Spritesheet · 16 Frames",
+      "inputs": {
+        "image": "image"
+      },
+      "outputs": {
+        "image": "image"
+      },
+      "package": "studio:animation",
+      "actions": [],
+      "template": "Spritesheets mit 16 Frames"
+    },
+    {
+      "name": "Frameauswahl und Timing",
+      "capabilities": [
+        "animated"
+      ],
+      "parameters": {
+        "frames": {
+          "type": "integer",
+          "default": 8,
+          "minimum": 1,
+          "maximum": 64,
+          "label": "Zielframes"
+        },
+        "timing": {
+          "type": "choice",
+          "default": "keep_fps",
+          "choices": [
+            "keep_fps",
+            "keep_duration"
+          ],
+          "label": "Timing-Modus",
+          "choice_labels": {
+            "keep_fps": "Wiedergabe-FPS beibehalten",
+            "keep_duration": "Animationsdauer beibehalten"
+          }
+        },
+        "fps": {
+          "type": "number",
+          "default": 8.0,
+          "minimum": 0.01,
+          "maximum": 240,
+          "label": "Wiedergabe-FPS",
+          "disabled_if": {
+            "timing": [
+              "keep_duration"
+            ]
+          },
+          "description": "Bei Animationsdauer beibehalten aus der Quelldauer berechnet."
+        }
+      },
+      "id": "frames",
+      "version": "1",
+      "description": "Frameauswahl und Timing",
+      "inputs": {
+        "image": "image"
+      },
+      "outputs": {
+        "image": "image"
+      },
+      "package": "studio:animation",
+      "actions": [],
+      "template": "Frame-Reduktion und Timing"
+    }
+  ]
+}

@@ -25,6 +25,8 @@ TRUST_WARNING = (
     "die angezeigte registrierte Codekopie mit diesem SHA-256. Ein geändertes "
     "Manifest oder neu registrierter Code verlangt eine erneute Freigabe. "
     "Registrierung und Freigabe starten keinen Build."
+    " Optionale Paketoberflächen laufen erst beim ausdrücklichen Öffnen im GUI-Prozess "
+    "mit denselben Benutzerrechten; auch dort besteht keine Sicherheits-Sandbox."
 )
 
 
@@ -99,6 +101,14 @@ def import_pipeline(project, parent=None) -> Record | None:
     if not path:
         return None
     try:
+        candidate = Path(path)
+        if candidate.suffix.lower() == ".json" and candidate.stat().st_size <= 65536:
+            data = read_json(candidate.read_bytes())
+            if isinstance(data, dict) and data.get("contract") == "studio-python-step-v2":
+                dialog = PluginPackageImportDialog(project, candidate, parent)
+                if dialog.exec() == QDialog.DialogCode.Accepted:
+                    return dialog.record
+                return None
         plan = PipelineExchange(project).preview(Path(path))
         dialog = PipelineImportDialog(project, plan, parent)
         if dialog.exec() == QDialog.DialogCode.Accepted:
@@ -106,6 +116,47 @@ def import_pipeline(project, parent=None) -> Record | None:
     except (StudioError, OSError, ValueError) as exc:
         show_error(parent, exc)
     return None
+
+
+class PluginPackageImportDialog(QDialog):
+    def __init__(self, project, path, parent=None):
+        super().__init__(parent)
+        self.service, self.path, self.record = PluginService(project), path, None
+        self.package = self.service.package(path)
+        self.setObjectName("pipeline_package_import")
+        self.setWindowTitle("Python-Pipeline-Paket importieren")
+        self.resize(780, 620)
+        layout = QVBoxLayout(self)
+        manifest = self.package["manifest"]
+        layout.addWidget(label("Projektlokale Kopie von Rezept, Manifest und Python-Code. "
+            "Der Code bleibt bis zur gesonderten Freigabe blockiert. Kein automatischer Build."))
+        self.title = QLineEdit(manifest["name"])
+        self.title.setObjectName("pipeline_package_name")
+        self.title.setMaxLength(256)
+        layout.addWidget(self.title)
+        layout.addWidget(_text(json.dumps(manifest, ensure_ascii=False, indent=2),
+                               "pipeline_package_manifest"), 1)
+        layout.addWidget(label("Code: " + manifest["source"] + "\nSHA-256: " +
+                               self.package["code_hash"]))
+        self.error = label("", "pipeline_package_error")
+        if manifest["id"] in self.service.manifests():
+            self.error.setText("Paket-ID existiert bereits; Aktualisierung im Erweiterungsdialog.")
+        layout.addWidget(self.error)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok |
+                                   QDialogButtonBox.StandardButton.Cancel)
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Als Pipeline importieren")
+        buttons.accepted.connect(self.import_copy)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def import_copy(self):
+        try:
+            self.record = self.service.import_package(self.path, self.package["manifest"],
+                self.package["code_hash"], self.title.text())
+        except (StudioError, OSError, ValueError) as error:
+            self.error.setText(str(error))
+            return
+        self.accept()
 
 
 def export_pipeline(project, recipe_id, parent=None):
@@ -214,6 +265,7 @@ class PluginManagerDialog(QDialog):
         self.revocation = button("Freigabe widerrufen", "pipeline_plugin_revoke", self.revoke)
         actions.addWidget(self.approval)
         actions.addWidget(self.revocation)
+        actions.addWidget(button("Registrierung entfernen", "pipeline_plugin_remove", self.remove))
         layout.addLayout(actions)
         layout.addWidget(button("Schließen", "pipeline_plugin_close", self.accept))
         self.items.currentItemChanged.connect(self.selected)
@@ -293,6 +345,14 @@ class PluginManagerDialog(QDialog):
             try:
                 self.service.revoke(self.identifier())
                 self.selected()
+            except (StudioError, OSError, ValueError) as exc:
+                show_error(self, exc)
+
+    def remove(self):
+        if self.identifier():
+            try:
+                self.service.remove(self.identifier())
+                self.reload()
             except (StudioError, OSError, ValueError) as exc:
                 show_error(self, exc)
 

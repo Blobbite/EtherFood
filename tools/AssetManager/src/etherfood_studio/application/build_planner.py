@@ -140,8 +140,16 @@ class BuildPlanner:
         report = {"contract": "studio-build-run-v1", "plan": plan.to_data(), "actual": actual,
                   "status": "succeeded" if success else "incomplete",
                   "diagnostic": diagnostic, "published": success and not diagnostic}
-        record = self.project.catalog.create("build", "Plan-/Ausführungsvergleich", plan.owner_id,
-                                              report)
+        try:
+            record = self.project.catalog.create(
+                "build", "Plan-/Ausführungsvergleich", plan.owner_id, report)
+        except (StudioError, OSError) as error:
+            if not report["published"]:
+                raise
+            report.update(status="incomplete", published=False, publication_error=str(error))
+            on_event({"kind": "publication_failed", "reason": str(error)})
+            record = self.project.catalog.create("build", "Ablage fehlgeschlagen", plan.owner_id,
+                                                  report)
         return {**report, "run_id": record.id}
 
     def bindings(self, node, results):

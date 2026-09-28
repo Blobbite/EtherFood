@@ -4,6 +4,10 @@
 
 Python 3.11.2, pytest 8.4.2, jsonschema 4.26.0, Pillow 12.1.1,
 PySide6 6.10.2 auf Linux x86-64. Andere Plattformen sind noch nicht abgenommen.
+
+`--core` lässt Qt weg, führt aber auch die Tests der Markdown-Bearbeitung aus.
+Daher gehört das bereits für die Oberfläche verwendete `markdown-it-py==4.0.0`
+ebenfalls zu den Testabhängigkeiten und wird von `control.py` mit vorbereitet.
 Versionen sind im separaten `tools/AssetManager/pyproject.toml` fixiert.
 Der bestehende `g2dtool` benötigt dadurch kein Qt.
 
@@ -28,8 +32,10 @@ python3 tools/control.py asset-manager run
 Unter Windows entsprechend `py -3.11 tools/control.py asset-manager run`.
 Control verwendet automatisch `.venv/bin/python` beziehungsweise
 `.venv\Scripts\python.exe`, unabhängig von einer Shell-Aktivierung. Fehlt die
-Umgebung, wird sie beim ersten Start angelegt. Fehlende oder abweichende
-Studio-Pakete werden anhand des vorhandenen `pyproject.toml` lokal installiert.
+Umgebung, wird sie beim ersten Start angelegt. Fehlt darin pip, ergänzt Control
+es nach erfolgreicher Interpreterprüfung mit `ensurepip --upgrade`. Das gilt
+auch für eine bereits vorhandene `.venv`. Fehlende oder abweichende Studio-Pakete
+werden anhand des vorhandenen `pyproject.toml` lokal installiert.
 Sind Versionen und Checkout bereits passend, erfolgt kein erneuter pip-Aufruf.
 Der erste Start benötigt für Installation/Build-Abhängigkeiten normalerweise
 Internetzugriff. Control verwendet keine systemweite pip-Installation.
@@ -38,7 +44,8 @@ Internetzugriff. Control verwendet keine systemweite pip-Installation.
 | --- | --- |
 | `run` | Umgebung bei Bedarf vorbereiten, Qt-Plattform prüfen und Oberfläche öffnen |
 | `run --project /pfad/zum/studio-projekt` | Einen vorhandenen Verwaltungskatalog öffnen |
-| `install` | Lokale Umgebung vorbereiten und Python-/Qt-Modulimporte prüfen, kein Fenster öffnen |
+| `install` | Lokale Umgebung vorbereiten, fehlendes pip ergänzen und Python-/Qt-Modulimporte prüfen |
+| `upgrade` | pip mit `ensurepip` aktualisieren, Studio-Pakete mit `--upgrade` installieren und Modulimporte prüfen |
 | `import` | Alias für `install`: Tool-Vorbereitung, ausdrücklich kein Import von Spielassets |
 | `doctor` | `.venv`, Python, pip, festgelegte Paketversionen, Checkout und native Modulimporte nur prüfen |
 | `test` | Studio-Tests einschließlich GUI mit `QT_QPA_PLATFORM=offscreen` ausführen |
@@ -48,11 +55,39 @@ Internetzugriff. Control verwendet keine systemweite pip-Installation.
 
 Ohne Unterbefehl startet `asset-manager` wie `asset-manager run`.
 `assetmanager` ist ein gleichwertiger Schreibweisen-Alias.
-`run`, `install`, `import`, `test`, `pipeline-test` und `check` unterstützen
+`run`, `install`, `upgrade`, `import`, `test`, `pipeline-test` und `check` unterstützen
 `--dry-run`: nur Befehle anzeigen, keine Prozesse starten oder Dateien ändern.
-`test --core`, `check --core`, `doctor --core` und `install --core` lassen Qt
-bewusst weg. Core-Tests schließen die GUI-Tests ausdrücklich aus;
+Auch die bedingte pip-Reparatur erscheint dabei als geplanter Befehl.
+`test --core`, `check --core`, `doctor --core`, `install --core` und
+`upgrade --core` lassen Qt bewusst weg. Core-Tests schließen die GUI-Tests ausdrücklich aus;
 `pipeline-test` benötigt ebenfalls weder Qt noch Godot.
+
+### Installieren, reparieren und aktualisieren
+
+Die komplette Einrichtung bleibt innerhalb von Control:
+
+```sh
+python3 tools/control.py asset-manager install
+python3 tools/control.py asset-manager run
+```
+
+`install` ergänzt fehlendes pip und fehlende oder abweichende Studio-Pakete.
+`run` erledigt dieselbe Vorbereitung bei Bedarf auch allein. Eine bereits
+passende Installation wird wiederverwendet.
+
+Für eine ausdrückliche Aktualisierung:
+
+```sh
+python3 tools/control.py asset-manager upgrade
+```
+
+`upgrade` führt `ensurepip --upgrade` mit dem Interpreter der Repository-`.venv`
+und danach `pip install --upgrade` für das Studio aus. pip wird dabei auf
+mindestens den mit dieser Python-Installation ausgelieferten Stand gebracht;
+eine neuere installierte Version bleibt erhalten. Für Studio-Pakete gelten
+weiterhin die Versionsvorgaben in `tools/AssetManager/pyproject.toml`.
+`install` und `upgrade` öffnen kein Fenster. Nach der Einrichtung startet
+`asset-manager run` die Oberfläche.
 
 ## Diagnose und Fehlerbehandlung
 
@@ -72,9 +107,13 @@ Offscreen-Plattform; ein Qt-Fehler darf nicht als erfolgreich übersprungener
 GUI-Test gelten. Systembibliotheken, Betriebssystempakete und ein Display
 werden **nicht** automatisch installiert oder konfiguriert.
 
-Eine defekte, veraltete oder nach außen verlinkte `.venv` wird nicht gelöscht
-oder automatisch neu erstellt. Bei fehlendem `venv`/`ensurepip` zuerst die
-Python-Installation reparieren (unter Debian/Ubuntu etwa `python3-venv`).
+Fehlendes pip wird bei der Vorbereitung automatisch ergänzt; `doctor` verweist
+dafür auf `asset-manager install`. Eine strukturell defekte, mit nicht
+unterstütztem Python erstellte oder nach außen verlinkte `.venv` wird nicht
+gelöscht oder automatisch neu erstellt. Fehlt auch das Python-Modul `ensurepip`,
+meldet Control den Fehler und stoppt. In diesem Fall zuerst die
+Python-Unterstützung für `venv`/`ensurepip` ergänzen (unter Debian/Ubuntu etwa
+`python3-venv`) und denselben Control-Befehl erneut ausführen.
 Nach Netzwerk-/pip-Fehlern kann derselbe Befehl erneut ausgeführt werden;
 Studio und Tests starten erst nach erfolgreicher Vorbereitung. Testfehler
 werden als Fehlercode zurückgegeben. `check` führt beide Testsuiten aus und

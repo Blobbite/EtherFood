@@ -454,8 +454,9 @@ class PipelineExchange:
                 roles = {"soft": ["reference"], "fixed": ["palette"],
                          "material": ["materials", "mask"]}[values["mode"]]
                 required.update(values[role] for role in roles
-                                if not (role == "mask" and values[role] == "@source"))
-            elif operation == "graphics" and values["palette"]:
+                                if values[role] != "@asset"
+                                and not (role == "mask" and values[role] == "@source"))
+            elif operation == "graphics" and values["palette"] not in {"", "@asset"}:
                 required.add(values["palette"])
             elif operation.startswith("python:"):
                 try:

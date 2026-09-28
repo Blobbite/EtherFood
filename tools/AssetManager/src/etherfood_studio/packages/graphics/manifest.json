@@ -1,0 +1,41 @@
+{
+  "contract": "studio-bundled-package-v1",
+  "id": "studio:graphics",
+  "version": "1",
+  "steps": [
+    {
+      "name": "Grafikprofile",
+      "parameters": {
+        "palette": {
+          "type": "resource",
+          "default": "",
+          "label": "Festpalette",
+          "bindings": {
+            "@asset": "Aus Referenzen dieses Assets"
+          }
+        }
+      },
+      "capabilities": [],
+      "id": "graphics",
+      "version": "1",
+      "description": "Grafikprofile",
+      "inputs": {
+        "image": "image"
+      },
+      "outputs": {
+        "image": "image"
+      },
+      "package": "studio:graphics",
+      "actions": [
+        {
+          "id": "profiles",
+          "name": "Projektprofile …",
+          "scope": "recipe",
+          "entry_point": "profiles"
+        }
+      ],
+      "template": "Grafik-Assets",
+      "profile_targets": true
+    }
+  ]
+}

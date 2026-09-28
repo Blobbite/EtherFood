@@ -44,6 +44,8 @@ class SafePreview(QTextBrowser):
         self.setAccessibleName("Markdown – anklicken zum Bearbeiten")
         self.setOpenLinks(False)
         self.setOpenExternalLinks(False)
+        self.local_link = None
+        self.local_resource = None
         self.anchorClicked.connect(self._open_link)
         self.checkboxes = []
         self.checkbox_read_only = True
@@ -52,6 +54,10 @@ class SafePreview(QTextBrowser):
         self.document().documentLayout().documentSizeChanged.connect(self.position_checkboxes)
 
     def loadResource(self, resource_type: int, name: QUrl) -> object:
+        if self.local_resource and not name.scheme() and not name.host():
+            result = self.local_resource(resource_type, name)
+            if result is not None:
+                return result
         return QByteArray()
 
     def preview(self, text: str) -> None:
@@ -59,7 +65,11 @@ class SafePreview(QTextBrowser):
             checkbox.hide()
             checkbox.deleteLater()
         self.checkboxes = []
-        self.document().setMarkdown(text, QTextDocument.MarkdownFeature.MarkdownDialectGitHub
+        # Keep exact source/checkbox offsets, but hide our own bookkeeping in rendered Markdown.
+        from ...application.project_documents import START, END
+        rendered = "\n".join("" if line.strip() in {START, END} else line
+                             for line in text.split("\n"))
+        self.document().setMarkdown(rendered, QTextDocument.MarkdownFeature.MarkdownDialectGitHub
                                     | QTextDocument.MarkdownFeature.MarkdownNoHTML)
         block = self.document().begin()
         task_blocks = []
@@ -132,6 +142,9 @@ class SafePreview(QTextBrowser):
             self.activated.emit()
 
     def _open_link(self, url: QUrl) -> None:
+        if not url.scheme() and not url.host() and self.local_link:
+            self.local_link(url)
+            return
         if url.scheme() not in {"https", "http"}:
             return
         answer = QMessageBox.question(self, "Externen Link öffnen?", url.toString(),

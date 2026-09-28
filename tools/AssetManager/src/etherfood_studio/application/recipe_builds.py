@@ -31,6 +31,7 @@ class RecipeBuildService:
         self.pipelines = PipelineService(project)
         self.assets = AssetService(project)
         self.store = BlobStore(project.catalog, project.catalog.path.parent)
+        self.color_bindings = {}
 
     def dry_run(self, recipe_id=None):
         """No job admission or automatic builds: include exclusions and conflicts explicitly."""
@@ -56,6 +57,7 @@ class RecipeBuildService:
         return rows
 
     def plan(self, asset_id):
+        self.color_bindings = {}
         binding = self.pipelines.resolve(asset_id)
         require(binding is not None, "Dem Asset ist keine Pipeline zugewiesen.")
         record, recipe = binding["recipe"], binding["data"]
@@ -121,7 +123,8 @@ class RecipeBuildService:
                     "recipe": deepcopy(recipe), "profiles": deepcopy(profiles),
                     "asset_revision": self.assets.asset(asset_id).revision_no,
                     "assignment_id": binding["assignment"].id, "origin": binding["origin"],
-                    "sources": [{"id": s.id, "data": s.data} for s in sources]})
+                    "sources": [{"id": s.id, "data": s.data} for s in sources],
+                    "color_bindings": deepcopy(self.color_bindings)})
 
     @staticmethod
     def has_requested_output(recipe, ordered, profiles, requested):
@@ -211,21 +214,25 @@ class RecipeBuildService:
                         require(metadata["kind"] == "spritesheet",
                                 "Einzelbilder haben keine Frame-Aufbereitung oder FPS.")
                     if operation.startswith("prepare"):
-                        require(count == int(operation.removeprefix("prepare")),
+                        require(count is None or count == int(operation.removeprefix("prepare")),
                                 "Fram8/Fram16 benötigt die passende Quellframezahl.")
                     if operation == "frames":
-                        require(step["parameters"]["frames"] <= count,
+                        require(count is None or step["parameters"]["frames"] <= count,
                                 "Frameauswahl darf keine zusätzlichen Frames erfinden.")
                         count = step["parameters"]["frames"]
                     require(operation != "source_color" or metadata["kind"] == "single_image",
                             "Source-Farbverarbeitung benötigt Einzelbilder.")
                     node_key = f"{prefix}/{step['id']}/{profile_key}"
                     nodes.append(self.node(node_key, step, recipe, source, metadata, upstream))
+                    if operation.startswith("python:") and self.pipelines.manifests()[
+                            operation]["contract"] == "studio-python-step-v2":
+                        count = None  # A script's actual frame selection is verified in the worker.
                     outgoing.append((node_key, profile_key, count))
             streams[step["id"]] = outgoing
             if step["id"] not in nonleaves:
-                variants.extend(VariantTarget(f"{prefix}/{step['id']}/{key}/{count}", node)
-                                for node, key, count in outgoing)
+                for node, key, count in outgoing:
+                    frame_key = count if count is not None else "dynamic"
+                    variants.append(VariantTarget(f"{prefix}/{step['id']}/{key}/{frame_key}", node))
 
     def node(self, key, step, recipe, source, metadata, upstream, *, profile=None):
         operation, settings = step["operation"], deepcopy(step["parameters"])
@@ -238,6 +245,7 @@ class RecipeBuildService:
                 settings["mask"] = self.mask_for_source(recipe, source)
             names = {"soft": ["reference"], "fixed": ["palette"],
                      "material": ["materials", "mask"]}[mode]
+            recipe = self.managed_resources(settings, names, recipe, source, mode)
             for name in names:
                 self.resource(name, settings[name], recipe, resources, inputs)
             self.validate_colors(mode, settings, recipe, source)
@@ -249,6 +257,7 @@ class RecipeBuildService:
         if operation == "graphics":
             operation = "scale"
             if profile["method"] == "pixel" and settings["palette"]:
+                recipe = self.managed_resources(settings, ["palette"], recipe, source, "fixed")
                 self.resource("palette", settings["palette"], recipe, resources, inputs)
                 legacy_modules()[5].load_palette(self.store.path_for(inputs[-1].sha256))
             settings = {}
@@ -261,6 +270,8 @@ class RecipeBuildService:
             plugin = {"id": operation, "version": manifest["version"],
                       "entry_point": manifest["entry_point"], "code_hash": registered["code_hash"],
                       "manifest_sha256": digest(manifest), "dependencies": manifest["dependencies"]}
+            if manifest["contract"] == "studio-python-step-v2":
+                plugin["manifest"] = deepcopy(manifest)
             inputs.append(ContentInput("plugin.py", "package", registered["code_hash"]))
             operation = "plugin"
         parameters = {"operation": operation, "settings": settings, "profile": profile,
@@ -279,6 +290,24 @@ class RecipeBuildService:
             parameters=canonical(parameters), tools=tool_plan.tool_hashes,
             outputs=(OutputSpec("image.png", "image"), OutputSpec("metadata.json", "timing")),
             adapter=adapter.identifier, source_ids=() if upstream else (source.id,))
+
+    def managed_resources(self, settings, roles, recipe, source, mode):
+        from .reference_service import ReferenceService
+        from .mask_service import MaskService
+
+        recipe = deepcopy(recipe)
+        for role in roles:
+            if settings[role] != "@asset":
+                continue
+            record = MaskService(self.project).for_source(source.owner_id, source.id) \
+                if role == "mask" else ReferenceService(self.project).profile(source.owner_id, mode)
+            key = "managed_" + role
+            recipe["resources"][key] = {"sha256": record.data["sha256"],
+                "length": record.data["length"], "name": record.id + (
+                    ".png" if role == "mask" else ".json")}
+            settings[role] = key
+            self.color_bindings[record.id] = deepcopy(record.data)
+        return recipe
 
     def mask_for_source(self, recipe, source):
         """Select only declared PNG resources with an explicit exact source-hash binding."""

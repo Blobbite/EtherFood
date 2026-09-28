@@ -39,7 +39,9 @@ def test_position_persists_without_changing_content_revision_or_canvas(service, 
         assert reopened.catalog.get(note.id) == changed
     finally:
         reopened.catalog.close()
-    target = Catalog(tmp_path / "imported.sqlite", create=True)
+    imported_root = tmp_path / "imported-project"
+    imported_root.mkdir()
+    target = Catalog(imported_root / "imported.sqlite", create=True)
     try:
         imported = ProjectService(target)
         imported.import_snapshot(before)

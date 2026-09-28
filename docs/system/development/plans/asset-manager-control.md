@@ -85,3 +85,73 @@ README und Sichtprüfungsanleitung verwenden jetzt diesen Einstieg.
 Keine späteren Studio-Arbeitspakete, Originalassets oder Godot-Szenen geändert.
 Die echte Sichtprüfung am Benutzer-Desktop und andere Betriebssysteme bleiben
 offen; automatisierte Offscreen-Tests ersetzen diese Abnahme nicht.
+
+## Ergänzung 2026-09-28: pip-Reparatur und Upgrade über Control
+
+### Ausgangslage und Ziel
+
+Eine vorhandene `.venv` ohne pip besteht die Interpreterprüfung, blockiert aber
+bisher selbst `asset-manager install`. Der Benutzer möchte die Einrichtung
+vollständig über Control bedienen. Die gemeinsame Vorbereitung soll fehlendes
+pip mit dem eigenen Interpreter und `ensurepip --upgrade` ergänzen. Ein neuer
+Befehl `asset-manager upgrade` aktualisiert pip aus dem Python-Bestand und
+installiert die im Studio festgelegten Paketversionen mit `pip install --upgrade`.
+
+### Schritte und Fortschritt
+
+- [x] Vorhandene Vorbereitung, Diagnose, Tests und Stilregeln prüfen.
+- [x] Interpreterprüfung von pip-Verfügbarkeit trennen und Reparatur einbauen.
+- [x] Upgrade-Befehl einschließlich Core-Auswahl und Dry-run ergänzen.
+- [x] Regressionen für Reparatur, Upgrade, Fehler und Wiederholung prüfen.
+- [x] Befehle dokumentieren und Gesamtprüfung mit ihren Grenzen auswerten.
+
+### Entscheidungen und Grenzen
+
+Die Interpreterprüfung erfolgt vor jeder Reparatur. Eine passende vorhandene
+Umgebung wird weiterverwendet; fehlendes pip ist ein reparierbarer Zustand.
+`install`, `import`, `run` und Tests verwenden denselben Vorbereitungsweg.
+`doctor` bleibt lesend, Dry-run zeigt auch den Bootstrap-Befehl ohne Ausführung.
+Upgrade verwendet die bestehenden Paketvorgaben und legt keine neuen
+Abhängigkeiten fest. Systempakete, Spielinhalte und Studio-Projektdaten gehören
+nicht zu dieser Änderung.
+
+### Prüfungen und Erkenntnisse
+
+Vor der Änderung bestanden alle 56 Control-Tests für den Asset Manager.
+Die vorherige Projektsichtung meldete 1907 bestehende Stilprobleme. Zu Beginn
+fehlten in dieser Docker-Sitzung Godot und die Studio-Pakete. Für die echte
+Core-Prüfung wurden die bereits vorgegebenen Studio-Pakete anschließend über
+den neuen Upgrade-Befehl in der lokalen `.venv` installiert.
+
+- 82 gezielte Asset-Manager-Control-Tests bestanden. Darunter wird eine echte
+  temporäre `.venv` ohne pip offline repariert; der zweite Installationslauf
+  verwendet sie ohne erneuten Bootstrap. Die Studio-Pakete sind in diesem
+  einzelnen Test simuliert, `venv`, `ensurepip` und Umgebungsproben sind echt.
+- Geprüft sind außerdem Upgrade trotz bereits passender Pakete, Core-Auswahl,
+  Bootstrap-/Installationsfehler, falscher Interpreter, Dry-run mit und ohne
+  vorhandene `.venv`, lesender Doctor und erhaltene vorhandene Dateien.
+- Erweiterte Prüfung mit `test_asset_manager_control.py`, `test_cli.py`,
+  `test_install.py` und `test_control.py`: insgesamt 127 Tests bestanden.
+- Echter `python3 tools/control.py asset-manager upgrade --core`: erfolgreich,
+  einschließlich `ensurepip`, Paketinstallation, Versions-/Checkout-Prüfung,
+  `pip check` und Modulimporten. Anschließendes `install --core` erfolgreich
+  ohne erneute Installation. Eine Qt-Oberfläche wurde dabei nicht gestartet.
+- CLI-Hilfe und `upgrade --dry-run` erfolgreich. Alle vier geänderten
+  Python-Dateien ohne Stilbefund; `git diff --check` erfolgreich.
+- Vollständiger `python3 tools/control.py check`: 283 Tests bestanden,
+  37 übersprungen, vier Fehler im unveränderten Spiel-/Dokumentationsbestand:
+  erwartete Asset-Unterordner fehlen, explizite Fenstereinstellungen fehlen,
+  zwei Entscheidungsdokumente fehlen und dadurch sind 13 Links ungültig.
+  Die betroffenen Spiel-/Kanondateien und Tests stimmen mit `HEAD` überein.
+  Zusätzlich bestehen die 1907 Stilbefunde fort; Godot fehlt weiterhin, daher
+  konnten Ressourcenimport und Godot-Integration nicht ausgeführt werden.
+
+### Wiederholbarkeit und Ergebnis
+
+Die Reparatur ergänzt pip in der bestehenden `.venv`. Fehler stoppen weitere
+Einrichtung und Start; erneutes Ausführen erfolgt über denselben Control-Befehl.
+`install` und `run` behandeln damit den gemeldeten Fall ohne direkten
+`ensurepip`-Aufruf durch den Benutzer. `upgrade` ist als eigener Control-Befehl
+verfügbar; Einstiegshilfe, beide READMEs und Entwicklungsanleitung beschreiben
+den Ablauf. Die gezielten Prüfungen und echten Core-Einrichtungen bestehen;
+der Gesamtcheck bleibt wegen der oben aufgeführten Bestandsbefunde rot.

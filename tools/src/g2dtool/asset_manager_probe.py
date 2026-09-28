@@ -15,6 +15,12 @@ import sys
 
 
 def environment_checks(venv: Path) -> list[dict[str, str | bool]]:
+    """Check interpreter and pip availability without repairing the environment."""
+
+    return [*interpreter_checks(venv), *pip_checks()]
+
+
+def interpreter_checks(venv: Path) -> list[dict[str, str | bool]]:
     """Check the actual interpreter, not just the presence of an executable."""
 
     return [
@@ -24,8 +30,13 @@ def environment_checks(venv: Path) -> list[dict[str, str | bool]]:
             f"Interpreter prefix: {sys.prefix}; expected: {venv}",
         ),
         _check("Python", sys.version_info >= (3, 11), sys.version.split()[0]),
-        _check("pip", importlib.util.find_spec("pip") is not None, "Required inside .venv"),
     ]
+
+
+def pip_checks() -> list[dict[str, str | bool]]:
+    """Report whether this interpreter can find pip."""
+
+    return [_check("pip", importlib.util.find_spec("pip") is not None, "Required inside .venv")]
 
 
 def package_checks(studio: Path, *, core: bool) -> list[dict[str, str | bool]]:
@@ -96,7 +107,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
     """Emit a small JSON diagnostic payload for the Control parent process."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("environment", "packages", "runtime", "platform"))
+    parser.add_argument(
+        "mode", choices=("environment", "interpreter", "pip", "packages", "runtime", "platform"),
+    )
     parser.add_argument("--venv", type=Path, required=True)
     parser.add_argument("--studio", type=Path, required=True)
     parser.add_argument("--core", action="store_true")
@@ -104,6 +117,10 @@ def main(arguments: Sequence[str] | None = None) -> int:
     try:
         if args.mode == "environment":
             checks = environment_checks(args.venv)
+        elif args.mode == "interpreter":
+            checks = interpreter_checks(args.venv)
+        elif args.mode == "pip":
+            checks = pip_checks()
         elif args.mode == "packages":
             checks = package_checks(args.studio, core=args.core)
         elif args.mode == "runtime":

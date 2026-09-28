@@ -10,13 +10,17 @@ Vom Repository-Stamm starten:
 
 ```sh
 python3 tools/control.py asset-manager run
+python3 tools/control.py asset-manager install
+python3 tools/control.py asset-manager upgrade
 python3 tools/control.py asset-manager doctor
 python3 tools/control.py asset-manager test
 ```
 
-`run` richtet die lokale `.venv` und fehlende Python-Pakete automatisch ein;
+`run` richtet die lokale `.venv`, fehlendes pip und Python-Pakete automatisch ein;
 manuelles Aktivieren ist nicht nötig. `doctor` installiert nichts.
 `import`/`install` bereiten nur die Tool-Umgebung vor, nicht Spielassets.
+`upgrade` aktualisiert pip über `ensurepip` und die Studio-Pakete auf die
+im Projekt festgelegten Versionen.
 `pipeline-test` prüft die bestehenden Bildpipelines; `check` kombiniert
 Diagnose, Studio- und Pipeline-Tests. Für Tests ohne Qt: `test --core`.
 
