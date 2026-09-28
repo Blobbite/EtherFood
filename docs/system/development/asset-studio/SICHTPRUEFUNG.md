@@ -9,13 +9,15 @@ Die ausgegrauten Schaltflächen sind absichtlich nicht verfügbar.
 Im Repository-Stamm, mit Python 3.11 und funktionsfähigem Linux-Desktop:
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -e './tools/AssetManager[test,gui]'
-.venv/bin/python tools/AssetManager/studio.py gui
+python3 tools/control.py asset-manager run
 ```
 
-Ein vorhandenes Studio-Projekt lässt sich mit `gui --project <projektordner>`
-öffnen. Einen **neuen leeren Testordner außerhalb des Repositorys** verwenden,
+Die lokale `.venv` und fehlende Python-Pakete werden beim ersten Start
+automatisch eingerichtet; eine manuelle Aktivierung ist nicht nötig.
+`python3 tools/control.py asset-manager doctor` prüft die Voraussetzungen,
+ohne etwas zu installieren. Ein vorhandenes Studio-Projekt lässt sich mit
+`python3 tools/control.py asset-manager run --project <projektordner>` öffnen.
+Einen **neuen leeren Testordner außerhalb des Repositorys** verwenden,
 nicht `game/assets`, `game/test_assets` oder einen Originalgrafikordner.
 Optionale Wurzeln dürfen für diese erste Sichtprüfung frei bleiben.
 Ein Studio-Projekt ist ein Verwaltungskatalog, nicht das Godot-Projekt selbst.

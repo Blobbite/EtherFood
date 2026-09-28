@@ -25,7 +25,7 @@ var cycle_enabled := false
 var cycle_phase := 0.0
 var lamps_enabled := true
 var particles_enabled := false
-var graphics_variant: StringName = &"test"
+var graphics_variant: StringName = &"comic_high"
 var _lamps: Array[PointLight2D] = []
 var _particles: Array[CPUParticles2D] = []
 var _sample_bindings: Array[Dictionary] = []
@@ -46,7 +46,7 @@ func _process(delta: float) -> void:
 
 
 func set_graphics_variant(graphics_id: StringName) -> void:
-	graphics_variant = PortalGraphics.variant_for_graphics(graphics_id)
+	graphics_variant = PortalGraphics.temple_variant(graphics_id)
 	floor_grid.set_graphics_variant(graphics_variant)
 	for door in portals.get_children():
 		(door as PortalDoor).set_graphics_variant(graphics_variant)

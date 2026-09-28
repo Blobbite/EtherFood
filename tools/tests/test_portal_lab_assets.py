@@ -11,6 +11,12 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOT = REPOSITORY_ROOT / "game/test_assets/environment/locations/portal_lab"
 TEST_ASSET_ROOT = ASSET_ROOT / "test"
 ASSET_NAMES = {"door", "crate", "lamp", "monster", "particle", "floor_tile"}
+TEMPLE_ROOT = REPOSITORY_ROOT / "game/test_assets/environment/tilesets/temple"
+TEMPLE_VARIANTS = ("comic_high", "comic_mid", "comic_low", "pixel_high", "pixel_low")
+FLOOR_MOTIFS = {
+    "cyan_ornate", "cyan_panels", "framed_stone", "octagonal_stone", "ornate",
+    "plain", "riveted_metal", "staggered_stone", "stone_grid",
+}
 PALETTE = {
     "#101c28", "#1b2e40", "#263d50", "#304b61",
     "#45667c", "#7295aa", "#acc4d2", "#d8e6ee",
@@ -18,6 +24,35 @@ PALETTE = {
 
 
 class PortalLabAssetTests(unittest.TestCase):
+    def test_all_five_temple_variants_have_the_complete_surface_set(self) -> None:
+        surfaces = {
+            "floors": {f"blueprinttempel_floor_blueprint_{motif}.png" for motif in FLOOR_MOTIFS},
+            "walls": {"blueprinttempel_wall_blueprint_cyan_blocks.png"},
+            "roofs": {"blueprinttempel_roof_texture_stone_shingles.png"},
+        }
+        for surface, names in surfaces.items():
+            for variant in TEMPLE_VARIANTS:
+                with self.subTest(surface=surface, variant=variant):
+                    directory = TEMPLE_ROOT / surface / "blueprint" / variant
+                    self.assertEqual({path.name for path in directory.glob("*.png")}, names)
+
+    def test_temple_imports_keep_native_resolution_and_lossless_pixels(self) -> None:
+        dimensions = dict(zip(TEMPLE_VARIANTS, (1254, 627, 314, 128, 115)))
+        files = list(TEMPLE_ROOT.rglob("*.png"))
+        self.assertEqual(len(files), 55)
+        for path in files:
+            with self.subTest(asset=path.relative_to(TEMPLE_ROOT)):
+                with path.open("rb") as source:
+                    header = source.read(24)
+                self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
+                size = dimensions[path.parent.name]
+                self.assertEqual(struct.unpack(">II", header[16:24]), (size, size))
+                settings = path.with_suffix(".png.import").read_text()
+                for option in ("compress/mode=0", "mipmaps/generate=false", "process/size_limit=0"):
+                    self.assertIn(option, settings)
+                resource = path.relative_to(REPOSITORY_ROOT / "game").as_posix()
+                self.assertIn(f'source_file="res://{resource}"', settings)
+
     def test_both_variants_contain_the_complete_blueprint_set(self) -> None:
         for variant, extension in (("test", "svg"), ("pixelart", "png")):
             with self.subTest(variant=variant):

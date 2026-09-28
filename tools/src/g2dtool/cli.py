@@ -9,6 +9,7 @@ import subprocess
 import textwrap
 
 from g2dtool import __version__
+from g2dtool.asset_manager import add_asset_manager_parser
 from g2dtool.check import run_check
 from g2dtool.config import ProjectConfigError
 from g2dtool.doctor import collect_doctor_report, format_doctor_report
@@ -60,6 +61,12 @@ WELCOME_TEXT = textwrap.dedent(
       python tools/control.py godot4 test
       python tools/control.py forge2d-template run
       python tools/control.py Forge2D-Template run
+
+    🧩 Run or test Asset Studio
+      python tools/control.py asset-manager run
+      python tools/control.py asset-manager doctor
+      python tools/control.py asset-manager test
+      python tools/control.py asset-manager check
     """
 )
 
@@ -83,10 +90,14 @@ def build_parser(prog: str = "g2d") -> argparse.ArgumentParser:
               python tools/control.py godot4 test
               python tools/control.py forge2d-template run
               python tools/control.py Forge2D-Template run
+              python tools/control.py asset-manager run
+              python tools/control.py asset-manager doctor
+              python tools/control.py asset-manager test
             """
         ),
     )
     commands = parser.add_subparsers(dest="command", required=True)
+    add_asset_manager_parser(commands)
 
     version_parser = commands.add_parser("version", help="show the tooling version")
     version_parser.set_defaults(handler=_show_version)

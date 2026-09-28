@@ -22,8 +22,9 @@ Stand: 12. September 2026.
 Das Labor beginnt jetzt im erweiterbaren
 [Portalturm mit neun getrennten Testräumen](portal-testlabor.md).
 Die frühere gemeinsame Fläche entfällt; ihre Vorschauen liegen im Objekt-,
-Nebel-, Tag-Nacht- und Weltzustandsraum. Blueprint-Boden, Türen und neue
-Platzhalter verwenden HD-Texturen mit acht Blau-Grau-Grundfarben.
+Nebel-, Tag-Nacht- und Weltzustandsraum. Boden, Wand und Dach verwenden die
+Blueprint-Tempeltexturen in fünf Grafikstufen; Türen und Platzhalter behalten
+ihre bisherigen Bildsätze.
 
 Die auf dieser Seite festgelegte `F5`-Steuerung bleibt erhalten. Das
 Testlabor verwendet ein Themenmenü, trennt lokale Testwerte von versionierten
@@ -31,17 +32,17 @@ Spielstandards und kennzeichnet letztere mit goldenem Rahmen und Stern. Die
 früheren Direktkürzel der einzelnen Testparameter sind entfernt.
 
 Unter `Darstellung` kann der Laborheld zwischen Comic High, Comic Mittel,
-Comic Low, Pixel Art High und Pixel Art Low umgeschaltet werden. Eine zweite
+Comic Low, Pixel Art High und Pixel Art Low umgeschaltet werden.
 Die Darstellung besitzt zwei getrennte Spalten: links wählt man 8, 10, 12,
 14 oder 16 Frames, rechts `Neu` oder die Wiedergabe in 8, 10, 12, 14 oder
 16 FPS. Ein Klick auf Frames setzt die FPS-Spalte auf `Neu`; so kann jede
 Frames/FPS-Kombination unabhängig verglichen werden.
-Dieselbe Grafikauswahl schaltet die Blueprint-Texturen des Portal-Labors;
-Pixelvarianten verwenden `portal_lab/pixelart`, Comicvarianten
-`portal_lab/test`.
-Diese Auswahl
-ist ein lokaler Sichtvergleich und ausdrücklich kein übernehmbarer
-Spielstandard.
+Dieselbe Grafikauswahl schaltet Boden, Wand und Dach unter
+`tilesets/temple/<Fläche>/blueprint/<Grafikstufe>`. **Tempelboden** wählt
+zusätzlich eines von neun Bodenmotiven. Türen und Testobjekte verwenden
+weiterhin `portal_lab/pixelart` beziehungsweise `portal_lab/test`.
+Grafikstufe und Bodenmotiv sind lokale Sichtvergleiche und ausdrücklich
+keine übernehmbaren Spielstandards.
 
 Die Neufassung ändert für sich genommen keinen bereits angenommenen Wert.
 Insbesondere bleibt [Maßstab V0](#maßstab-v0) bestehen, bis im Labor ein
@@ -211,7 +212,9 @@ Der lokale Arbeitsstand verwendet Speicherschema 5. Neben
 Die Gameplay-Regler werden als begrenzte Zahlenwerte gespeichert;
 `hero_graphics` merkt die fünf Grafik-IDs, `hero_frames` die Sprite-Framezahl
 und `hero_fps` die gewählte Wiedergabe-FPS (`new` bedeutet noch keine
-Zuordnung). Gültige Werte der Versionen 1 bis 4 werden beim Laden übernommen
+Zuordnung). `temple_floor` speichert zusätzlich das Bodenmotiv; bei fehlenden
+oder ungültigen Werten gilt `ornate` (Ornamente).
+Gültige Werte der Versionen 1 bis 4 werden beim Laden übernommen
 und unmittelbar in das neue Schema geschrieben. Fehlt die Grafikauswahl,
 bleibt `comic_high` bei 8 Frames und 8 FPS aktiv; andere fehlende
 oder ungültige Werte fallen auf ihren jeweiligen Spielstandard zurück.
@@ -498,7 +501,8 @@ Varianten bleiben für spätere Regressionen verfügbar.
 Im Thema `Darstellung` steht oberhalb von Pixel-Snap und Texturfilter die
 gemeinsame Auswahl `Grafik: Figur und Portal-Labor` mit `Comic High`,
 `Comic Mittel`, `Comic Low`, `Pixel Art High` und `Pixel Art Low`. Darunter
-stehen Frames- und FPS-Spalte nebeneinander. Der aktuelle Wert wird markiert
+steht die Motivauswahl **Tempelboden**, gefolgt von Frames- und FPS-Spalte.
+Der aktuelle Wert wird markiert
 und lokal gespeichert. Die gewählte Frames/FPS-Kombination kann mit dem
 Übernahmeknopf oder `Strg + Alt + E` als Spielstandard gespeichert werden;
 `Neu` bleibt eine reine Vergleichsauswahl. Die Grafikvariante bleibt ein

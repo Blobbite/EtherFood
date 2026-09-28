@@ -6,7 +6,7 @@
 
 ## Zugang und Bedienung
 
-Stand: 12. September 2026.
+Stand: 27. September 2026.
 
 Das **Visuelle Testlabor** im Entwicklungsmenü öffnet den Portalturm.
 Der Held startet in dessen Mitte. Neun beschriftete Türen stehen auf einem
@@ -36,7 +36,7 @@ pausiert beim Verlassen seines Raums.
 | Raum | Inhalt und Bedienung |
 |---|---|
 | Lampenraum | Drei Lampen mit Lichtstärken 0,5, 1,0 und 1,5; gemeinsam ein-/ausschaltbar. |
-| Sprite-Testraum | Statische Vergleichsfiguren für HD, Pixel Art, Ultra und Testversion. Die bewegliche Figur verwendet die Auswahl unter `F5 → Darstellung`. |
+| Sprite-Testraum | Fünf statische Vergleichsfiguren für die Comic- und Pixel-Art-Stufen. Die bewegliche Figur verwendet die Auswahl unter `F5 → Darstellung`. |
 | Monsterraum | Drei unbewegte Gegnerplatzhalter in unterschiedlichen Größen. |
 | Shaderraum | Drei statische Objektflächen als Vorbereitung für spätere Shaderversuche. |
 | Objekt-Testraum | Bisherige Größenreferenzen, Bodenraster und Kollisionshindernis sowie drei neue Objektplatzhalter. |
@@ -80,15 +80,19 @@ unabhängige Texturfiltervergleich wirkt auch auf die Seelenanimation.
 
 ## Blueprint-Gestaltung
 
-Der Turm verwendet einen kreisförmigen Boden mit umschaltbarer Textur,
-Rasterlinien, Markierungen und statischen Türgrafiken. Ein äußerer Kollisionsring
-begrenzt die begehbare Fläche.
+Der Turm verwendet einen kreisförmigen Boden aus den neuen Blueprint-Tempeltexturen,
+Rasterlinien, Markierungen und statischen Türgrafiken. Wandblöcke und
+Dachschindeln bilden zwei je 32 Weltpixel breite Streifen außerhalb der
+Bodenfläche. In den Fachräumen verläuft dieser Rand rechteckig. Das Dach
+verdeckt den Innenraum nicht. Der bestehende Kollisionsring begrenzt weiterhin
+die begehbare Fläche des Turms.
 Die Boden-Rastergröße folgt `F5 → Maßstab → Tilegröße` mit 32, 48 oder 64 Pixeln,
 ohne Objekte oder Türen zu skalieren. Die Fußbodenkomponente bietet im
 Godot-Inspector zusätzlich Größe und Radius der Fläche an.
 
-Die SVG-Testvorlagen und gezeichneten Bodenmarkierungen verwenden acht
-Blau-Grau-Grundfarben:
+Die gezeichneten Bodenmarkierungen und die weiterhin verwendeten
+SVG-Testobjekte verwenden acht Blau-Grau-Grundfarben. Die gelieferten
+Tempel-PNGs behalten ihre eigenen Farben:
 
 | Verwendung | Farbe |
 |---|---|
@@ -108,7 +112,7 @@ Tag-Nacht-Raum statt. Der Turm behält neutrales Umgebungslicht; die Seele
 ergänzt ein schwaches, räumlich begrenztes blaues Licht.
 
 Die SVG-Testvorlagen liegen unter
-`game/test_assets/environment/locations/portal_lab/test/`. Bodenplatte, Tür, Lampe, Objekt,
+`game/test_assets/environment/locations/portal_lab/test/`. Tür, Lampe, Objekt,
 Monster und Partikel besitzen mindestens 1024 Pixel auf der längeren Seite.
 Feine Konturen und Vektorformen ersetzen grobe Pixelstufen. Godot importiert
 die Texturen verlustfrei in nativer HD-Größe; die sichtbare Größe im Raum
@@ -118,31 +122,45 @@ Es sind noch keine freigegebenen Spielassets.
 
 ## F5-Grafikvarianten für Figur und Portal-Labor
 
-Seit dem 12. September 2026 schaltet die bestehende Auswahl unter
-`F5 → Darstellung → Grafik: Figur und Portal-Labor` auch Boden, Hin- und
-Rückportale, Lampen, Objekt- und Shaderproben, Monsterplatzhalter und
-Partikel um. Die Wahl gilt sofort im geöffneten Raum und wird bei allen
-weiteren Raumwechseln sowie nach einem Neustart wieder verwendet.
+Unter `F5 → Darstellung → Grafik: Figur und Portal-Labor` schalten fünf
+Schaltflächen die Figur sowie Boden, Wand und Dach des Blueprint-Tempels um.
+Jede Stufe lädt einen eigenen Tempelbildsatz. Die Wahl gilt sofort im
+geöffneten Raum und bleibt bei Raumwechseln sowie nach einem Neustart erhalten.
 
-| Auswahl | Bildsatz unter `game/test_assets/environment/locations/portal_lab/` |
-|---|---|
-| Pixel Art | Benutzer-PNGs unter `pixelart/` |
-| Testversion | Testvorlagen unter `test/` |
-| HD | Vorläufig die HD-Testvorlagen unter `test/` |
-| Ultra | Vorläufig die HD-Testvorlagen unter `test/` |
+| Auswahl | Tempelordner unter `<Fläche>/blueprint/` | Native PNG-Größe |
+|---|---|---|
+| Comic High | `comic_high` | 1254 × 1254 |
+| Comic Mittel | `comic_mid` | 627 × 627 |
+| Comic Low | `comic_low` | 314 × 314 |
+| Pixel Art High | `pixel_high` | 128 × 128 |
+| Pixel Art Low | `pixel_low` | 115 × 115 |
 
-HD und Ultra haben derzeit keinen eigenen Portal-Bildsatz. Das F5-Menü
-zeigt deshalb zusätzlich zum Figurenstatus den tatsächlich verwendeten
-Portal-Bildsatz. F11 enthält dieselbe Zuordnung in der Spieldiagnose.
-Die vier Vergleichsfiguren im Sprite-Testraum bleiben gleichzeitig sichtbar.
+Die 55 PNGs liegen unter `game/test_assets/environment/tilesets/temple/`.
+`<Fläche>` steht für `floors`, `walls` oder `roofs`. Sie werden verlustfrei
+in nativer Auflösung importiert. Eine vollständige Textur wiederholt sich
+über vier eingestellte Tiles; die Weltgröße hängt somit nicht von der
+PNG-Auflösung ab.
 
-`portal_graphics.gd` ordnet die sechs Namen `floor_tile`, `door`, `lamp`,
-`crate`, `monster` und `particle` ihren Dateien zu. Gleichnamige PNGs haben
-Vorrang vor SVGs. Fehlende Einzeldateien verwenden die mitgelieferte
-SVG-Testvorlage. Neue oder ersetzte Dateien müssen zunächst von Godot
-importiert werden. Die Benutzer-PNGs werden unverändert eingebunden.
-Der aktuelle Pixel-Art-Bildsatz hat keinen Alphakanal; seine schwarzen
-Bildhintergründe bleiben sichtbar, bis freigestellte PNGs eingesetzt werden.
+Direkt darunter wählt **Tempelboden** eines von neun Motiven: Ornamente,
+Schlicht, Cyan-Ornamente, Cyan-Platten, Gerahmter Stein, Achteckiger Stein,
+Genietetes Metall, Versetzter Stein und Steinraster. Ausgangswert ist
+Ornamente. Das Motiv gilt für alle Portalräume und bleibt bei einem Wechsel
+der Grafikstufe erhalten. Gespeichert wird die stabile Motiv-ID unter
+`temple_floor`; fehlende oder ungültige Werte verwenden Ornamente. Diese
+Auswahl ist ein lokaler Testwert und kein übernehmbarer Spielstandard.
+
+Hin- und Rückportale, Lampen, Objekt- und Shaderproben, Monsterplatzhalter und
+Partikel verwenden weiterhin `environment/locations/portal_lab/`: Comicstufen
+nutzen `test`, Pixelstufen `pixelart`. Das Tempelpaket enthält für diese
+Objekte keine neuen Sprites. F5 und F11 nennen deshalb Tempelstufe und
+Objektbildsatz getrennt. Die fünf Vergleichsfiguren bleiben gleichzeitig
+sichtbar. Die alten `floor_tile`-Dateien sind nicht mehr als Laborboden eingebunden.
+
+`portal_graphics.gd` bündelt die Tempelzuordnung und die bisherigen Objektbilder.
+Bei Objekten haben gleichnamige PNGs Vorrang vor SVGs; fehlende Einzeldateien
+verwenden die SVG-Testvorlage. Die schwarzen Hintergründe der bisherigen
+Pixel-Art-Objektbilder bleiben eine Eigenschaft dieser PNGs. Neue oder ersetzte
+Dateien müssen zunächst von Godot importiert werden.
 
 Alle Objektgrößen und Bodenanker sind unabhängig von der nativen Auflösung.
 Der Wechsel baut den Raum nicht neu auf und erhält Portalpositionen,
@@ -181,10 +199,12 @@ Raum eingeblendet. Gemeinsame Spiel- und Testeinstellungen verwaltet weiterhin
 durch alle neun Türen, sichere Ankunft, gehaltene Bewegung, fremde Körper,
 Raumzustände, gemeinsame Testwerte, getrennte Effekte und einen auf 33 Räume
 erweiterten Katalog. `portal_lab_graphics_test.gd` prüft die echten
-F5-Menüschalter, alle sechs Texturarten in sämtlichen Räumen, gespeicherte
-Auswahl, Weltgrößen, Anker und unveränderte Raumeigenschaften.
-`tools/tests/test_portal_lab_assets.py` prüft die Vollständigkeit beider
-Bildsätze, die SVG-Palette, Auflösungen, Vektorgeometrie, neue Pfade und Importe.
+F5-Menüschalter, alle fünf Grafikstufen und neun Bodenmotive, Wand und Dach,
+gespeicherte und ungültige Auswahlwerte, Raumwechsel, Weltgrößen, Anker,
+unabhängige Filter und unveränderte Raumeigenschaften.
+`tools/tests/test_portal_lab_assets.py` prüft die Vollständigkeit der 55
+Tempel-PNGs samt nativer Importe sowie die bisherigen Objektbildsätze,
+SVG-Palette und Vektorgeometrie.
 `portal_lab_soul_test.gd` prüft die drei gelieferten Raster, Reichweite,
 Gespräch und automatische Rückkehr zu Idle, Esc, F5, wiederholte Eingaben,
 alle acht Abschiedsframes, das Erlöschen des Lichts und die Zustände bei
@@ -199,3 +219,5 @@ Umsetzung und tatsächlich ausgeführte Abschlussprüfungen stehen im
 Die spätere gemeinsame Grafikumschaltung ist im
 [F5-Erweiterungsplan](../plans/portal-labor-grafikvarianten.md) dokumentiert.
 Die Seelenprobe steht im [Seelen-Arbeitsplan](../plans/seele-im-portalturm.md).
+Die neuen Texturen stehen im
+[Tempel-Arbeitsplan](../plans/blueprint-tempel-texturen.md).

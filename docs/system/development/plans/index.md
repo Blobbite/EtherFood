@@ -8,11 +8,13 @@
 ## Inhalt
 
 ### Seiten
+- [Arbeitsplan: Asset Manager über Control steuern](asset-manager-control.md)
 - [Asset Studio: zusammenhängende GitHub-Issues](asset-studio-github-issues.md)
 - [Asset Studio: Pakete 1 bis 4](asset-studio-pakete-1-bis-4.md)
 - [Arbeitsplan: <Meilenstein>](_execplan-template.md)
 - [Arbeitsplan: Begehbarer Heldenraum](begehbarer-heldenraum.md)
 - [Arbeitsplan: Bewegungssteuerung V0](bewegungssteuerung-v0.md)
+- [Arbeitsplan: Blueprint-Tempeltexturen im F5-Labor](blueprint-tempel-texturen.md)
 - [Arbeitsplan: Spieldiagnose auf F11 und Leistungsanzeige auf F12](diagnose-f11-und-leistung-f12.md)
 - [Arbeitsplan: Dokumentationsstruktur System, Game und Release](dokumentationsstruktur-system-game-release.md)
 - [Arbeitsplan zur Vereinfachung der Dokumentation](dokumentationsvereinfachung.md)

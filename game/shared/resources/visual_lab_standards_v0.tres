@@ -9,9 +9,8 @@
 
 [resource]
 script = ExtResource("1_standards")
-hero_frame_count = 8
-hero_fps = 8
 scale_profile = ExtResource("2_scale")
+hero_frame_count = 16
 world_camera_profile = ExtResource("3_world")
 village_camera_profile = ExtResource("4_village")
 village_inherits_world = false

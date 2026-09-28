@@ -8,9 +8,16 @@ Bildpipelines und Godot-Bereitstellung sind noch nicht angebunden.
 Vom Repository-Stamm starten:
 
 ```sh
-.venv/bin/python -m pip install -e './tools/AssetManager[test,gui]'
-.venv/bin/python tools/AssetManager/studio.py gui
+python3 tools/control.py asset-manager run
+python3 tools/control.py asset-manager doctor
+python3 tools/control.py asset-manager test
 ```
+
+`run` richtet die lokale `.venv` und fehlende Python-Pakete automatisch ein;
+manuelles Aktivieren ist nicht nötig. `doctor` installiert nichts.
+`import`/`install` bereiten nur die Tool-Umgebung vor, nicht Spielassets.
+`pipeline-test` prüft die bestehenden Bildpipelines; `check` kombiniert
+Diagnose, Studio- und Pipeline-Tests. Für Tests ohne Qt: `test --core`.
 
 - [Entwicklung und Voraussetzungen](../../docs/system/development/asset-studio/DEVELOPMENT.md)
 - [Anleitung zur ersten Sichtprüfung](../../docs/system/development/asset-studio/SICHTPRUEFUNG.md)

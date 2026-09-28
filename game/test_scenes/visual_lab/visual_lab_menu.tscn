@@ -353,14 +353,26 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.66, 0.82, 0.55, 1)
 theme_override_font_sizes/font_size = 15
 autowrap_mode = 2
-text = "Portal-Labor: Testvorlagen (für Comic High)"
+text = "Blueprint-Tempel: Comic High · Boden, Wand und Dach"
 
 [node name="HeroGraphicsHint" type="Label" parent="Menu/Pages/RenderingPage/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.68, 0.7, 1)
 theme_override_font_sizes/font_size = 14
 autowrap_mode = 2
-text = "Wechselt Figur, Frames/FPS, Boden, Türen und Testobjekte gemeinsam."
+text = "Wechselt Figur und Tempeltexturen gemeinsam. Das Bodenmotiv ist separat wählbar."
+
+[node name="TempleFloorLabel" type="Label" parent="Menu/Pages/RenderingPage/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.76, 0.77, 1)
+theme_override_font_sizes/font_size = 17
+text = "Tempelboden"
+
+[node name="TempleFloorOption" type="OptionButton" parent="Menu/Pages/RenderingPage/Content"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+tooltip_text = "Bodenmotiv für alle Portalräume. Bleibt beim Grafikwechsel erhalten."
 
 [node name="HeroGraphicsSeparator" type="HSeparator" parent="Menu/Pages/RenderingPage/Content"]
 layout_mode = 2

@@ -38,6 +38,9 @@ class CliTests(unittest.TestCase):
         self.assertIn("python tools/control.py godot4 import", text)
         self.assertIn("python tools/control.py godot4 test", text)
         self.assertIn("python tools/control.py Forge2D-Template run", text)
+        self.assertIn("python tools/control.py asset-manager run", text)
+        self.assertIn("python tools/control.py asset-manager doctor", text)
+        self.assertIn("python tools/control.py asset-manager test", text)
 
     def test_welcome_text_contains_resource_import_command(self) -> None:
         self.assertIn("python tools/control.py godot4 import", WELCOME_TEXT)

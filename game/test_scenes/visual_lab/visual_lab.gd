@@ -242,6 +242,7 @@ var _selected_camera_zooms: Array[int] = [
 ]
 var _selected_hero_size: int = HeroSizePreset.MEDIUM
 var _selected_hero_graphics: int = HeroGraphicsPreset.COMIC_HIGH
+var _selected_temple_floor := 0
 var _selected_hero_frames: int = HeroFpsPreset.FPS_8
 var _selected_hero_fps: int = HeroFpsPreset.FPS_8
 var _selected_tile_size: int = TileSizePreset.SMALL
@@ -566,7 +567,21 @@ func _apply_portal_graphics() -> void:
 	var graphics_id := StringName(HERO_GRAPHICS_IDS[_selected_hero_graphics])
 	if lab_navigation.current_room != null:
 		lab_navigation.current_room.set_graphics_variant(graphics_id)
+		lab_navigation.current_room.floor_grid.set_floor_motif(
+			PortalGraphics.FLOOR_IDS[_selected_temple_floor],
+		)
 	controls_interface.portal_graphics_status.text = PortalGraphics.status_text(graphics_id)
+
+
+func _set_temple_floor(option_index: int) -> void:
+	_selected_temple_floor = clampi(option_index, 0, PortalGraphics.FLOOR_IDS.size() - 1)
+	if lab_navigation.current_room != null:
+		lab_navigation.current_room.floor_grid.set_floor_motif(
+			PortalGraphics.FLOOR_IDS[_selected_temple_floor],
+		)
+	_save_settings()
+	_refresh_menu()
+	_refresh_diagnostics_if_visible()
 
 
 func _change_tile_size(direction: int) -> void:
@@ -890,6 +905,7 @@ func _update_diagnostics_values() -> void:
 			"Hero-Quelle: %s" % _hero_animation_source_path(),
 			"Hero-Grafik: %s" % _hero_graphics_name(),
 			PortalGraphics.status_text(StringName(HERO_GRAPHICS_IDS[_selected_hero_graphics])),
+			"Tempelboden: %s" % PortalGraphics.FLOOR_NAMES[_selected_temple_floor],
 			"Figur: %d px" % roundi(hero_character.get_appearance_height()),
 			"Tiles: %d × %d px" % [tile_size, tile_size],
 			"Weltzustand: %s" % WORLD_STATE_NAMES[_selected_world_state],
@@ -1180,6 +1196,9 @@ func _load_current_settings(settings: ConfigFile) -> void:
 
 
 func _load_shared_settings(settings: ConfigFile) -> void:
+	_selected_temple_floor = _read_preset_index(
+		settings, "temple_floor", PortalGraphics.FLOOR_IDS, 0,
+	)
 	_selected_hero_size = _read_preset_index(
 		settings,
 		"hero_size",
@@ -1298,6 +1317,9 @@ func _save_settings() -> void:
 		SETTINGS_SECTION,
 		"hero_graphics",
 		HERO_GRAPHICS_IDS[_selected_hero_graphics],
+	)
+	settings.set_value(
+		SETTINGS_SECTION, "temple_floor", PortalGraphics.FLOOR_IDS[_selected_temple_floor],
 	)
 	settings.set_value(
 		SETTINGS_SECTION,
@@ -1539,6 +1561,7 @@ func _refresh_menu() -> void:
 		VisualLabMenuScript.SETTING_HERO_GRAPHICS,
 		_selected_hero_graphics,
 	)
+	controls_interface.update_temple_floor(_selected_temple_floor)
 	controls_interface.update_setting(
 		VisualLabMenuScript.SETTING_HERO_FRAMES,
 		_selected_hero_frames,
@@ -1706,6 +1729,8 @@ func _on_menu_option_selected(setting_id: StringName, option_index: int) -> void
 			_set_hero_size(option_index)
 		VisualLabMenuScript.SETTING_HERO_GRAPHICS:
 			_set_hero_graphics(option_index)
+		VisualLabMenuScript.SETTING_TEMPLE_FLOOR:
+			_set_temple_floor(option_index)
 		VisualLabMenuScript.SETTING_HERO_FRAMES:
 			_set_hero_frames(option_index)
 		VisualLabMenuScript.SETTING_HERO_FPS:

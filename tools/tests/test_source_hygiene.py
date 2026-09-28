@@ -63,6 +63,7 @@ class SourceHygieneTests(unittest.TestCase):
             REPOSITORY_ROOT / "tools" / "src" / "g2dtool" / "godot.py",
             REPOSITORY_ROOT / "tools" / "src" / "g2dtool" / "export.py",
             REPOSITORY_ROOT / "tools" / "src" / "g2dtool" / "release.py",
+            REPOSITORY_ROOT / "tools" / "src" / "g2dtool" / "asset_manager.py",
         )
         for target in targets:
             self.assertNotIn("shell=True", target.read_text(encoding="utf-8"))

@@ -55,6 +55,36 @@ Auf Systemen ohne `python` kann `python3` beziehungsweise unter Windows
 `py -3.11` verwendet werden. Abhängigkeiten gehören in die lokale `.venv` und
 nicht in die systemweite Python-Installation.
 
+## Asset Manager starten
+
+Der Asset Manager (`EtherFood Asset Studio`) verwaltet Projekte, Assets,
+Dokumente und Aufgaben. Er wird ebenfalls zentral über Control gesteuert:
+
+```sh
+python tools/control.py asset-manager run
+python tools/control.py asset-manager doctor
+python tools/control.py asset-manager install --dry-run
+python tools/control.py asset-manager import
+python tools/control.py asset-manager test
+python tools/control.py asset-manager pipeline-test
+python tools/control.py asset-manager check
+```
+
+`run` legt beim ersten Start eine fehlende `.venv` an, installiert die benötigten
+Python-Pakete darin und öffnet das Studio. Eine manuelle Aktivierung entfällt;
+spätere Starts verwenden die passende Installation wieder. `doctor` prüft nur
+und meldet fehlende Pakete oder Qt-Systembibliotheken. `import` bereitet wie
+`install` nur die Tool-Umgebung samt Python-Modulen vor, **keine Spielgrafiken**.
+`test` prüft das Studio einschließlich Oberfläche ohne sichtbares Fenster;
+`check` ergänzt die vorhandenen Pipeline-Tests. Ohne Qt: `test --core`.
+
+Für den ersten Start „Neues Projekt“ mit einem leeren Testordner außerhalb
+des Repositorys wählen, danach „Demo anlegen“.
+Die Bildpipelines und die Godot-Bereitstellung sind noch nicht an die Oberfläche
+angebunden. Befehle und Voraussetzungen (einschließlich Qt-Systembibliotheken) stehen unter
+[Entwicklung und Start](docs/system/development/asset-studio/DEVELOPMENT.md),
+die Klickfolge unter [Erste Sichtprüfung](docs/system/development/asset-studio/SICHTPRUEFUNG.md).
+
 ## Mitarbeit
 
 Kanon- und Handlungsdokumentation wird während der Konzeptphase direkt auf

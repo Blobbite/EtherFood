@@ -9,6 +9,7 @@ signal close_requested
 const NumericSettingScript := preload(
 	"res://test_scenes/visual_lab/visual_lab_numeric_setting.gd"
 )
+const PortalGraphics := preload("res://test_scenes/environment/portal_lab/portal_graphics.gd")
 const HERO_FRAMES_BUTTON_PATH := (
 	"Menu/Pages/RenderingPage/Content/HeroAnimationOptions/"
 	+ "HeroFramesColumn/HeroFramesOptions/"
@@ -23,6 +24,7 @@ const SETTING_CAMERA_ZOOM := &"camera_zoom"
 const SETTING_HERO_SIZE := &"hero_size"
 const SETTING_TILE_SIZE := &"tile_size"
 const SETTING_HERO_GRAPHICS := &"hero_graphics"
+const SETTING_TEMPLE_FLOOR := &"temple_floor"
 const SETTING_HERO_FRAMES := &"hero_frames"
 const SETTING_HERO_FPS := &"hero_fps"
 const SETTING_PIXEL_SNAP := &"pixel_snap"
@@ -89,6 +91,9 @@ const TAB_PRIMARY_SETTINGS: Array[StringName] = [
 )
 @onready var portal_graphics_status: Label = (
 	$Menu/Pages/RenderingPage/Content/PortalGraphicsStatus
+)
+@onready var temple_floor_option: OptionButton = (
+	$Menu/Pages/RenderingPage/Content/TempleFloorOption
 )
 @onready var world_state_status: Label = (
 	$Menu/Pages/WorldPage/Content/WorldStateStatus
@@ -235,10 +240,26 @@ func _ready() -> void:
 	_register_tabs()
 	_register_settings()
 	_register_numeric_settings()
+	for label in PortalGraphics.FLOOR_NAMES:
+		temple_floor_option.add_item(label)
+	temple_floor_option.item_selected.connect(_on_temple_floor_selected)
+	temple_floor_option.focus_entered.connect(_on_setting_focused.bind(SETTING_TEMPLE_FLOOR))
+	_apply_base_button_theme(temple_floor_option)
+	var floor_popup := temple_floor_option.get_popup()
+	floor_popup.add_theme_stylebox_override("panel", _normal_style)
+	floor_popup.add_theme_stylebox_override("hover", _hover_style)
+	floor_popup.add_theme_color_override("font_color", Color(0.84, 0.87, 0.86, 1))
+	floor_popup.add_theme_color_override("font_hover_color", Color(0.96, 0.98, 0.97, 1))
+	floor_popup.add_theme_font_size_override("font_size", 17)
 	_accept_button.pressed.connect(_on_accept_button_pressed)
 	_close_button.pressed.connect(_on_close_button_pressed)
 	_select_tab(0, false)
 	show_feedback("Wähle einen Testwert zum Vergleichen.")
+
+
+func update_temple_floor(option_index: int) -> void:
+	temple_floor_option.select(option_index)
+	_current_indices[SETTING_TEMPLE_FLOOR] = option_index
 
 
 ## Updates labels for a setting whose option names depend on another selection.
@@ -557,6 +578,9 @@ func _select_tab(tab_index: int, focus_page: bool = true) -> void:
 
 
 func _focus_setting(setting_id: StringName) -> void:
+	if setting_id == SETTING_TEMPLE_FLOOR:
+		temple_floor_option.grab_focus()
+		return
 	var numeric_setting := _numeric_by_setting.get(setting_id) as NumericSettingScript
 	if numeric_setting != null:
 		numeric_setting.grab_slider_focus()
@@ -691,6 +715,11 @@ func _on_close_button_pressed() -> void:
 	close_requested.emit()
 
 
+func _on_temple_floor_selected(option_index: int) -> void:
+	_on_setting_focused(SETTING_TEMPLE_FLOOR)
+	option_selected.emit(SETTING_TEMPLE_FLOOR, option_index)
+
+
 func _setting_display_name(setting_id: StringName) -> String:
 	match setting_id:
 		SETTING_CAMERA_CONTEXT:
@@ -703,6 +732,8 @@ func _setting_display_name(setting_id: StringName) -> String:
 			return "Tilegröße"
 		SETTING_HERO_GRAPHICS:
 			return "Grafik: Figur und Portal-Labor"
+		SETTING_TEMPLE_FLOOR:
+			return "Tempelboden"
 		SETTING_HERO_FRAMES:
 			return "Heldenanimation · Frames"
 		SETTING_HERO_FPS:
