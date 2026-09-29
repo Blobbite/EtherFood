@@ -87,7 +87,7 @@ class StatusService:
                     "processing",
                     "ready" if ready else "blocked",
                     (
-                        "Ablauf und Ergebnisstatus unter Verarbeitung prüfen."
+                        "Pipelineverwendungen und deren Ergebnisse prüfen."
                         if ready
                         else "Zuerst die benötigten Originalquellen bereitstellen."
                     ),
@@ -112,14 +112,8 @@ class StatusService:
         record = self.project.catalog.get(identifier)
         if record.archived:
             return "Inhalt archiviert · Zum Bearbeiten wiederherstellen."
-        if record.kind == "pipeline":
-            if record.archived:
-                return "Pipeline archiviert · Zum Bearbeiten wiederherstellen."
-            from .pipeline_service import PipelineService
-            values = PipelineService(self.project).summary(identifier)
-            enabled = "aktiv" if values["enabled"] else "aus"
-            return (f"{values['category']}\n{enabled} · {values['status']} · "
-                    f"{values['assets']} Assets\nLetzter Lauf: {values['last_build']}")
+        if record.kind == "pipeline_usage":
+            return "Pipelineverwendung · Eingaben im Projekt · Bearbeiten über Rechtsklick"
         statuses = list(self.status(identifier).values())
         dependency = next((row for row in statuses if row.id == "dependencies"), None)
         if dependency:

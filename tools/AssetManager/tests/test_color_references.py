@@ -8,11 +8,12 @@ from PIL import Image
 import pytest
 
 from etherfood_studio.application.asset_service import AssetService
-from etherfood_studio.application.build_planner import BuildPlanner
+from etherfood_studio.application.pipeline_execution import PipelineExecution
 from etherfood_studio.application.mask_service import MaskService
 from etherfood_studio.application.pipeline_service import PipelineService
 from etherfood_studio.application.project_service import ProjectService
-from etherfood_studio.application.recipe_builds import RecipeBuildService
+from test_pipeline_processing import prepare_legacy
+from legacy_fixtures import offline_pillow
 from etherfood_studio.application.reference_service import ReferenceService
 from etherfood_studio.application.source_import import SourceImportService, SourceSpec
 from etherfood_studio.domain.assets import default_definition
@@ -79,7 +80,7 @@ def mask_file(tmp_path, source, *, mode="L", label=1, wrong_hash=False):
 
 
 @pytest.mark.parametrize("mode", ["soft", "fixed", "material"])
-def test_two_directions_create_real_v2_and_run(color_project, tmp_path, mode):
+def test_two_directions_create_real_v2_and_run(color_project, tmp_path, mode, offline_pillow):
     project = color_project
     asset, sources, originals = npc(project, tmp_path)
     before = [file_hash(p) for p in originals]
@@ -103,14 +104,12 @@ def test_two_directions_create_real_v2_and_run(color_project, tmp_path, mode):
     service.configure_step(asset, recipe.id, recipe.data["recipe"]["steps"][1]["id"], mode,
         recipe.revision_no)
     pipelines.assign(recipe.id, asset_id=asset)
-    planner = BuildPlanner(project)
-    plan = RecipeBuildService(project).plan(asset)
-    assert profile.id in json.loads(plan.snapshot)["color_bindings"]
-    report = planner.execute(plan)
-    assert report["status"] == "succeeded", report
-    jobs = project.catalog.db.execute("SELECT count(*) FROM jobs").fetchone()[0]
-    assert planner.execute(RecipeBuildService(project).plan(asset))["status"] == "succeeded"
-    assert project.catalog.db.execute("SELECT count(*) FROM jobs").fetchone()[0] == jobs
+    prepare_legacy(project)
+    engine = PipelineExecution(project)
+    report = engine.run()
+    assert report["state"] == "succeeded", report
+    assert report["executed"] == 2
+    assert engine.run()["executed"] == 0
     assert [file_hash(p) for p in originals] == before
 
 
@@ -298,7 +297,9 @@ def test_exports_copy_bytes_without_overwriting_or_linking_sources(color_project
     assert not list(tmp_path.glob(".studio-export-*"))
 
 
-def test_only_dependent_color_branch_rebuilds_and_frozen_plan_survives(color_project, tmp_path):
+def test_only_dependent_color_branch_rebuilds_and_frozen_plan_survives(
+    color_project, tmp_path, offline_pillow
+):
     from etherfood_studio.domain.pipeline_recipes import BUILTINS, step
 
     project = color_project
@@ -317,17 +318,23 @@ def test_only_dependent_color_branch_rebuilds_and_frozen_plan_survives(color_pro
                                  "to": color["id"], "in": "image"})
     pipelines.save(recipe.id, data, recipe.revision_no)
     pipelines.assign(recipe.id, asset_id=asset)
-    old_plan = RecipeBuildService(project).plan(asset)
+    workspace = prepare_legacy(project)
+    engine = PipelineExecution(project)
+    old_plan = engine.plan()
     select(project, asset, sources[1:])
     refs.generate(asset, "fixed", rev(project, asset))
-    # Already planned jobs continue with exactly their old resource copies/hashes.
-    assert BuildPlanner(project).execute(old_plan)["status"] == "succeeded"
-    new_plan = RecipeBuildService(project).plan(asset)
-    colors = [r for r in new_plan.nodes if r.node.stage == "color"]
-    graphics = [r for r in new_plan.nodes if r.node.stage == "scale"]
-    assert all(r.state != "reused" for r in colors)
-    assert all(r.state == "reused" for r in graphics)
-    assert BuildPlanner(project).execute(new_plan)["status"] == "succeeded"
+    report = engine.run(plan=old_plan)
+    assert report["phases"][0]["state"] == "stale"
+    assert project.catalog.db.execute("SELECT COUNT(*) FROM pipeline_results").fetchone()[0] == 0
+    events = []
+    report = engine.run(on_event=events.append)
+    assert report["state"] == "succeeded", report
+    nodes = {
+        node["id"]: node
+        for node in next(iter(engine.plan()["entries"].values()))["snapshot"]["definition"]["nodes"]
+    }
+    executed = [nodes[e["node_id"]] for e in events if e["state"] == "step_finished"]
+    assert len(executed) == 2 and all(n["parameters"].get("mode") == "fixed" for n in executed)
 
 
 def test_material_revisions_stale_masks_but_keep_history(color_project, tmp_path):

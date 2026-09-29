@@ -2,7 +2,7 @@
 
 
 def profiles(context, parameters, parent):
-    from ...ui.pipeline_auxiliary import ProfileDialog
+    from ...ui.profile_settings import ProfileDialog
 
     dialog = ProfileDialog(context["project"], parent)
     dialog.exec()

@@ -59,7 +59,6 @@ class ProjectService:
         catalog = Catalog(safe_target(root, CATALOG_NAME), read_only=read_only)
         service = cls(catalog, config)
         try:
-            from ..storage.job_store import JobStore
             if not read_only:
                 from .profile_service import ProfileService
                 with catalog.transaction():
@@ -67,8 +66,10 @@ class ProjectService:
                     FileChanges.recover(catalog)
                     ProfileService(service).ensure()
                     service.validate_structure()
-                    JobStore(catalog).recover()
                     catalog.projection_dirty = True
+                from .workspace_migration import WorkspaceMigration
+
+                WorkspaceMigration(service).run()
             else:
                 service.validate_structure()
         except Exception:
@@ -250,7 +251,16 @@ class ProjectService:
         if record.kind in {"project", "global"}:
             raise StudioError("validation", "Projektrahmen kann nicht archiviert werden.")
         self._check_revision(record, expected_revision)
-        return self.catalog.save(record, archived=archived)
+        from .lifecycle_service import LifecycleService
+
+        lifecycle = LifecycleService(self)
+        if archived:
+            lifecycle.change([identifier], "archived")
+        elif lifecycle.state(identifier):
+            lifecycle.restore(identifier)
+        else:
+            self.catalog.save(record, archived=False)
+        return self.catalog.get(identifier)
 
     def descendants(self, identifier: str) -> set[str]:
         found = {identifier}

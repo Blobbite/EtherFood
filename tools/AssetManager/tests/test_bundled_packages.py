@@ -4,10 +4,8 @@ import subprocess
 import sys
 
 from etherfood_studio.application.pipeline_service import PipelineService
-from etherfood_studio.application.recipe_builds import RecipeBuildService
 from etherfood_studio.packages import ROOT
 from test_project_documents import project
-from test_script_platform import EXAMPLE, asset, import_scale
 
 
 def test_discovery_does_not_import_processing_or_optional_ui():
@@ -22,31 +20,12 @@ def test_discovery_does_not_import_processing_or_optional_ui():
     subprocess.run([sys.executable, "-I", "-c", code], check=True, capture_output=True)
 
 
-def test_python_wrapper_fingerprints_shipped_algorithms(project, tmp_path, monkeypatch):
-    from etherfood_studio.pipelines import image_adapter
+def test_runtime_algorithms_are_fingerprinted_but_optional_ui_is_not(project):
+    from etherfood_studio.application.pipeline_workspace import PipelineWorkspace
+    from test_pipeline_workspace import passthrough
 
-    owner = next(r for r in project.cards() if r.kind == "global")
-    record, _ = asset(project, tmp_path, owner.id, animated=True)
-    recipe = import_scale(project, EXAMPLE.parent.parent / "pipeline_frames/manifest.json")
-    PipelineService(project).assign(recipe.id, asset_id=record.id)
-    before = RecipeBuildService(project).plan(record.id)
-    script = ROOT / "animation/process.py"
-    assert str(script) in dict(before.nodes[0].node.tools)
-    original = image_adapter.file_hash
-    monkeypatch.setattr(image_adapter, "file_hash",
-                        lambda path: "f" * 64 if path == script else original(path))
-    after = RecipeBuildService(project).plan(record.id)
-    assert before.nodes[0].fingerprint != after.nodes[0].fingerprint
-
-
-def test_builtin_scale_does_not_depend_on_unrelated_color_ui(project, tmp_path):
-    owner = next(r for r in project.cards() if r.kind == "global")
-    record, _ = asset(project, tmp_path, owner.id)
-    pipelines = PipelineService(project)
-    recipe = pipelines.create("Grafik", "graphics")
-    pipelines.assign(recipe.id, asset_id=record.id)
-    plan = RecipeBuildService(project).plan(record.id)
-    for row in plan.nodes:
-        paths = dict(row.node.tools)
-        assert str(ROOT / "graphics/process.py") in paths
-        assert str(ROOT / "colors/services.py") not in paths
+    _, definition = passthrough(project)
+    value = PipelineWorkspace(project).snapshot(definition.id)
+    assert "packages/graphics/process.py" in value["runtime"]
+    assert "packages/animation/process.py" in value["runtime"]
+    assert not any("services.py" in name for name in value["runtime"])

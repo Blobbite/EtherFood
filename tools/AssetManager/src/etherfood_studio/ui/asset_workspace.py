@@ -1,20 +1,18 @@
 """One asset identity, real source/build status and separate later Godot approval."""
 
-from PySide6.QtCore import QThread, Signal, QUrl
+from PySide6.QtCore import QThread, Signal, QUrl, Qt
 from PySide6.QtGui import QAction, QDesktopServices, QKeySequence
 from PySide6.QtWidgets import (
     QComboBox, QDialog, QHBoxLayout, QMessageBox, QPlainTextEdit, QTabWidget, QVBoxLayout, QWidget,
 )
 
 from ..application.asset_service import AssetService
-from ..application.asset_pipelines import AssetPipelines
 from ..application.document_service import DocumentService
-from ..application.recipe_results import RecipeResultService
+from ..application.pipeline_results import PipelineResults
 from ..application.status_service import STATE_NAMES, STEP_NAMES, StatusService, status_reason
 from ..domain.assets import default_definition
 from ..domain.models import StudioError
 from .asset_settings import AssetDefinitionEditor, import_pose_sources
-from .asset_pipeline_board import AssetPipelineBoard
 from ..application.profile_service import ProfileService
 from .common import button, label, show_error
 from .documents.editor import DocumentEditor
@@ -33,7 +31,7 @@ class AssetResultStatusWorker(QThread):
 
     def run(self):
         try:
-            result = RecipeResultService(self.project).latest(self.identifier)
+            result = PipelineResults(self.project).latest(self.identifier)
         except Exception as error:
             result = {"state": "invalid", "reason": str(error), "artifacts": []}
         self.result.emit(result)
@@ -42,9 +40,6 @@ class AssetResultStatusWorker(QThread):
 class AssetWorkspace(QDialog):
     def __init__(self, assets: AssetService, identifier: str, parent=None) -> None:
         super().__init__(parent)
-        from ..application.workflow_migration import WorkflowMigration
-
-        WorkflowMigration(assets.project).ensure()
         self.assets, self.identifier = assets, identifier
         self.record = assets.asset(identifier)
         self.changed = False
@@ -82,33 +77,11 @@ class AssetWorkspace(QDialog):
             self, profiles=ProfileService(assets.project).profiles(),
         )
         self.editor.source_requested.connect(self.import_pose)
+        self.definition_baseline = self.editor.value().to_data()
         poses_layout.addWidget(self.editor, 1)
         poses_layout.addWidget(button("Anforderungen speichern", "workspace_save_requirements",
                                       self.save_requirements))
         self.tabs.addTab(poses_page, "Posen")
-        self.pipeline_page = QWidget()
-        pipeline_layout = QVBoxLayout(self.pipeline_page)
-        self.pipeline_info = label("", "asset_pipeline_info")
-        pipeline_layout.addWidget(self.pipeline_info)
-        self.pipeline_choice = QComboBox()
-        self.pipeline_choice.setObjectName("asset_pipeline_choice")
-        self.pipeline_choice.activated.connect(lambda: self.refresh_pipeline())
-        pipeline_controls = QHBoxLayout()
-        pipeline_controls.addWidget(self.pipeline_choice, 1)
-        pipeline_controls.addWidget(
-            button("Im Ablaufeditor öffnen …", "asset_pipeline_open", self.open_pipeline)
-        )
-        pipeline_layout.addLayout(pipeline_controls)
-        self.package_actions = QHBoxLayout()
-        pipeline_layout.addLayout(self.package_actions)
-        self.pipeline_board = AssetPipelineBoard(self)
-        self.pipeline_board.recipe_selected.connect(self.select_board_pipeline)
-        self.pipeline_board.recipe_open.connect(self.open_board_pipeline)
-        self.pipeline_board.folder_open.connect(self.open_output_folder)
-        pipeline_layout.addWidget(self.pipeline_board, 1)
-        self.tabs.addTab(self.pipeline_page, "Abläufe / Ausgabeordner")
-        self.tabs.currentChanged.connect(lambda: self.workflow.setVisible(
-            self.tabs.currentWidget() is not self.pipeline_page))
         results_page = QWidget()
         result_layout = QVBoxLayout(results_page)
         result_layout.addWidget(label("Varianten bleiben Ableitungen dieses Assets. "
@@ -121,8 +94,16 @@ class AssetWorkspace(QDialog):
         self.result_check = button("Ergebnisstatus prüfen (ohne Build)",
                                     "asset_result_check", self.check_results)
         result_layout.addWidget(self.result_check)
-        result_layout.addStretch()
+        self.result_list = QPlainTextEdit()
+        self.result_list.setReadOnly(True)
+        self.result_list.setObjectName("asset_pipeline_results")
+        result_layout.addWidget(self.result_list, 1)
         self.tabs.addTab(results_page, "Varianten")
+        self.references = None
+        self.references_page = QWidget()
+        self.references_layout = QVBoxLayout(self.references_page)
+        self.tabs.addTab(self.references_page, "Referenzen / Masken")
+        self.tabs.currentChanged.connect(self.open_references)
         for title in ("Prüfungen",):
             page = QWidget()
             index = self.tabs.addTab(page, title)
@@ -174,9 +155,6 @@ class AssetWorkspace(QDialog):
         elif self.tabs.currentIndex() == 2:
             self.save_requirements()
 
-    def show_build_plan(self) -> None:
-        self.run_pipeline()
-
     def check_results(self):
         if self.status_worker:
             return
@@ -193,7 +171,11 @@ class AssetWorkspace(QDialog):
         text = (names[result["state"]] + " · " + result["reason"] +
                 f"\n{len(result['artifacts'])} Bildableitungen; keine persönliche Freigabe.")
         self.result_status.setText(text)
-        self.pipeline_info.setText(self.pipeline_info.text() + "\nErgebnisprüfung: " + text)
+        detail = "\n".join(
+            f"{item['usage']} · {item['port']} · {item['state']}\n{item['file_path']}"
+            for item in result["artifacts"]
+        )
+        self.result_list.setPlainText(detail)
 
     def result_check_finished(self):
         self.status_worker.deleteLater()
@@ -203,160 +185,9 @@ class AssetWorkspace(QDialog):
             self.pending_close = False
             self.reject()
 
-    def run_pipeline(self):
-        from .pipeline_auxiliary import PipelineRunDialog
-        try:
-            if self.editor.value().to_data() != self.record.data.get("asset_definition"):
-                QMessageBox.information(self, "Ungespeicherte Anforderungen",
-                                          "Anforderungen vor dem Dry-run bewusst speichern.")
-                return
-            dialog = PipelineRunDialog(self.assets.project,
-                recipe_id=self.pipeline_choice.currentData(), parent=self, asset_id=self.identifier)
-            dialog.exec()
-            dialog.deleteLater()
-            self.refresh()
-            if dialog.reports:
-                self.check_results()
-        except (StudioError, OSError, ValueError) as error:
-            show_error(self, error)
-
-    def assign_pipeline(self):
-        from .pipeline_auxiliary import AssignmentDialog
-        identifier = self.pipeline_choice.currentData()
-        if identifier:
-            dialog = AssignmentDialog(self.assets.project, identifier, self)
-            dialog.assets.setCurrentIndex(dialog.assets.findData(self.identifier))
-            dialog.exec()
-            dialog.deleteLater()
-            self.refresh()
-
-    def open_pipeline(self):
-        from .processing import ProcessingDialog
-
-        identifier = self.pipeline_choice.currentData()
-        dialog = ProcessingDialog(self.assets.project, self)
-        if identifier:
-            dialog.workspace.open("recipe", identifier)
-        dialog.exec()
-        dialog.deleteLater()
-        self.refresh()
-
-    def select_board_pipeline(self, identifier):
-        index = self.pipeline_choice.findData(identifier)
-        if index >= 0:
-            self.pipeline_choice.setCurrentIndex(index)
-            self.refresh_pipeline(render_board=False)
-
-    def open_board_pipeline(self, identifier):
-        self.select_board_pipeline(identifier)
-        if self.pipeline_choice.currentData() == identifier:
-            self.open_pipeline()
-
-    def open_profiles(self):
-        from .pipeline_auxiliary import ProfileDialog
-        dialog = ProfileDialog(self.assets.project, self)
-        dialog.exec()
-        dialog.deleteLater()
-        self.did_change()
-
-    def open_output_folder(self, relative):
-        from ..storage.paths import safe_target
-        try:
-            root = self.assets.project.catalog.path.parent
-            path = self.assets.project.files.path(self.identifier) / relative
-            path = safe_target(root, str(path.relative_to(root)))
-            if not path.is_dir():
-                raise StudioError("unavailable", "Dieser Ausgabeordner ist nicht angelegt. "
-                                  "Er wird bei einer aktiven, gespeicherten Zuweisung vorbereitet.")
-            if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
-                raise StudioError("unavailable", "Ordner konnte nicht geöffnet werden.")
-        except (StudioError, OSError, ValueError) as error:
-            show_error(self, error)
-
-    def package_action(self, node, action_id, recipe_id):
-        from .package_actions import invoke_step
-        try:
-            if self.editor.value().to_data() != self.record.data.get("asset_definition"):
-                raise StudioError("validation", "Anforderungen vor der Werkzeugaktion speichern.")
-            values = invoke_step(self.assets.project, node, action_id, self,
-                                 asset_id=self.identifier, recipe_id=recipe_id)
-            if values is not None and values != node["parameters"]:
-                raise StudioError("validation", "Rezeptparameter im Pipeline-Editor ändern.")
-            self.did_change()
-        except (StudioError, OSError, ValueError) as error:
-            show_error(self, error)
-
-    def refresh_package_actions(self, binding):
-        from ..application.pipeline_actions import PipelineActions
-        while self.package_actions.count():
-            self.package_actions.takeAt(0).widget().deleteLater()
-        if binding:
-            for node, action in PipelineActions(self.assets.project).for_recipe(
-                    binding["data"], "asset"):
-                self.package_actions.addWidget(button(action["name"],
-                    "asset_pipeline_action_" + action["id"],
-                    lambda checked=False, n=node, a=action["id"], r=binding["recipe"].id:
-                        self.package_action(n, a, r)))
-
-    def refresh_pipeline(self, *, render_board=True):
-        import json
-        from ..application.pipeline_service import PipelineService
-
-        service = PipelineService(self.assets.project)
-        selected = self.pipeline_choice.currentData()
-        self.pipeline_choice.clear()
-        for recipe in service.recipes():
-            self.pipeline_choice.addItem(recipe.title, recipe.id)
-        if selected:
-            self.pipeline_choice.setCurrentIndex(self.pipeline_choice.findData(selected))
-        text = "Keine Pipeline zugewiesen. Projektkarte → Rechtsklick → Pipeline aus Vorlage …"
-        binding = None
-        rows = []
-        if self.record.data.get("asset_definition"):
-            try:
-                rows = AssetPipelines(self.assets.project).rows(self.identifier)
-                if selected is None:
-                    connected = [row["recipe"].id for row in rows if row["state"] == "active"]
-                    selected = connected[0] if connected else None
-                selected = selected or self.pipeline_choice.currentData()
-                selected_row = next((row for row in rows if row["recipe"].id == selected), None)
-                binding = selected_row["binding"] if selected_row else None
-                if selected_row:
-                    text = selected_row["recipe"].title + ": " + selected_row["reason"]
-                if binding:
-                    record = binding["recipe"]
-                    self.pipeline_choice.setCurrentIndex(self.pipeline_choice.findData(record.id))
-                    requested = binding["data"]["profiles"] or list(
-                        self.assets.definition(self.identifier).graphics)
-                    profiles = ProfileService(self.assets.project).profiles()
-                    manifests = service.manifests()
-                    has_profiles = any(manifests.get(n["operation"], {}).get("profile_targets")
-                                       and n["enabled"] for n in binding["data"]["steps"])
-                    targets = ", ".join(profiles[k]["name"] for k in requested
-                                        if profiles[k]["enabled"]) if has_profiles else \
-                        "Ausgaben der verbundenen Skriptschritte"
-                    text = (f"Pipeline: {record.title} · {binding['origin']}\nAngefordert: " +
-                            targets + " · Ausführung nach geprüftem Dry-run.")
-                    runs = [r for r in self.assets.project.catalog.records() if r.kind == "build"
-                            and r.owner_id == self.identifier and
-                            r.data.get("contract") == "studio-build-run-v1" and
-                            json.loads(r.data["plan"].get("snapshot", "{}")).get(
-                                "recipe_id") == record.id]
-                    if runs:
-                        latest = max(runs, key=lambda r: (r.created_at, r.id))
-                        text += ("\nLetzter Bildlauf: " + latest.data["status"] +
-                                 " · " + latest.created_at)
-            except StudioError as error:
-                text = "Zuweisung blockiert: " + str(error)
-        self.pipeline_info.setText(text)
-        # Processing actions are available exclusively in the workflow editor.
-        if render_board:
-            self.pipeline_board.render(self.record, rows, service.manifests())
-
     def refresh(self) -> None:
         self.record = self.assets.asset(self.identifier)
         self.editor.update_profiles(ProfileService(self.assets.project).profiles())
-        self.refresh_pipeline()
         if not self.status_worker:
             self.result_status.setText("Ergebnisstatus noch nicht aktuell geprüft. "
                                        "Prüfung startet keinen Build.")
@@ -370,7 +201,7 @@ class AssetWorkspace(QDialog):
         self.overview.setPlainText(
             self.assets.project.usage_description(self.identifier)
             + "\n\nQuelle importiert ≠ Varianten erzeugt ≠ geprüft ≠ freigegeben.\n"
-            "Verarbeitung und Animationen werden im Ablaufeditor zusammengestellt. "
+            "Verarbeitung und Animationen werden unter Skripte & Pipelines zusammengestellt. "
             "Quellen und Posen können hier jederzeit ergänzt werden."
         )
         if self.record.data.get("asset_definition"):
@@ -385,7 +216,7 @@ class AssetWorkspace(QDialog):
             definition = self.assets.definition(self.identifier)
             self.overview.appendPlainText(
                 "\nAusgabevarianten und Ordner sind in den zugewiesenen Abläufen definiert. "
-                "Prüfung und Ausführung finden unter Verarbeitung statt."
+                "Prüfung und Freigabe befinden sich unter Skripte & Pipelines."
             )
 
     def open_inventory(self) -> None:
@@ -406,6 +237,7 @@ class AssetWorkspace(QDialog):
         try:
             self.record = self.assets.configure(self.identifier, self.editor.value().to_data(),
                                                  self.record.revision_no)
+            self.definition_baseline = self.editor.value().to_data()
             self.did_change()
             return True
         except StudioError as error:
@@ -423,12 +255,22 @@ class AssetWorkspace(QDialog):
             show_error(self, error)
 
     def reject(self) -> None:
+        if self.references:
+            if self.references.worker:
+                if not self.pending_close:
+                    self.pending_close = True
+                    self.references.worker.finished.connect(self.reject)
+                return
+            self.pending_close = False
+            if not self.references.confirm_close():
+                return
+            self.changed |= self.references.changed
         if self.status_worker:
             self.pending_close = True
             self.result_status.setText("Ergebnisprüfung läuft; Fenster schließt anschließend.")
             return
         try:
-            dirty = self.editor.value().to_data() != self.record.data.get("asset_definition")
+            dirty = self.editor.value().to_data() != self.definition_baseline
         except StudioError:
             dirty = True
         if dirty:
@@ -446,3 +288,13 @@ class AssetWorkspace(QDialog):
     def closeEvent(self, event) -> None:
         event.ignore()
         self.reject()
+
+    def open_references(self, index):
+        if self.tabs.widget(index) == self.references_page and self.references is None:
+            from .reference_materials import ReferenceMaterialsDialog
+
+            self.references = ReferenceMaterialsDialog(
+                self.assets.project, self.identifier, self.references_page, embedded=True
+            )
+            self.references.setWindowFlags(Qt.Widget)
+            self.references_layout.addWidget(self.references)

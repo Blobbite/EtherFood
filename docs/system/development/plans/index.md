@@ -8,10 +8,12 @@
 ## Inhalt
 
 ### Seiten
+- [Asset Studio: zwei Editorbereiche und Pipelineautomatik](asset-studio-zwei-editoren-und-automatik.md)
 - [Asset Studio: vollständiger Ablaufeditor und Werkzeugpakete](asset-studio-ablaufeditor.md)
 - [Asset Studio: Pipeline-Board im Asset-Menü](asset-studio-asset-pipeline-board.md)
 - [Arbeitsplan: Asset Manager über Control steuern](asset-manager-control.md)
 - [Asset Studio: zusammenhängende GitHub-Issues](asset-studio-github-issues.md)
+- [Asset Studio: umfangreiche Markdown-Bearbeitung](asset-studio-markdown-bearbeitung.md)
 - [Asset Studio: Korrektur zur skriptbasierten Canvas-Plattform](asset-studio-skriptplattform-korrektur.md)
 - [Asset Studio: Pakete 1 bis 4](asset-studio-pakete-1-bis-4.md)
 - [Asset Studio: Pipeline-Dashboard und Posenlieferstand](asset-studio-pipeline-dashboard.md)

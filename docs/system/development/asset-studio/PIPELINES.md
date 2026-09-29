@@ -1,144 +1,209 @@
-# Verarbeitung und Ablaufeditor
+# Projektzuordnung und Pipelineverarbeitung
 
-Der Bereich **Verarbeitung → Ablaufeditor** verbindet kleine Python-Bausteine
-zu wiederverwendbaren Abläufen. Die Bibliothek, der Canvas und der Python-Editor
-gehören zur echten PySide6-Anwendung unter `tools/AssetManager/`.
-Der frühere HTML-Entwurf ist dafür nicht erforderlich.
+[Asset Studio](index.md) · [Python und aktuelle Dateien](SKRIPTPAKETE.md) ·
+[Arbeitsplan und tatsächliche Prüfungen](../plans/asset-studio-zwei-editoren-und-automatik.md)
 
-| Bestandteil | Aufgabe und Bedienung |
+## Zwei Editorbereiche
+
+Ganz links stehen **Projekt** und **Skripte & Pipelines**. Direkt daneben bleibt
+die Bereichsnavigation an derselben Stelle. Strukturspalte und Arbeitsfläche
+folgen rechts davon. Der Wechsel erhält die zuletzt geöffnete Ansicht und
+Entwürfe. Beim tatsächlichen Verlassen einer bearbeiteten Datei gelten
+Speichern, Verwerfen und Abbrechen; Abbrechen ist voreingestellt.
+
+| Editor | Bereiche |
 | --- | --- |
-| Skriptbaustein | Eine Aufgabe mit benannten Ein-/Ausgängen, Parametern und Ausgabeordnern. Doppelklick im Canvas öffnet den Python-Entwurf. |
-| Werkzeugpaket | Versionierte Lieferung aus Bausteinen, Hilfsdateien und Teilabläufen. Doppelklick in der Bibliothek öffnet Dateien, Diagnose und Umgebung. |
-| Ablauf | Verbindet Bausteine und Teilabläufe. Ein Paketablauf öffnet seinen eigenen Canvas. |
-| Python-Umgebung | Projektlokaler Bibliotheksbestand. Gleiche Python-/Paketanforderungen teilen dieselbe Umgebung. |
+| Projekt | Projekt-Canvas, Aufgaben-Kanban, Notizen, Dokumentation & Anhänge, Suche |
+| Skripte & Pipelines | Pipeline-Editor, Python-Editor, Suche |
 
-## Einstieg und Bedienung
+Der Pipeline-Editor zeigt zunächst **Status · Pipeline · Verwendungen · Aktueller
+Stand**. Bearbeiten öffnet den Canvas an derselben Arbeitsposition; **Übersicht**
+führt zur Tabelle zurück. Parameter erscheinen beim ausgewählten Knoten unter
+dem Canvas. Eine dauerhafte Karteneigenschaften-Spalte gibt es nicht mehr.
 
-1. Im Repository `python tools/control.py asset-manager run` starten und ein
-   Projekt öffnen. Oben **Verarbeitung** wählen. Pipeline-Karten im Projekt
-   öffnen ebenfalls diesen Editor.
-2. **Neuer Ablauf** erstellt einen Ablauf mit Asset-Eingang. Links ein Asset
-   einblenden und Skripte per Doppelklick einsetzen. Anschlüsse verbinden;
-   bei mehreren passenden Möglichkeiten erscheint eine Auswahl der Portnamen.
-3. Rechts Parameter und Ausgabeziele des ausgewählten Bausteins einstellen.
-   Jeder Ausgang kann einen eigenen Ordner und Veröffentlichungsschalter haben.
-   Der Canvas zeigt die deklarierten Ordner schon vor der Ausführung.
-4. **Speichern** übernimmt Rezept, Layout und explizite Asset-Verbindungen.
-   **Zuweisungen …** ergänzt Regeln für Asset-Typen/Fähigkeiten oder das ganze
-   Projekt. Explizite Zuweisungen haben Vorrang vor Typregeln und Projektstandard.
-   Mehrere Abläufe pro Asset sind möglich; ausgeführt wird der gewählte Ablauf.
-5. Mit **Werkzeugpakete / Python …** oder über die Bibliothek die verwendeten
-   Paketdateien prüfen. **Umgebung einrichten / reparieren** bereitet die
-   Bibliotheken vor. Fremde Codeversionen benötigen eine lokale Freigabe.
-6. **Dry-run / Ausführen …** zeigt geplante Schritte, Cachetreffer und Blockaden.
-   Der Start verarbeitet Arbeitskopien. Fortschritt, Protokolle, Ergebnisprüfung
-   und Abbruch verwenden die vorhandene Auftragsverwaltung.
-7. Ein Baustein öffnet per Doppelklick seinen Code; ein Teilablauf seinen Canvas.
-   **Zurück** führt zum vorherigen Editor, **Bibliothek** zur Übersicht.
-   Entwürfe werden beim Wechsel gespeichert. Laufende Testaufträge müssen zuvor
-   beendet oder abgebrochen werden.
+**Godot bereitstellen** bleibt deaktiviert unmittelbar links von Einstellungen.
+Einstellungen enthält Darstellung und Tests. Aufgaben-Kanban, Notizen,
+Markdown-Bearbeitung und Anhänge sind eigenständige Projektinhalte geblieben.
+Die Dokumentationsstartseite ist über die Dokumentationsnavigation erreichbar.
 
-## Bildbausteine und Beispielketten
+## Definition erstellen, im Projekt verwenden
 
-**EtherFood · Bildwerkzeuge** wird mitgeliefert und verwendet die vorhandenen
-Algorithmen unter `PyGameTools/Pipline/`. Die Starter, die ganze Ordnerketten
-abarbeiten, sind durch einzelne Einträge ersetzt; die CLI-Dateien bleiben nutzbar.
+1. **Skripte & Pipelines → Pipeline-Editor → Neue Pipeline**: Namen eingeben und
+   anlegen. Dafür wird kein Asset benötigt.
+2. Eigene Python-Skripte anlegen oder ausdrücklich importieren. Ein Skript aus
+   der Struktur auf den Canvas ziehen. Dies erstellt einen referenzierenden
+   Knoten; mehrere Knoten dürfen dasselbe Skript verwenden.
+3. Eingänge, Skripte und Folder über die Anschlüsse verbinden. Benannte Ports
+   werden in der kompakten Bearbeitung gewählt; Parameter am Knoten einstellen.
+4. **Speichern** aktualisiert die aktuelle Ablaufdatei. **Prüfen** führt einen
+   Dry-run aus. Ein gültiger Ablauf ohne Verwendung ist prüfbar und freigebbar.
+5. Im Projekt **Rechtsklick → Pipeline verwenden** wählen. Die vorhandene
+   Definition auswählen und Eingabebereiche zuordnen.
 
-| Baustein | Aufgabe |
-| --- | --- |
-| Comic High, SComicMid, SComicLow | Proportionale Frameauflösung; Vorgaben 1, 0,5 und 0,25 des Eingangs. |
-| SPixelHigh | Pixelverfahren, Alphabehandlung und Palette; längste Framekante standardmäßig 128 Pixel. |
-| SPixelLow | Nearest-Ableitung des verbundenen Pixel-High-Ausgangs; Vorgabefaktor 0,9. |
-| PyImgGrid | Gemeinsamer transparenter Randbeschnitt und frei wählbare Spaltenzahl. |
-| Frameauswahl | Vorhandene Frames auswählen, FPS oder Animationsdauer festlegen. |
-| PyImgGif | Aus einem Spritesheet ein GIF mit Quell- oder eigenen FPS erzeugen. |
-| PyGraphicsCompare | Mehrere Bild-/GIF-Ausgänge als interaktiven HTML-Vergleich sammeln. |
-| PyGraphicsPoseCompare | Interaktiver Posen- und Positionsvergleich. |
-| Farbverarbeitung | Referenzfarben, feste Palette oder Materialprofil mit gebundener Maske. |
+Eine **Definition** enthält Skripte, interne Verbindungen, Parameter, Eingänge
+und Folder. Eine **Verwendung** besitzt ihre eigene ID, verweist auf die
+Definition und enthält Eingabezuordnungen, Ergebnisverbindungen, Reihenfolge
+und Pausenzustand. Es entstehen keine versteckten Definitionskopien.
 
-Das Paket enthält den Teilablauf **Spritesheet-Auflösungen**. Seine Comiczweige
-beginnen an derselben Quelle; Pixel Low folgt auf Pixel High. Der Vergleich
-wartet auf alle verbundenen Zweige. Die Reihenfolge folgt den Pfeilen und
-Abhängigkeiten, nicht den Bildschirmpositionen.
+Einfachklick wählt die Verwendung im Projekt aus. Doppelklick bleibt dort.
+Nur **Rechtsklick → Pipeline bearbeiten** wechselt ausdrücklich zum passenden
+Pipeline-Canvas. Ein Projekt-Suchtreffer fokussiert die Projektverwendung.
 
-Eine mögliche Animationskette ist:
+Das Entfernen einer Karte entfernt ausschließlich die Verwendung. Gemeinsame
+Definition und Skripte bleiben bestehen. Vor Änderung beziehungsweise Entfernen
+einer gemeinsam verwendeten Definition werden ihre Verwendungen genannt.
+
+## Eingaben und Reihenfolge
+
+Ein zugeordnetes Asset liefert seine aktuellen registrierten Quellen. Ein Akt,
+Kapitel oder anderer zulässiger Bereich liefert passende aktive Assets seiner
+fachlichen Unterstruktur einschließlich Asset-/Paketverwendungen. Die
+Projektwurzel steht für alle passenden aktiven Asseteingaben. Mehrere Verweise
+auf dieselbe Assetidentität werden innerhalb einer Verwendung dedupliziert.
+Archivierte Inhalte und Inhalte unter archivierten Besitzern bleiben ausgenommen.
+
+Dies ist keine Suche nach beliebigen Dateien im Projektordner. Historische
+Quellrevisionen, Datenbank, `.tools`, Sicherungen, Papierkorb und Ergebnisse sind
+keine neuen Originaleingaben. Eine `.png`-Endung beweist kein Spritesheet;
+Bildinhalt, Raster, Framezahl und Timing müssen zum deklarierten Eingang passen.
+Der Dry-run unterscheidet passende, nicht passende und fehlerhafte Quellen.
+Ohne passende Quellen zeigt die Übersicht **Keine passenden Eingaben**.
+
+Nur eine ausdrückliche Ergebnisverbindung **PA → PB** gibt Daten weiter. Ausgang
+und kompatibler Eingang werden benannt. PB erhält die verbundenen Ergebnisse,
+keinen stillen Rückgriff auf Originalquellen. Mehrfachanschlüsse benötigen eine
+entsprechende Deklaration. Selbstverbindungen, Kreise, widersprüchliche
+Quellen-/Ergebniszuordnungen und falsche Anschlüsse werden abgewiesen.
+
+PA verarbeitet zunächst die gesamte gewählte Auswahl. Erst nach erfolgreicher
+Veröffentlichung dieser Phase beginnt PB. Asset-, Posen- und Quellherkunft
+bleiben an den Ergebnissen. Unverbundene Ketten folgen ihrer gespeicherten
+Reihenfolge. **Reihenfolge: nach oben/unten** ändert diese fachliche Reihenfolge;
+freies Verschieben, Zoom und automatische Anordnung ändern sie nicht.
+
+## Folder und Ergebnisse
+
+Folder sind Ausgabebausteine im Pipeline-Canvas. Sie wählen **keine**
+Projekt-Eingabebereiche. Ein Folder benennt einen verbundenen Ausgang und einen
+relativen Zielordner. Standard ist die Ablage beim jeweiligen Asset:
 
 ```text
-Asset → PyImgGrid → SComicLow → Frameauswahl → PyImgGif
-                                              └→ Posenvergleich
+<Asset>/Ergebnisse/<Verwendungs-ID>/<Folder-Ziel>/…
+Ergebnisse/Projekt/<Verwendungs-ID>/<Asset-ID>/<Folder-Ziel>/…
 ```
 
-Unabhängige Comicvarianten werden verzweigt, damit Comic Mid nicht versehentlich
-noch einmal auf einem bereits verkleinerten Comic Low skaliert wird.
-Ein fertiger Paketablauf kann als ein Knoten in einem größeren Ablauf stehen.
-Über **Diesen Teilablauf als Projektablauf verwenden** entsteht eine bearbeitbare
-Projektkopie der veröffentlichten Paketversion. Änderungen am Paketentwurf
-müssen zuvor als neue Version übernommen werden.
+Die zweite Form entsteht nur durch die ausdrückliche gemeinsame Projektablage.
+IDs und Inhaltskennungen verhindern Kollisionen. Mehrere Ausgänge können
+verschiedene Folder besitzen. Der Dry-run zeigt Zielstruktur und noch offene
+Platzhalter. Ohne notwendiges Ausgabeziel wird nicht veröffentlicht.
 
-## Ordner, Geometrie und Timing
+Skripte schreiben zunächst in einen kontrollierten Laufbereich. Vollständige
+Ergebnisse werden auf Vertrag, Hash, tatsächlichen Typ und Bildmetadaten geprüft
+und erst danach über das Dateijournal veröffentlicht. Elternpfade, absolute
+Ziele, Symlink-Auswege und das Überschreiben geschützter Quellen sind gesperrt.
+Ein Folder verschiebt keine Assetkarte und ändert keinen Besitzer.
 
-Ausgabeziele sind relativ zum verarbeiteten Asset, beispielsweise
-`Ergebnisse/{pose}/ComicLow`, `GIFs/{pose}` oder `Vergleiche`.
-`{pose}` verwendet den Exportnamen der Pose, `{variante}` die Ergebnisvariante.
-Absolute Pfade, Elternpfade und geschützte Quell-/Maskenordner sind keine
-Ausgabeziele. Dateinamen erhalten einen Buildzusatz; alte Stände bleiben erhalten.
-Die deklarierte Zielstruktur wird auch am Asset lesend angezeigt. Ist eine
-Variante erst zur Laufzeit bekannt, bleibt ihr Platzhalter in der Vorschau
-sichtbar; der konkrete Ordner entsteht erst für das tatsächliche Ergebnis.
+PA- und PB-Ergebnisse bleiben getrennt auffindbar. **Asset-Menü → Varianten**
+prüft ihre Aktualität. Generierte Ergebnisgalerien verwenden die jeweilige
+Verwendungs-ID; bestehender eigener Markdown-Text bleibt erhalten.
 
-PNG-/Spritesheet-Metadaten enthalten Raster, Frameindizes, Quellrevision,
-Quellhash, Anker, logische Größe, Zuschnitt und Timing. Mitgelieferte Bildbausteine
-aktualisieren die Geometrie passend zu ihren tatsächlichen Ergebnissen.
-Skalierung gilt für einzelne Framezellen und erhält das Seitenverhältnis.
-Die Größenberechnung rundet deterministisch und vergrößert nicht automatisch.
+## Prüfen, Freigeben und Automatik
 
-Frames und FPS bleiben getrennt: 16 Frames bei 8 FPS und 8 Frames bei 4 FPS
-haben dieselbe Dauer. Eine Frameauswahl erzeugt keine Zwischenbilder.
-GIF-Zeiten werden auf die tatsächlich darstellbaren Zeitintervalle gerundet.
-Eine Einzelbildquelle kann daher nicht direkt einen Animationsbaustein bedienen.
+| Ampel | Bedeutung |
+| --- | --- |
+| Gelb | Neu, importiert, übernommen oder ausführungsrelevant geändert; Prüfung/Freigabe nötig |
+| Rot | Konkreter Prüf-, Eingabe- oder Verarbeitungsfehler; Ursache wird angezeigt |
+| Grün | Aktueller ausführbarer Gesamtstand geprüft und ausdrücklich lokal freigegeben |
 
-Farbprofile, Paletten und Masken werden im Ablauf unter
-**Assetreferenzen / Masken …** verwaltet. Ressourcen können ausdrücklich am
-Rezept gebunden oder über `@asset`/`@source` aus geprüften Quellbindungen bezogen
-werden. Fehlende oder mehrdeutige Bindungen blockieren die Verarbeitung.
-Die [Referenz- und Maskenverträge](REFERENZEN_UND_MASKEN.md) bleiben maßgeblich.
+Farbe, Symbol und Text gehören zusammen. **Aktueller Stand** zeigt davon getrennt
+Wartet, Läuft mit Fortschritt, Aktuell, Pausiert oder Keine passenden Eingaben.
+Grün allein behauptet weder eine laufende Verarbeitung noch vorhandene Bilder.
 
-## Übernahme bisheriger Einstellungen
+**Prüfen** kontrolliert Dateien, Syntax, Imports/Bibliotheken, Parameter,
+Anschlüsse, Graph, Eingabeauswahl und Ausgabeziele. Es startet keine Verarbeitung,
+installiert nichts und veröffentlicht keine Ergebnisse. Sein Prüfstatus darf
+lokal gespeichert werden. Erst **Freigeben** erlaubt den geprüften Stand.
+Der ausdrückliche Python-Testlauf ist davon getrennt und veröffentlicht nichts.
 
-Beim ersten Öffnen des Verarbeitungsbereichs oder Asset-Menüs werden bestehende
-v1-Rezepte in `studio-pipeline-v2` umgewandelt. Grafikprofile werden zu sichtbaren
-Bausteinen samt Werten, Frame- und GIF-Schritte zu den entsprechenden Mikrobausteinen.
-Abweichende Asset-Ziele und alte lokale Parameter erhalten eigene Abläufe.
-Geerbte Regeln behalten ihre Einstellungen auch für später angelegte Assets.
-Historische Rezeptrevisionen und Builds bleiben im Katalog erhalten.
+Die Automatik arbeitet nur während das Projekt geöffnet ist. Sie läuft seriell
+außerhalb des GUI-Threads. Die erste Freigabe verarbeitet vorhandene passende
+Eingaben ohne gültiges Ergebnis. Weitere Läufe berücksichtigen nur relevante
+Änderungen und notwendige Folgeschritte. Inhaltshashes, relevante Metadaten,
+Code, Hilfsdateien, Bibliotheksbestand, Parameter und Vorgängerergebnisse bilden
+den Fingerprint. Gleiche Bytes nach erneutem Speichern erzeugen keinen Neulauf.
+Beschädigte oder fehlende Ergebnisdateien sind kein Cachetreffer.
 
-Asset-/Posendefinitionen verwenden danach Schema 2: Quelle, Posen, Richtungen,
-Anker, Quell-FPS und Loop bleiben dort. Grafikziele und Zielframezahlen stehen
-nur noch im Ablauf. Die alten Grafikprofilfelder, Profilkonfigurationen,
-Verarbeitungsaktionen und separaten Startknöpfe im Asset-Menü sind entfernt.
-Dort bleiben der Lieferstand, Ergebnisansichten und der Link zum Ablaufeditor.
-Fehlende alte Python-Erweiterungen bleiben als reparierbare Blockade sichtbar.
+Bekannte Quellen und Werkzeugdateien werden beobachtet; schnelle Ereignisse
+werden gebündelt. Externe Änderungen aktueller Quellkopien werden erst geprüft
+und dann als neue unveränderliche Quellrevision übernommen. **Aktualisieren**
+stößt den Abgleich ausdrücklich an. Eigene Ausgaben werden nicht zu Eingaben.
 
-## Ausführung, Cache und Austausch
+Code-/Hilfsdatei-/Parameter-/Folderänderungen benötigen neue Prüfung und
+Freigabe. Eine geänderte Projektzuordnung benötigt eine neue Planprüfung,
+keine erneute Freigabe unveränderten Codes. Nach Korrektur eines Eingabefehlers
+kann derselbe freigegebene Code weiterarbeiten.
 
-Pakete sind unveränderliche Versionen mit Inhaltshash. Ein Ablauf bindet eine
-bestimmte Version; ein neuer Entwurf ersetzt keine bestehende Verwendung.
-Typen, benannte Anschlüsse, Dateilisten, fehlende Eingänge und Zyklen werden geprüft.
-`map` arbeitet je Quelle; `collect` sammelt die verbundenen Ergebnisse dieses
-Assets. Verschachtelte Abläufe werden für die Planung aufgelöst.
+**Automatik pausieren/fortsetzen** verhindert beziehungsweise erlaubt neue
+Starts. **Abbrechen** beendet einen laufenden Durchgang kontrolliert. Bei
+Projektwechsel oder Schließen wartet die Oberfläche auf das sichere Ende.
+Fehlerhafte unveränderte Fingerprints werden nicht endlos wiederholt;
+**Erneut versuchen** oder eine relevante Korrektur ermöglicht einen neuen Versuch.
+Abhängige Schritte bleiben blockiert, unabhängige gültige Ketten dürfen weiterlaufen.
 
-Die vorhandene Kette aus BuildGraph, BuildPlanner, JobService, Supervisor und
-BuildCache führt auch eigene Bausteine aus. Geprüfte Dateien eines vollständig
-erfolgreichen Laufs werden beim Asset veröffentlicht. Fehler, Abbruch und reine
-Entwurfstests ändern dessen aktuellen Ergebnisindex nicht. Cachetreffer werden
-anhand von Dateien, Hashes, Parametern und Bibliotheksbestand erneut geprüft.
+Ein Start friert aktuelle gespeicherte Eingaben, Skripte und Hilfsdateien ein.
+Änderungen währenddessen gelten erst für den nächsten Durchgang. Vor
+Veröffentlichung wird der wirksame Stand erneut geprüft; ein veralteter Lauf
+wird nicht als aktuelles Ergebnis ausgegeben.
 
-**Exportieren** liefert ZIP-Dateien einschließlich der benötigten Python-Dateien,
-Hilfsmodule, verschachtelten Werkzeugpakete und deklarierter Ressourcen.
-**Importieren** zeigt die Prüfung vor der Übernahme. Codefreigaben, installierte
-Umgebungen, Zugangsdaten und private Maschinenpfade gehören nicht zum Export.
-Details und ein direkt importierbares Beispiel stehen unter
-[Skriptpakete, Python-Schnittstelle und Ablage](SKRIPTPAKETE.md).
+## Archiv und Papierkorb
 
-Die Umsetzung und tatsächlich ausgeführten Prüfungen stehen im
-[Arbeitsplan](../plans/asset-studio-ablaufeditor.md).
+Die untere Strukturablage trennt **Archiv** und **Papierkorb**, auch für
+Verwendungen sowie Skripte/Pipelines. Archivieren macht inaktiv und hat kein
+Ablaufdatum. Entfernen ist nach Bestätigung für exakt **30 × 24 Stunden** ab
+UTC-Entfernungszeit wiederherstellbar. Angezeigte Termine verwenden lokale Zeit.
+Abbrechen ist in der Bestätigung voreingestellt. Entf im Canvas verwendet
+dieselbe Entfernung; in Texteditoren bearbeitet Entf weiterhin Text.
+
+Wiederherstellen ist als Kontextaktion oder Drag-and-drop an ein gültiges Ziel
+möglich. Wiederherstellung und neue Zuordnung bilden einen Undo-Schritt. Ein
+ungültiges Ziel lässt den Ausgangszustand bestehen. Unabhängig archivierte
+Unterobjekte werden nicht mitaktiviert. Bei einer Verwendung bleibt das
+Original unverändert; bei einem Original zeigt die Bestätigung auch betroffene
+Inhalte und Verwendungen.
+
+Beim Öffnen und während des Betriebs bereinigt die App fällige Inhalte. Sie
+beendet vorher eine betroffene laufende Verarbeitung. Gelöscht werden nur
+zugehörige verwaltete Dateien, Datensätze und nicht mehr benötigte Revisionen.
+Gemeinsame Dateien und fremde Dateien bleiben erhalten. Nach Bereinigung wird
+kein Undo zur Wiederherstellung gelöschter Inhalte angeboten. Eine geschlossene
+App löscht nichts; getrennte Sicherungen sind kein App-Papierkorb.
+
+## Suche, Demo und Übernahme
+
+Beide Suchansichten öffnen tatsächliche Objekte. Projekt-Suche umfasst Inhalte,
+Assets, Aufgaben/Issues, Notizen, Dokumente und Verwendungen. Die Werkzeugsuche
+umfasst Skripte und Definitionen einschließlich geeigneter Dateiinhalte.
+Archiv und Papierkorb sind ausdrücklich wählbare Suchzustände.
+
+Ein neues Projekt besitzt **0 Skripte und 0 Pipelines**. Nur
+**Einstellungen → Tests → Demo anlegen** ergänzt die synthetischen Beispiele.
+Wiederholung erkennt bereits angelegte Demoinhalte. Die Beispielpipelines
+starten Gelb und laufen erst nach Prüfung, Freigabe und gültiger Zuordnung.
+
+Die Bestandsübernahme sichert Katalog und verwaltete Dateien vor dem Rückbau.
+Unterschiedliche gebundene Skriptfassungen bleiben zunächst eigene Skripte.
+Wirksame alte Prioritätszuordnungen werden übernommen; unklare Fälle bleiben
+sichtbar inaktiv. Alte Freigaben gelten nicht automatisch. Historische Ergebnisse
+und Herkunftsbelege werden gesichert übernommen, bevor ausschließlich alte
+Auftragsdaten und Ausführungswege entfernt werden. Details und tatsächliche
+Prüfergebnisse stehen im verlinkten Arbeitsplan.
+
+## Grenzen
+
+Der kontrollierte Prozessabbruch benötigt derzeit Linux mit `/proc`.
+Windows/macOS-Ausführung ist nicht abgenommen. Verwaltete Python-Umgebungen
+sind keine Sicherheits-Sandbox. Godot-Bereitstellung bleibt deaktiviert.
+JSON-Felder für Parameterbeschreibungen, zusätzliche Eingänge und Ressourcen
+sind technische Bearbeitungshilfen; es gibt keinen allgemeinen Regeleditor.
+Für die aktuelle Abnahme gilt ausschließlich der dokumentierte Teststand,
+nicht die historischen Sichtprüfungsberichte.

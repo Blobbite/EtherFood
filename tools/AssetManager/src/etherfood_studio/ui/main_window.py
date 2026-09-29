@@ -8,9 +8,26 @@ from typing import Callable
 from PySide6.QtCore import QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
-    QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QMainWindow,
-    QMenu, QMessageBox, QPlainTextEdit, QScrollArea, QSizePolicy, QSpinBox, QSplitter, QTabWidget,
-    QToolBar, QTreeWidgetItem, QTreeWidgetItemIterator, QVBoxLayout, QWidget,
+    QApplication,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QHBoxLayout,
+    QInputDialog,
+    QMainWindow,
+    QGridLayout,
+    QListWidget,
+    QMenu,
+    QMessageBox,
+    QPlainTextEdit,
+    QSizePolicy,
+    QSplitter,
+    QStackedWidget,
+    QToolBar,
+    QTreeWidgetItem,
+    QTreeWidgetItemIterator,
+    QVBoxLayout,
+    QWidget,
 )
 
 from ..application.commands import Command, Commands
@@ -35,8 +52,6 @@ from .project_tree import EDGE_ROLE, ProjectTree
 from .notes import NotesPanel
 from .tasks.panel import TasksPanel
 from .tasks.kanban import KanbanPanel
-from .jobs import JobsDialog
-from .build_plan import BuildPlanDialog
 from .appearance import AppearanceDialog, BUTTON_STYLES, appearance
 from .action_icons import action_icon
 from .theme import color
@@ -56,9 +71,10 @@ class MainWindow(QMainWindow):
         self.selected_id: str | None = None
         self.selected_content_id: str | None = None
         self._refreshing = False
-        self.job_dialog = None
-        self.build_dialog = None
-        self._close_after_jobs = False
+        self.processing = None
+        self._close_after_processing = False
+        self._section_rows = [0, 0]
+        self._navigating = False
         self._build_ui()
         appearance().changed.connect(self.apply_appearance)
         self.apply_appearance()
@@ -77,35 +93,20 @@ class MainWindow(QMainWindow):
         self._action(toolbar, "Neues Projekt", self.new_dialog, "Ctrl+N", "new_project")
         self._action(toolbar, "Öffnen …", self.open_dialog, "Ctrl+O", "open_project")
         self.recent_menu = self.menuBar().addMenu("Zuletzt verwendet")
-        self._action(toolbar, "Demo anlegen", self.demo_dialog, "", "create_demo")
         toolbar.addSeparator()
         self.undo_action = self._action(toolbar, "Rückgängig", lambda: self.undo(False),
                                         "Ctrl+Z", "undo")
         self.redo_action = self._action(toolbar, "Wiederholen", lambda: self.undo(True),
                                         "Ctrl+Shift+Z", "redo")
-        self._action(toolbar, "Aufträge …", self.show_jobs, "", "show_jobs")
-        self._action(toolbar, "Startseite", self.show_start_page, "", "project_start_page")
-        diagnostics = self.menuBar().addMenu("Technische Werkzeuge")
-        self._action(diagnostics, "Cache-Diagnose …", self.show_cache_diagnostics,
-                     "", "cache_diagnostics")
-        self.processing = None
-        self.pipeline_action = self._action(
-            toolbar, "Verarbeitung", self.show_pipeline_menu, "", "image_pipeline"
-        )
-        self.pipeline_action.setIcon(kind_icon("pipeline"))
-        self.pipeline_action.setEnabled(False)
-        self.pipeline_action.setToolTip(
-            "Pipelines des geöffneten Projekts anlegen oder importieren")
-        action = toolbar.addAction("Godot bereitstellen (später)")
-        action.setObjectName("godot_export")
-        action.setEnabled(False)
-        action.setToolTip("Godot-Bereitstellung folgt in späteren Issues.")
         center = QWidget()
         outer = QVBoxLayout(center)
         tools_row = QHBoxLayout()
         tools_row.addWidget(toolbar, 1)
         self.settings_button = button("Einstellungen", "appearance_settings_button",
                                       self.show_appearance_settings)
+        self.godot_button = button("Godot bereitstellen", "godot_export", lambda: None)
+        self.godot_button.setEnabled(False)
+        tools_row.addWidget(self.godot_button)
         tools_row.addWidget(self.settings_button)
         outer.addLayout(tools_row)
         self.breadcrumb = label(
@@ -116,7 +117,27 @@ class MainWindow(QMainWindow):
             "Lokale Verwaltung · Keine produktive Asset-Freigabe", "root_status",
         )
         outer.addWidget(self.root_notice)
+        body = QHBoxLayout()
+        self.main_navigation = QListWidget()
+        self.main_navigation.setObjectName("main_editor_navigation")
+        self.main_navigation.addItems(["Projekt", "Skripte & Pipelines"])
+        self.main_navigation.setFixedWidth(155)
+        self.main_navigation.setCurrentRow(0)
+        self.section_navigation = QListWidget()
+        self.section_navigation.setObjectName("section_navigation")
+        self.section_navigation.setFixedWidth(190)
+        self.section_navigation.addItems(self.section_names(0))
+        self.section_navigation.setCurrentRow(0)
+        body.addWidget(self.main_navigation)
+        body.addWidget(self.section_navigation)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.structure_stack = QStackedWidget()
+        self.workspace_stack = QStackedWidget()
+        self.splitter.addWidget(self.structure_stack)
+        self.splitter.addWidget(self.workspace_stack)
+        self.splitter.setSizes([250, 850])
+        self.splitter.setStretchFactor(1, 1)
+        body.addWidget(self.splitter, 1)
         self.tree = ProjectTree(self)
         self.tree.setIconSize(QSize(40, 20))
         self.tree.drop_requested.connect(self.tree_drop, Qt.ConnectionType.QueuedConnection)
@@ -126,23 +147,35 @@ class MainWindow(QMainWindow):
         self.tree.itemSelectionChanged.connect(self._tree_selected)
         self.tree.itemExpanded.connect(lambda item: self._tree_collapse(item, False))
         self.tree.itemCollapsed.connect(lambda item: self._tree_collapse(item, True))
-        self.splitter.addWidget(self.tree)
-        self.tabs = QTabWidget()
+        self.project_structure = QWidget()
+        structure_layout = QVBoxLayout(self.project_structure)
+        structure_layout.setContentsMargins(0, 0, 0, 0)
+        structure_layout.addWidget(self.tree, 1)
+        self.project_archive_view = QComboBox()
+        self.project_archive_view.setObjectName("project_storage_view")
+        self.project_archive_view.addItem("Ablage: Archiv", "archived")
+        self.project_archive_view.addItem("Ablage: Papierkorb · 30 Tage", "trash")
+        self.project_archive_view.currentIndexChanged.connect(self.refresh)
+        structure_layout.addWidget(self.project_archive_view)
+        self.structure_stack.addWidget(self.project_structure)
+        self.structure_stack.addWidget(QWidget())
+        self.tabs = QStackedWidget()
         self.tabs.setObjectName("workspace_tabs")
         canvas_page = QWidget()
         canvas_layout = QVBoxLayout(canvas_page)
-        actions = QHBoxLayout()
-        for text, name, call in (
-            ("+ Akt", "add_act", lambda: self.create_dialog("act")),
-            ("+ Kapitel", "add_chapter", lambda: self.create_dialog("chapter")),
-            ("+ Nebenkarte", "add_card", lambda: self.create_dialog("side")),
-            ("+", "zoom_in", lambda: self.canvas.zoom(1.15)),
-            ("−", "zoom_out", lambda: self.canvas.zoom(1 / 1.15)),
-            ("Anordnen", "auto_layout", self.auto_layout),
-            ("Manuell", "restore_layout", self.restore_layout),
+        actions = QGridLayout()
+        for index, (text, name, call) in enumerate(
+            (
+                ("+ Akt", "add_act", lambda: self.create_dialog("act")),
+                ("+ Kapitel", "add_chapter", lambda: self.create_dialog("chapter")),
+                ("+ Nebenkarte", "add_card", lambda: self.create_dialog("side")),
+                ("+", "zoom_in", lambda: self.canvas.zoom(1.15)),
+                ("−", "zoom_out", lambda: self.canvas.zoom(1 / 1.15)),
+                ("Anordnen", "auto_layout", self.auto_layout),
+                ("Manuell", "restore_layout", self.restore_layout),
+            )
         ):
-            actions.addWidget(button(text, name, call))
-        actions.addStretch(1)
+            actions.addWidget(button(text, name, call), index // 4, index % 4)
         canvas_layout.addLayout(actions)
         self.canvas = Canvas()
         # Saving a dirty note can rebuild the scene; finish the pointer event first.
@@ -162,106 +195,45 @@ class MainWindow(QMainWindow):
         self.canvas.reconnect_requested.connect(self.reconnect_cards,
                                                 Qt.ConnectionType.QueuedConnection)
         canvas_layout.addWidget(self.canvas, 1)
+        from .usage_editor import UsageEditor
+
+        self.usage_editor = UsageEditor(self)
+        canvas_layout.addWidget(self.usage_editor)
         canvas_layout.addWidget(label(
             "Linien: ─ gehört zu · – – verwendet · · · benötigt. "
             "Kreise ziehen: verbinden · Linie anklicken: umhängen · ◢: Größe · "
             "Mittlere Maustaste: Ansicht verschieben · Strg+Z: zurück · "
             "Strg+Mausrad: Zoom · Doppelklick: Gruppe klappen."
         ))
-        self.tabs.addTab(canvas_page, "Projekt-Canvas")
+        self.tabs.addWidget(canvas_page)
         self.tasks = KanbanPanel()
         self.tasks.focus_requested.connect(self.select_card)
         self.tasks.changed.connect(self.refresh)
-        self.tabs.addTab(self.tasks, "Aufgaben-Kanban")
+        self.tabs.addWidget(self.tasks)
         self.notes = NotesPanel(self.prepare_content_change)
         self.notes.changed.connect(self._notes_changed)
         self.notes.focus_requested.connect(self.select_card)
-        self.tabs.addTab(self.notes, "Notizen")
+        self.tabs.addWidget(self.notes)
         self.documents = DocumentEditor()
         self.documents.navigate = self.open_document
         self.documents.saved.connect(self._document_saved)
-        self.tabs.addTab(self.documents, "Dokumentation && Anhänge")
-        self.search = TasksPanel(search_only=True)
-        self.search.focus_requested.connect(self.select_card)
-        self.search.document_requested.connect(self.open_document)
-        self.search.changed.connect(self.refresh)
-        self.tabs.addTab(self.search, "Suche")
-        self.splitter.addWidget(self.tabs)
-        properties = QWidget()
-        property_layout = QVBoxLayout(properties)
-        property_layout.addWidget(label("Karteneigenschaften", "properties_title"))
-        self.workflow_status = label("Status / nächster Schritt: Karte auswählen.",
-                                      "workflow_status")
-        property_layout.addWidget(self.workflow_status)
-        self.usage = label("Herkunft und gemeinsame Verwendungen", "asset_usage")
-        self.usage.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        property_layout.addWidget(self.usage)
-        self.details = QPlainTextEdit()
-        self.details.setObjectName("card_properties")
-        self.details.setReadOnly(True)
-        self.details.setMinimumHeight(140)
-        property_layout.addWidget(self.details, 1)
-        size_row = QHBoxLayout()
-        self.card_width, self.card_height = QSpinBox(), QSpinBox()
-        self.card_width.setObjectName("card_view_width")
-        self.card_height.setObjectName("card_view_height")
-        self.card_width.setRange(200, 1000)
-        self.card_height.setRange(100, 400)
-        self.card_width.setPrefix("B: ")
-        self.card_height.setPrefix("H: ")
-        size_row.addWidget(self.card_width)
-        size_row.addWidget(self.card_height)
-        self.card_resize = button("Ansicht", "resize_card", self.resize_card)
-        size_row.addWidget(self.card_resize)
-        property_layout.addLayout(size_row)
-        for text, name, call in (
-            ("Umbenennen", "rename_card", self.rename_dialog),
-            ("Archivieren / Wiederherstellen", "archive_card", self.archive_dialog),
-        ):
-            property_layout.addWidget(button(text, name, call))
-        self.relation_kind = QComboBox()
-        self.relation_kind.setObjectName("relation_kind")
-        self.relation_kind.addItem("Verwendung → uses", "uses")
-        self.relation_kind.addItem("Voraussetzung → depends_on", "depends_on")
-        self.relation_target = QComboBox()
-        self.relation_target.setObjectName("relation_target")
-        property_layout.addWidget(label("Zielkarte für Verbindung (Zuordnung: im Baum ziehen)"))
-        property_layout.addWidget(self.relation_kind)
-        property_layout.addWidget(self.relation_target)
-        property_layout.addWidget(button("Verbindung anlegen", "add_relation", self.link_dialog))
-        self.use_existing = button("Vorhandenes Asset verwenden …", "use_existing_asset",
-                                    self.use_existing_dialog)
-        property_layout.addWidget(self.use_existing)
-        self.relations = QComboBox()
-        self.relations.setObjectName("existing_relations")
-        property_layout.addWidget(self.relations)
-        property_layout.addWidget(button("Verbindung lösen", "remove_relation", self.unlink_dialog))
-        property_scroll = QScrollArea()
-        property_scroll.setWidgetResizable(True)
-        property_scroll.setWidget(properties)
-        property_scroll.setMinimumWidth(270)
-        self.splitter.addWidget(property_scroll)
-        self.splitter.setSizes([250, 880, 290])
-        self.splitter.setStretchFactor(1, 1)
-        # Canvas geometry/relations are not task controls; give the board their space.
-        self.tabs.currentChanged.connect(
-            lambda index: property_scroll.setVisible(
-                self.tabs.widget(index)
-                not in {self.tasks, self.notes, self.documents, self.processing}
-            )
-        )
-        self.tabs.currentChanged.connect(
-            lambda index: self.tree.setVisible(self.tabs.widget(index) is not self.processing)
-        )
-        outer.addWidget(self.splitter, 1)
-        self.jobs = label("Keine Aufträge. Diagnose über Aufträge …; keine Asset-Freigabe.",
-                          "job_status")
-        outer.addWidget(self.jobs)
+        self.tabs.addWidget(self.documents)
+        from .workspace_search import WorkspaceSearch
+
+        self.search = WorkspaceSearch("project")
+        self.search.open_requested.connect(self.open_search_hit)
+        self.tabs.addWidget(self.search)
+        self.workspace_stack.addWidget(self.tabs)
+        self.workspace_stack.addWidget(QWidget())
+        outer.addLayout(body, 1)
+        self.main_navigation.currentRowChanged.connect(self.set_main_editor)
+        self.section_navigation.currentRowChanged.connect(self.set_section)
+        self.tabs.currentChanged.connect(self.project_section_changed)
+        self.canvas.delete_requested.connect(self.remove_dialog, Qt.QueuedConnection)
         self.setCentralWidget(center)
         save = QAction("Dokument speichern", self)
         save.setShortcut(QKeySequence.StandardKey.Save)
-        save.triggered.connect(lambda: (self.notes if self.tabs.currentWidget() is self.notes
-                                        else self.documents).save())
+        save.triggered.connect(self.save_active)
         self.addAction(save)
         search = QAction("Suche", self)
         search.setShortcut(QKeySequence("Ctrl+F"))
@@ -269,16 +241,155 @@ class MainWindow(QMainWindow):
         self.addAction(search)
         self.statusBar().showMessage("Bereit · Projekt wählen")
 
+    @staticmethod
+    def section_names(editor):
+        return (
+            ["Projekt-Canvas", "Aufgaben-Kanban", "Notizen", "Dokumentation & Anhänge", "Suche"]
+            if editor == 0
+            else ["Pipeline-Editor", "Python-Editor", "Suche"]
+        )
+
+    def set_main_editor(self, index):
+        if self._navigating or index not in (0, 1):
+            return
+        self._navigating = True
+        self.main_navigation.setCurrentRow(index)
+        self.section_navigation.clear()
+        self.section_navigation.addItems(self.section_names(index))
+        self.section_navigation.setCurrentRow(self._section_rows[index])
+        self.structure_stack.setCurrentIndex(index)
+        self.workspace_stack.setCurrentIndex(index)
+        self._navigating = False
+        self.set_section(self._section_rows[index])
+
+    def set_section(self, index):
+        if self._navigating or index < 0:
+            return
+        main = self.main_navigation.currentRow()
+        self._section_rows[main] = index
+        self._navigating = True
+        self.section_navigation.setCurrentRow(index)
+        if main == 0:
+            self.tabs.setCurrentIndex(index)
+            if index == 4:
+                self.search.refresh()
+        elif self.processing:
+            self.processing.set_section(index)
+        self._navigating = False
+        self.undo_action.setEnabled(True)
+        self.redo_action.setEnabled(True)
+
+    def project_section_changed(self, index):
+        self._section_rows[0] = index
+        if not self._navigating:
+            self.set_main_editor(0)
+
+    def tools_section_requested(self, index):
+        self._section_rows[1] = index
+        self.set_main_editor(1)
+
+    def processing_finished(self):
+        if self._close_after_processing:
+            self._close_after_processing = False
+            QTimer.singleShot(0, self.close)
+
+    def save_active(self):
+        if self.main_navigation.currentRow() == 1 and self.processing:
+            if self.processing.pages.currentIndex() == 1:
+                self.processing.python.save()
+            elif self.processing.pipeline_pages.currentWidget() is self.processing.editor:
+                self.processing.editor.save()
+        elif self.tabs.currentWidget() is self.documents:
+            self.documents.save()
+        elif self.tabs.currentWidget() is self.notes:
+            self.notes.save()
+
+    def open_search_hit(self, hit):
+        self.set_main_editor(0)
+        if hit.state != "active":
+            self.project_archive_view.setCurrentIndex(0 if hit.state == "archived" else 1)
+            self._select_tree_item(hit.id)
+            self.statusBar().showMessage("Inhalt in der Ablage; zum Bearbeiten wiederherstellen.")
+            return
+        if hit.edge_id:
+            edge = next(e for e in self.project.catalog.relations() if e["id"] == hit.edge_id)
+            self.select_card(edge["source_id"])
+            self.tabs.setCurrentIndex(0)
+            for item in self.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive):
+                if item.data(0, EDGE_ROLE) == hit.edge_id:
+                    self.tree.setCurrentItem(item)
+                    break
+        elif hit.kind in {"document", "task", "issue"}:
+            self.open_content(hit.id)
+        elif self.select_card(hit.id):
+            self.tabs.setCurrentIndex(0)
+
+    def store_content(self, identifiers, state):
+        if not self.project or not self.prepare_content_change():
+            return
+        from ..application.lifecycle_service import LifecycleService
+
+        service = LifecycleService(self.project)
+        try:
+            impact = service.impact(identifiers)
+        except StudioError as error:
+            show_error(self, error)
+            return
+        details = []
+        for row in impact:
+            details.append(row["title"])
+            if row["children"]:
+                details.append("  Inhalte: " + ", ".join(row["children"]))
+            if row["usages"]:
+                details.append("  Betroffene Verwendungen: " + ", ".join(row["usages"]))
+            details.append(f"  {len(row['connections'])} zugehörige Verbindungen")
+        action = "Archivieren" if state == "archived" else "Entfernen"
+        message = "\n".join(details) + (
+            "\n\nOhne Ablaufdatum im Archiv wiederherstellbar."
+            if state == "archived"
+            else "\n\n30 Tage im Papierkorb wiederherstellbar. "
+            "Danach werden ausschließlich zugehörige verwaltete Daten endgültig gelöscht."
+        )
+        if (
+            QMessageBox.question(
+                self, action, message, QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel
+            )
+            != QMessageBox.Yes
+        ):
+            return
+        if self.perform(lambda: service.command(self.commands, identifiers, state)):
+            self.refresh()
+            self.processing.refresh()
+
+    def restore_content(self, identifier, target=None):
+        from ..application.lifecycle_service import LifecycleService
+
+        if self.perform(
+            lambda: LifecycleService(self.project).command(
+                self.commands, [identifier], target=target
+            )
+        ):
+            self.refresh()
+            self.processing.refresh()
+
+    def remove_dialog(self):
+        if not self.project:
+            return
+        identifiers = self.canvas.selected_ids() or {self.selected_content_id or self.selected_id}
+        self.store_content([key for key in identifiers if key], "trash")
+
+    def use_pipeline(self):
+        if not self.processing:
+            return
+        self.tabs.setCurrentIndex(0)
+        self.usage_editor.choose_definition(self.selected_id or self.project.project().id)
+
     def apply_appearance(self) -> None:
         self.project_toolbar.setIconSize(QSize(16, 16))
         self.project_toolbar.setToolButtonStyle(BUTTON_STYLES[appearance().buttons])
         for action in self.project_toolbar.actions():
             if action.objectName():
                 action.setIcon(action_icon(action.objectName()))
-        self.workflow_status.setStyleSheet(
-            f"QLabel {{ background: {color('warning')}; color: {color('warning_text')}; "
-            f"padding: 8px; border: 1px solid {color('border')}; "
-            "border-radius: 4px; font-weight: bold; }")
         if self.project:
             records = {record.id: record for record in self.project.catalog.records()}
             iterator = QTreeWidgetItemIterator(self.tree)
@@ -290,7 +401,9 @@ class MainWindow(QMainWindow):
                 iterator += 1
 
     def show_appearance_settings(self) -> None:
-        dialog = AppearanceDialog(self)
+        from .settings import SettingsDialog
+
+        dialog = SettingsDialog(self)
         dialog.exec()
         dialog.deleteLater()
 
@@ -315,10 +428,11 @@ class MainWindow(QMainWindow):
         elif record.kind == "document":
             if not self.notes.confirm_discard():
                 return False
+            if not self.select_card(record.owner_id):
+                return False
             if not self.documents.open_document(identifier):
                 self._select_tree_item(self.selected_content_id or self.selected_id)
                 return False
-            self.select_card(record.owner_id)
             self.tabs.setCurrentWidget(self.documents)
         elif record.kind in {"task", "issue"}:
             if not self.select_card(record.owner_id):
@@ -383,45 +497,29 @@ class MainWindow(QMainWindow):
             dialog.deleteLater()
         self.perform(edit)
 
-    def show_pipeline_menu(self) -> None:
-        if not self.project:
-            return
-        self.tabs.setCurrentWidget(self.processing)
-        self.processing.refresh()
+    def show_pipeline_menu(self):
+        if self.processing:
+            self.set_main_editor(1)
+            self.set_section(0)
 
-    def open_pipeline(self, identifier: str) -> None:
-        if not self.project or not self.prepare_content_change():
+    def open_pipeline(self, identifier):
+        if not self.project or not self.processing:
             return
-        def edit():
-            self.tabs.setCurrentWidget(self.processing)
-            self.processing.open("recipe", identifier)
-        self.perform(edit)
+        record = self.project.catalog.get(identifier)
+        definition = record.data["definition_id"] if record.kind == "pipeline_usage" else identifier
+        if self.processing.open_definition(definition):
+            self.set_main_editor(1)
+            self.set_section(0)
 
-    def create_pipeline(self, *, choose_template=False, template_id="empty") -> None:
-        if not self.project or not self.prepare_content_change():
-            return
-        from ..domain.tool_contract import empty_workflow
+    def create_pipeline(self, **unused):
+        if self.processing:
+            self.set_main_editor(1)
+            self.processing.create_pipeline()
 
-        title, accepted = QInputDialog.getText(self, "Neuer Ablauf", "Name")
-        if not accepted:
-            return
-        def create():
-            owner = self.project.project().id
-            identifier = self.commands.create_card(
-                "pipeline", title, owner, {"project_id": owner, "recipe": empty_workflow()}
-            )
-            self.refresh()
-            self.select_card(identifier)
-            self.processing.refresh()
-            self.open_pipeline(identifier)
-        self.perform(create)
-
-    def import_pipeline(self) -> None:
-        if not self.project or not self.prepare_content_change():
-            return
-        self.tabs.setCurrentWidget(self.processing)
-        self.processing.import_package()
-        self.refresh()
+    def import_pipeline(self):
+        if self.processing:
+            self.set_main_editor(1)
+            self.processing.import_files()
 
     def perform(self, call: Callable) -> bool:
         try:
@@ -443,33 +541,47 @@ class MainWindow(QMainWindow):
         if not recent:
             self.recent_menu.addAction("Noch keine Projekte").setEnabled(False)
 
-    def _bind(self, project: ProjectService) -> None:
-        if self.job_dialog:
-            self.job_dialog.close()
-            self.job_dialog.deleteLater()
-            self.job_dialog = None
+    def _bind(self, project):
+        from ..application.workspace_migration import WorkspaceMigration
+        from .pipeline_workspace import PipelineWorkspace
+
+        try:
+            WorkspaceMigration(project).run()
+        except Exception:
+            project.catalog.close()
+            raise
+        if self.processing:
+            self.processing.controller.stop()
+            self.workspace_stack.removeWidget(self.processing)
+            self.structure_stack.removeWidget(self.processing.structure)
+            self.processing.structure.deleteLater()
+            self.processing.deleteLater()
+        else:
+            for stack in (self.workspace_stack, self.structure_stack):
+                placeholder = stack.widget(1)
+                stack.removeWidget(placeholder)
+                placeholder.deleteLater()
         if self.project:
             self.project.catalog.close()
         self.project = project
         self.commands = Commands(project)
-        if self.processing:
-            self.tabs.removeTab(self.tabs.indexOf(self.processing))
-            self.processing.deleteLater()
-        from .processing import ProcessingWorkspace
-
-        self.processing = ProcessingWorkspace(project, self, commands=self.commands)
+        self.processing = PipelineWorkspace(project, self, commands=self.commands)
         self.processing.changed.connect(self.refresh)
-        self.tabs.addTab(self.processing, "Verarbeitung")
-        self.pipeline_action.setEnabled(True)
-        self.selected_id = None
-        self.selected_content_id = None
+        self.processing.section_requested.connect(self.tools_section_requested)
+        self.processing.controller.idle.connect(self.processing_finished)
+        self.workspace_stack.addWidget(self.processing)
+        self.structure_stack.addWidget(self.processing.structure)
+        self.selected_id = self.selected_content_id = None
         self.documents.bind(DocumentService(project))
         self.tasks.bind(project)
         self.notes.bind(project)
         self.search.bind(project)
         missing = project.unavailable_roots()
-        self.root_notice.setText("Nicht verfügbare Wurzeln: " + ", ".join(missing) if missing
-                                 else "Lokaler Katalog geöffnet · Keine produktive Asset-Freigabe")
+        self.root_notice.setText(
+            "Nicht verfügbare Wurzeln: " + ", ".join(missing)
+            if missing
+            else "Lokales Projekt · Verarbeitung benötigt eine ausdrückliche Freigabe"
+        )
         self.setWindowTitle(project.project().title + " · EtherFood Asset Studio")
         recent = self.settings.value("recent_projects", [])
         if isinstance(recent, str):
@@ -477,6 +589,8 @@ class MainWindow(QMainWindow):
         path = str(project.catalog.path.parent)
         self.settings.setValue("recent_projects", [path] + [p for p in recent if p != path][:7])
         self._recent_menu()
+        self._section_rows = [0, 0]
+        self.set_main_editor(0)
         self.refresh()
         self.select_card(project.project().id)
         self.canvas.resetTransform()
@@ -484,16 +598,18 @@ class MainWindow(QMainWindow):
         self.canvas.zoom(max(0.25, min(2.5, zoom)))
         self.canvas.focus_card(project.project().id)
         self.statusBar().showMessage("Projekt geöffnet · " + project.project().title)
+        self.processing.controller.maintenance()
+        self.processing.controller.schedule()
 
     def new_project(self, directory: Path, title: str,
                     roots: dict[str, Path] | None = None) -> bool:
-        if not self.jobs_idle() or not self.prepare_content_change():
+        if not self.processing_idle() or not self.prepare_content_change():
             return False
         self._bind(ProjectService.new(directory, title, roots))
         return True
 
     def open_project(self, directory: Path) -> bool:
-        if not self.jobs_idle() or not self.prepare_content_change():
+        if not self.processing_idle() or not self.prepare_content_change():
             return False
         self._bind(ProjectService.open(directory))
         return True
@@ -517,72 +633,51 @@ class MainWindow(QMainWindow):
     def demo_dialog(self) -> None:
         if not self.project:
             return
-        if QMessageBox.question(self, "Synthetische Demo", "Demo anlegen (kein Spielkanon)?") \
-                == QMessageBox.StandardButton.Yes:
-            if self.perform(self.project.demo):
-                self.refresh()
+        if (
+            QMessageBox.question(
+                self,
+                "Synthetische Demo",
+                "Synthetische Assets, aktuelle Skripte und ungeprüfte Pipelines anlegen?",
+                QMessageBox.Yes | QMessageBox.Cancel,
+                QMessageBox.Cancel,
+            )
+            == QMessageBox.Yes
+        ):
+            from ..application.workspace_demo import WorkspaceDemo
 
-    def refresh(self) -> None:
+            if self.perform(lambda: WorkspaceDemo(self.project).create()):
+                self.processing.content_changed()
+                self.statusBar().showMessage(
+                    "Demo vorhanden. Bestehende Demo wird nicht dupliziert."
+                )
+
+    def refresh(self):
         if not self.project:
             return
         self.documents.refresh_current()
         self._refreshing = True
-        self.tree.clear()
-        cards = self.project.cards(include_archived=True)
-        items = {}
-        for card in cards:
-            suffix = " [Archiv]" if card.archived else ""
-            text = KIND_NAMES[card.kind] + " · " + card.title + suffix
-            item = QTreeWidgetItem([text])
-            item.setData(0, Qt.ItemDataRole.UserRole, card.id)
-            item.setData(0, Qt.ItemDataRole.UserRole + 1, card.kind)
-            item.setIcon(0, kind_icon(card.kind))
-            items[card.id] = item
-        for card in sorted(cards, key=lambda row: row.kind != "pipeline"):
-            if card.owner_id in items:
-                items[card.owner_id].addChild(items[card.id])
-            else:
-                self.tree.addTopLevelItem(items[card.id])
-        for record in self.project.catalog.records():
-            if record.kind in {"document", "task", "issue"} and record.owner_id in items:
-                display_kind = "note" if is_note(record) else record.kind
-                item = QTreeWidgetItem([KIND_NAMES[display_kind] + " · " + record.title])
-                item.setData(0, Qt.ItemDataRole.UserRole, record.id)
-                item.setData(0, Qt.ItemDataRole.UserRole + 1, record.kind)
-                item.setIcon(0, record_icon(record))
-                item.setToolTip(0, "Inhalt öffnen · Rechtsklick: bearbeiten")
-                items[record.owner_id].addChild(item)
-                items[record.id] = item
-        for edge in self.project.catalog.relations():
-            if edge["kind"] == "uses" and edge["source_id"] in items:
-                target = self.project.catalog.get(edge["target_id"])
-                item = QTreeWidgetItem(["↪ " + target.title + " (Verweis)"])
-                item.setData(0, Qt.ItemDataRole.UserRole, target.id)
-                item.setData(0, Qt.ItemDataRole.UserRole + 1, "reference")
-                item.setData(0, EDGE_ROLE, edge["id"])
-                item.setIcon(0, kind_icon(target.kind))
-                item.setToolTip(0, "Herkunft: " + self.project.breadcrumb(target.id))
-                items[edge["source_id"]].addChild(item)
-        for card in cards:
-            items[card.id].setExpanded(not self.project.catalog.layout(card.id).get("collapsed"))
-        selected = self.selected_content_id or self.selected_id
-        if selected in items:
-            self.tree.setCurrentItem(items[selected])
+        from .project_tree import populate_project_tree
+
+        populate_project_tree(self)
         self.canvas.render(self.project, self.selected_content_id or self.selected_id)
         self._refreshing = False
         self.tasks.refresh_scopes()
         self.notes.refresh()
-        self.search.refresh_scopes()
-        self._properties()
+        self.search.refresh()
         if self.selected_id:
-            self.breadcrumb.setText(self.project.breadcrumb(self.selected_id))
-        self.undo_action.setEnabled(bool(self.commands.done))
-        self.redo_action.setEnabled(bool(self.commands.undone))
+            try:
+                self.breadcrumb.setText(self.project.breadcrumb(self.selected_id))
+            except StudioError:
+                self.selected_id = None
+        self.undo_action.setEnabled(True)
+        self.redo_action.setEnabled(True)
 
     def _tree_selected(self) -> None:
         item = self.tree.currentItem()
         if item and not self._refreshing and self.tree.dragged is None:
             identifier = item.data(0, Qt.ItemDataRole.UserRole)
+            if not identifier:
+                return
             if item.data(0, Qt.ItemDataRole.UserRole + 1) in {"document", "task", "issue"}:
                 self.open_content(identifier)
             elif self.select_card(identifier):
@@ -603,17 +698,16 @@ class MainWindow(QMainWindow):
         else:
             self.select_card(identifier, center=False)
 
-    def open_canvas_content(self, identifier: str) -> None:
+    def open_canvas_content(self, identifier):
         record = self.project.catalog.get(identifier)
-        if record.kind == "pipeline":
-            self.open_pipeline(identifier)
+        if record.kind in {"pipeline", "pipeline_usage"}:
+            self.select_card(identifier, center=False)
         elif record.kind == "note":
-            if not self.select_card(record.id):
-                return
-            self.tabs.setCurrentWidget(self.notes)
-            self.notes.query.clear()
-            self.notes.color.setCurrentIndex(0)
-            self.notes.refresh()
+            if self.select_card(record.id):
+                self.tabs.setCurrentWidget(self.notes)
+                self.notes.query.clear()
+                self.notes.color.setCurrentIndex(0)
+                self.notes.refresh()
         else:
             self.open_content(identifier, edit=True)
 
@@ -656,63 +750,16 @@ class MainWindow(QMainWindow):
             self.commands.layouts(view_changes)
             self.canvas.render(self.project, identifier)
         self.canvas.focus_card(identifier, center=center)
-        self._properties()
         return True
-
-    def _properties(self) -> None:
-        if not self.project or not self.selected_id:
-            return
-        record = self.project.catalog.get(self.selected_id)
-        layout = self.canvas.default_positions(self.project).get(record.id, {})
-        layout |= self.project.catalog.layout(record.id)
-        fixed = record.kind in {"project", "pipeline", "note"}
-        if fixed and record.id in self.canvas.items_by_id:
-            rect = self.canvas.items_by_id[record.id].rect()
-            layout |= {"w": int(rect.width()), "h": int(rect.height())}
-        self.card_width.setMinimum(1 if fixed else 200)
-        self.card_height.setMinimum(1 if fixed else 100)
-        for widget in (self.card_width, self.card_height, self.card_resize):
-            widget.setEnabled(not fixed)
-            widget.setToolTip("Feste Größe für Projekt und Symbole" if fixed else "")
-        self.card_width.setValue(layout.get("w", 250))
-        self.card_height.setValue(layout.get("h", 100))
-        states = StatusService(self.project).status(record.id)
-        self.workflow_status.setText("Status / nächster Schritt\n"
-                                     + StatusService(self.project).summary(record.id))
-        self.usage.setText(self.project.usage_description(record.id))
-        self.use_existing.setEnabled(record.kind in {"global", "act", "chapter", "package"}
-                                      and not record.archived)
-        self.details.setPlainText(
-            f"{record.title}\n{KIND_NAMES[record.kind]} · Revision {record.revision_no}\n"
-            f"ID: {record.id}\n\n" + "\n\n".join(
-                f"{STEP_NAMES[value.id]}: {STATE_NAMES[value.state]}\n{status_reason(value)}"
-                for value in states.values()
-            )
-        )
-        self.relation_target.clear()
-        for card in self.project.cards():
-            if card.id != record.id:
-                self.relation_target.addItem(KIND_NAMES[card.kind] + " · " + card.title, card.id)
-        self.relations.clear()
-        for edge in self.project.affected_relations(record.id):
-            if edge["kind"] != "belongs_to":
-                source = self.project.catalog.get(edge["source_id"]).title
-                target = self.project.catalog.get(edge["target_id"]).title
-                self.relations.addItem(edge["kind"] + ": " + source + " → " + target, edge["id"])
-
-    def resize_card(self) -> None:
-        if self.project and self.selected_id:
-            if self.project.catalog.get(self.selected_id).kind in {"project", "pipeline", "note"}:
-                return
-            layout = self.project.catalog.layout(self.selected_id)
-            self.commands.layout(self.selected_id, layout | {
-                "w": self.card_width.value(), "h": self.card_height.value(),
-            })
-            self.refresh()
 
     def resize_canvas_card(self, identifier: str, width: float, height: float) -> None:
         if self.project:
-            if self.project.catalog.get(identifier).kind in {"project", "pipeline", "note"}:
+            if self.project.catalog.get(identifier).kind in {
+                "project",
+                "pipeline",
+                "pipeline_usage",
+                "note",
+            }:
                 return
             layout = self.project.catalog.layout(identifier)
             self.commands.layout(identifier, layout | {"w": width, "h": height})
@@ -723,6 +770,16 @@ class MainWindow(QMainWindow):
             return
         if self.project.catalog.get(source).kind in {"document", "task", "issue"}:
             self.move_canvas_content(source, target)
+            return
+        source_record, target_record = (self.project.catalog.get(key) for key in (source, target))
+        if source_record.kind == target_record.kind == "pipeline_usage":
+            self.perform(lambda: self.usage_editor.open(target, source=source))
+            return
+        if "pipeline_usage" in {source_record.kind, target_record.kind}:
+            usage, scope = (
+                (source, target) if source_record.kind == "pipeline_usage" else (target, source)
+            )
+            self.perform(lambda: self.usage_editor.open(usage, target=scope))
             return
         kinds = {"Verwendet vorhandenes Asset/Paket": "uses",
                  "Benötigt Voraussetzung": "depends_on",
@@ -740,6 +797,10 @@ class MainWindow(QMainWindow):
                 self.refresh()
 
     def reconnect_cards(self, identifier: str, source: str, target: str) -> None:
+        if identifier.startswith(("scope:", "result:")):
+            usage = identifier.split(":")[1]
+            self.perform(lambda: self.usage_editor.open(usage))
+            return
         if identifier.startswith("content:"):
             if source != identifier.removeprefix("content:"):
                 show_error(self, StudioError("validation", "Nur das Eigentümerende umhängen."))
@@ -797,6 +858,23 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def undo(self, redo: bool) -> None:
+        if self.main_navigation.currentRow() == 1 and self.processing:
+            focus = QApplication.focusWidget()
+            structure = self.processing.structure
+            in_structure = focus is structure or focus is not None and structure.isAncestorOf(focus)
+            if in_structure and self.commands:
+                self.perform(self.commands.redo if redo else self.commands.undo)
+                self.processing.refresh()
+            elif self.processing.pages.currentIndex() == 1:
+                editor = self.processing.python.editor
+                editor.redo() if redo else editor.undo()
+            elif self.processing.pipeline_pages.currentWidget() is self.processing.editor:
+                self.processing.editor.redo() if redo else self.processing.editor.undo()
+            else:
+                if self.commands:
+                    self.perform(self.commands.redo if redo else self.commands.undo)
+                    self.processing.refresh()
+            return
         if self.tabs.currentWidget() is self.notes and self.notes.editor.editor.hasFocus():
             editor = self.notes.editor.editor
             editor.redo() if redo else editor.undo()
@@ -864,9 +942,9 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def prepare_content_change(self) -> bool:
-        if self.processing and not self.processing.leave():
-            return False
         if not self.documents.confirm_discard() or not self.notes.confirm_discard():
+            return False
+        if not self.usage_editor.confirm_discard():
             return False
         if self.documents.dirty:
             self.documents.refresh_documents(self.documents.current.id)
@@ -895,25 +973,16 @@ class MainWindow(QMainWindow):
                 editor.owner_id = self.project.catalog.get(current.id).owner_id
                 editor.refresh_documents(current.id)
 
-    def archive_dialog(self) -> None:
+    def archive_dialog(self):
         if not self.project or not self.selected_id:
             return
-        record = self.project.catalog.get(self.selected_id)
-        count = len(self.project.affected_relations(record.id))
-        action = "Wiederherstellen" if record.archived else "Archivieren"
-        if QMessageBox.question(self, action, f"{count} Beziehungen bleiben erhalten. "
-                                "Es werden keine Dateien gelöscht. Fortfahren?") \
-                == QMessageBox.StandardButton.Yes:
-            if self.perform(lambda: self.project.archive(record.id, not record.archived,
-                                                         record.revision_no)):
-                self.refresh()
+        from ..application.lifecycle_service import LifecycleService
 
-    def link_dialog(self) -> None:
-        if self.project and self.selected_id and self.relation_target.currentData():
-            if self.perform(lambda: self.commands.link(self.selected_id,
-                                                       self.relation_target.currentData(),
-                                                       self.relation_kind.currentData())):
-                self.refresh()
+        service = LifecycleService(self.project)
+        if service.state(self.selected_id):
+            self.restore_content(self.selected_id)
+        else:
+            self.store_content([self.selected_id], "archived")
 
     def use_existing_dialog(self) -> None:
         if not self.project or not self.selected_id:
@@ -937,16 +1006,6 @@ class MainWindow(QMainWindow):
         )):
             self.refresh()
 
-    def unlink_dialog(self) -> None:
-        identifier = self.relations.currentData()
-        if not self.project or not identifier:
-            return
-        if QMessageBox.question(self, "Verbindung lösen", "Nur Verwendung/Voraussetzung entfernen? "
-                                "Die Karte und ihre Dateien bleiben erhalten.") \
-                == QMessageBox.StandardButton.Yes:
-            if self.perform(lambda: self.commands.unlink(identifier)):
-                self.refresh()
-
     def _document_saved(self) -> None:
         if self.documents.current:
             self.selected_content_id = self.documents.current.id
@@ -957,39 +1016,38 @@ class MainWindow(QMainWindow):
             self.documents.refresh_documents(self.documents.current.id)
         self.refresh()
 
-    def _focus_search(self) -> None:
-        self.tabs.setCurrentWidget(self.search)
-        self.search.query.setFocus()
+    def _focus_search(self):
+        self.set_section(4 if self.main_navigation.currentRow() == 0 else 2)
+        (
+            self.search if self.main_navigation.currentRow() == 0 else self.processing.search
+        ).query.setFocus()
 
-    def closeEvent(self, event: QCloseEvent) -> None:
-        from .pipeline_auxiliary import PipelineRunDialog
-        modal = QApplication.activeModalWidget()
-        if isinstance(modal, PipelineRunDialog) and (modal.worker or modal.preview_worker):
-            modal.may_close()
+    def closeEvent(self, event):
+        if self.processing and self.processing.busy:
+            event.ignore()
+            if (
+                QMessageBox.question(
+                    self,
+                    "Laufende Verarbeitung",
+                    "Durchgang sicher abbrechen und anschließend schließen?",
+                    QMessageBox.Yes | QMessageBox.Cancel,
+                    QMessageBox.Cancel,
+                )
+                == QMessageBox.Yes
+            ):
+                self._close_after_processing = True
+                self.processing.controller.stop()
+            return
+        if (
+            not self.prepare_content_change()
+            or self.processing
+            and not self.processing.confirm_discard()
+        ):
             event.ignore()
             return
-        if isinstance(modal, BuildPlanDialog) and modal.worker:
-            modal.cancel()
-            event.ignore()
-            return
-        if self.build_dialog and (self.build_dialog.worker or
-                                  getattr(self.build_dialog, "preview_worker", None)):
-            self.build_dialog.reject()
-            event.ignore()
-            self.statusBar().showMessage("Buildprüfung wird beendet; danach erneut schließen.")
-            return
-        if self.job_dialog and self.job_dialog.runner.active:
-            event.ignore()
-            if QMessageBox.question(self, "Laufende Aufträge",
-                                    "Aufträge abbrechen und nach dem sicheren Ende schließen?") \
-                    == QMessageBox.StandardButton.Yes:
-                self._close_after_jobs = True
-                for identifier in tuple(self.job_dialog.runner.active):
-                    self.job_dialog.runner.cancel(identifier)
-            return
-        if not self.prepare_content_change():
-            event.ignore()
-            return
+        if self.processing:
+            self.processing.editor.save_position()
+            self.processing.controller.stop()
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("zoom", self.canvas.transform().m11())
         if self.project:
@@ -997,63 +1055,19 @@ class MainWindow(QMainWindow):
             self.project = None
         event.accept()
 
-    def jobs_idle(self) -> bool:
+    def processing_idle(self):
         if self.processing and self.processing.busy:
             self.statusBar().showMessage(
-                "Zuerst den laufenden Skripttest abschließen oder abbrechen."
+                "Durchgang abbrechen oder seinen kontrollierten Abschluss abwarten."
             )
             return False
-        if self.build_dialog and (self.build_dialog.worker or
-                                  getattr(self.build_dialog, "preview_worker", None)):
-            self.statusBar().showMessage("Zuerst den laufenden Buildplan abschließen/abbrechen.")
-            return False
-        if self.job_dialog and self.job_dialog.runner.active:
-            self.statusBar().showMessage("Erst Aufträge beenden/abbrechen, dann Projekt wechseln.")
-            return False
-        return True
-
-    def show_jobs(self) -> None:
-        if not self.project:
-            return
-        if self.job_dialog is None:
-            self.job_dialog = JobsDialog(self.project, self)
-            self.job_dialog.changed.connect(self._jobs_changed)
-        self.job_dialog.owner_id = self.selected_id or self.project.project().id
-        self.job_dialog.show()
-        self.job_dialog.raise_()
-
-    def show_build_plan(self) -> None:
-        if self.project:
-            from .pipeline_auxiliary import PipelineRunDialog
-            selected = self.project.catalog.get(self.selected_id or self.project.project().id)
-            dialog = PipelineRunDialog(self.project,
-                recipe_id=selected.id if selected.kind == "pipeline" else None, parent=self,
-                asset_id=selected.id if selected.kind == "asset" else None)
-            self.build_dialog = dialog
-            dialog.exec()
-            self.build_dialog = None
-            dialog.deleteLater()
-            if self.job_dialog:
-                self.job_dialog.refresh()
+        return not self.processing or self.processing.confirm_discard()
 
     def show_start_page(self):
         if self.project and self.select_card(self.project.project().id):
             document = next(row for row in self.documents.service.documents(self.selected_id)
                             if row.data.get("automation") == "index")
             self.open_document(document.id)
-
-    def show_cache_diagnostics(self):
-        if self.project:
-            dialog = BuildPlanDialog(self.project, self.project.project().id, self)
-            dialog.exec()
-            dialog.deleteLater()
-
-    def _jobs_changed(self) -> None:
-        count = len(self.job_dialog.runner.active)
-        self.jobs.setText(f"{count} laufende Aufträge · Details unter Aufträge …")
-        if self._close_after_jobs and not count:
-            self._close_after_jobs = False
-            QTimer.singleShot(0, self.close)
 
 
 def launch(project: Path | None = None) -> int:

@@ -60,15 +60,8 @@ def test_asset_actions_stay_out_of_project_toolbar_in_all_display_modes(window, 
         qt_app.processEvents()
         names = {action.objectName() for action in window.project_toolbar.actions()}
         assert not {"new_asset", "asset_workspace"}.intersection(names)
-        assert {
-            "new_project",
-            "open_project",
-            "create_demo",
-            "undo",
-            "redo",
-            "show_jobs",
-            "image_pipeline",
-        }.issubset(names)
+        assert {"new_project", "open_project", "undo", "redo"}.issubset(names)
+        assert not {"create_demo", "show_jobs", "image_pipeline"} & names
         assert "show_build_plan" not in names
 
 
@@ -166,7 +159,11 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
     window.project.archive(identifier, True, asset.revision_no)
     window.open_project(root)
     window.select_card(identifier)
-    assert "archiviert" in window.workflow_status.text()
+    assert window.project.catalog.get(identifier).archived
+    assert any(
+        item.data(0, Qt.UserRole) == identifier
+        for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
+    )
 
 
 def test_wizard_cancel_and_configuration_template_do_not_import_sources(window, qt_app):

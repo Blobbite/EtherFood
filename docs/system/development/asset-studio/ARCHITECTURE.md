@@ -1,168 +1,120 @@
-# Architektur und Datenverträge (T002)
+# Architektur und Datenverträge
 
-Für den aktuellen Umbau gilt die
-[Korrektur zur skriptbasierten Canvas-Plattform](../plans/asset-studio-skriptplattform-korrektur.md).
-Die frühere Issue-Reihenfolge ist stillgelegt. Der gemeinsame Unterbau bleibt
-erhalten; vorhandene Dienste werden nicht parallel neu implementiert.
+[Asset Studio](index.md) · [Arbeitsplan](../plans/asset-studio-zwei-editoren-und-automatik.md)
 
-## Schichten und Zuständigkeiten
+## Bestehende Anwendung und Zuständigkeiten
 
-`tools/AssetManager/src/etherfood_studio/` ist ein eigenes Python-Paket.
-Der bestehende `g2dtool`-Start und die PyGameTools-Starter bleiben erhalten.
+Das Python-Paket unter `tools/AssetManager/src/etherfood_studio/` bleibt eine
+native PySide6-Anwendung. Es verwendet den vorhandenen Katalog, Dokumentdienst,
+BlobStore, sichere Pfade und das SQL-/Dateijournal. PyGameTools-Bildalgorithmen
+bleiben nutzbar. Keine zweite Browseroberfläche und keine zweite Dokumentablage.
 
-| Schicht | Aufgabe | Zulässige Abhängigkeiten |
-| --- | --- | --- |
-| domain | Typen, Relationen, Statusregeln | Python-Standardbibliothek |
-| application | Anwendungsdienste, Befehle, Konflikte | domain, storage-Schnittstellen |
-| storage | SQLite, sichere Pfade, Blobs, Journale | domain, Standardbibliothek; Pillow bei Bildimport |
-| pipelines | registrierte Adapter, Auftragsverträge und Supervisor | domain/storage; kein Qt |
-| packages | deklarative Vorlagen, Python-Verarbeitung und bewusst aufgerufene UI-Dienste | Discovery: nur JSON; Verarbeitung: pipelines/domain; UI-Dienste: ui/application |
-| godot | späterer Export/Deployment-Adapter | application/domain; kein Qt |
-| ui | PySide6-Desktop | application; kein SQL in Widgets |
-
-`domain.pipeline_recipes` liest ausschließlich deklarative mitgelieferte Manifeste.
-Der gemeinsame Runner lädt die Verarbeitung erst bei der Ausführung. Der UI-Host
-erzeugt Parameter und optionale Aktionen aus diesen Manifesten. Freier Python-Code
-bleibt im gesonderten, hashgebundenen Pluginvertrag.
-
-Migration 9 und `ProjectDocuments` ergänzen `ProjectFiles` um kataloggebundene
-Markdown-Dateien. Grunddokumente besitzen eine feste Identität pro Besitzer;
-Automatikblöcke und eigene Texte bleiben getrennt. Katalog, Kartenordner und
-Dokumente werden gemeinsam mit dem vorhandenen Dateijournal abgeglichen.
-Die genaue Ablage und Bedienung stehen unter [Skriptpakete](SKRIPTPAKETE.md).
-
-CLI und GUI verwenden dieselben Dienste. Importe starten keine Arbeit.
-Noch nicht implementierte Pipeline-/Godot-Aktionen werden deaktiviert.
-Ein lokaler kontrollierter Schreiber nutzt kurze SQLite-Transaktionen,
-`foreign_keys=ON`, `schema_version` und `revision_no` zur Konflikterkennung.
-JSON-Snapshots sind keine zweite aktive Datenbank.
-
-## Modell und Identität
-
-Alle Objekte besitzen eine UUID, UTC-Zeiten und getrennte Anzeigenamen.
-Project besitzt genau einen globalen Rahmen. Act gehört zum Projekt,
-Chapter zum Act. Card-Typen umfassen außerdem Asset, Paket und freie Notiz.
-`belongs_to` beschreibt Eigentümerschaft; `uses` verweist mehrfach auf
-dasselbe Objekt; `depends_on` beschreibt echte Voraussetzungen und ist
-zyklenfrei. CardLayout liegt separat; Position/Zoom/Größe sind keine
-Build-Eingaben. Archivieren ist reversibel und löscht keine Bytes.
-
-Spätere Modelle werden als versionierte Verträge vorbereitet, nicht als
-bereits vorhandene Verarbeitung ausgegeben:
-
-| Modell | Bindung / Invariante |
+| Bereich | Verantwortung |
 | --- | --- |
-| Asset, Pose | Besitzer-ID, Typ; `stand`, Richtung und Timing getrennt |
-| SourceRevision | Originaldigest, Länge, Typ, Herkunft; unveränderlich |
-| ProfileRevision, MaskRevision | feste Inhaltsrevision; Maske zusätzlich an Quellhash gebunden |
-| Build | konkrete Eingaberevisionen und Input-Fingerprint |
-| Check | konkretes Build/Export, Kontext und tatsächliches Ergebnis |
-| Review | exakte Build-ID, Scope und Entscheidung; niemals `latest` |
-| Approval | festes Candidate/Export und überprüfte Nachweise |
-| Deployment | Export-ID, Besitzliste und Wiederaufnahmejournal |
+| `domain.pipeline_contract` | Aktueller `studio-pipeline-v3`-Vertrag, benannte Ports, Graph, Folder, Parameter |
+| `WorkspaceFiles` | Aktuelle Dateien, stabile IDs, Helfer, Konflikte, sichere Umzüge |
+| `PipelineWorkspace` | Definition/Verwendung, Eingabebereiche, semantische Reihenfolge, Prüf-/Freigabestand |
+| `PipelineInputs`, `SourceReconciliation` | Ausschließlich aktuelle registrierte Quellen; generische Eignung und geprüfte externe Änderungen |
+| `PipelineExecution`, `PipelineResults` | Gefrorener Durchgang, Phasengrenzen, Schrittcache, Ergebnisprüfung und aktuelle Herkunft |
+| `pipeline_worker`, `pipeline_supervisor` | Einheitliche Python-Schnittstelle, kontrollierte Prozesse, Abbruch und Laufverzeichnisse |
+| `PipelineController` | Qt-Dateibeobachtung, gebündelte Ereignisse, ein serieller Hintergrundarbeiter, kontrolliertes Schließen |
+| `LifecycleService` | Getrennte Original-/Verwendungszustände, UTC-Fristen, atomare Wiederherstellung, besitzgebundene Bereinigung |
+| `WorkspaceMigration`, `RetireJobs` | Gesicherte wiederaufnehmbare Übernahme und tatsächlicher Rückbau der alten Auftragsbestände |
+| `SearchService`, `WorkspaceSearch` | Getrennte Suchlogik und identisch angeordnete Projekt-/Werkzeugsuchen |
 
-Dokumente besitzen unveränderliche Textrevisionen. Generierte Berichte sind
-ein anderer Dokumenttyp als Benutzertext. Tasks/Issues beziehen sich per ID
-auf Karten; Fundstellen können Build/Pose/Richtung/Profil/Frame nennen.
+`MainWindow` besitzt genau zwei Haupteditoren. `DefinitionEditor` verwendet den
+vorhandenen Canvas-Unterbau und eine kompakte kontextuelle Bearbeitung.
+`ScriptWorkspace` verwendet den vorhandenen Python-Texteditor. Die bestehende
+Markdown-, Notiz-, Kanban-, Quellen- und Assetbearbeitung bleibt eingebunden.
 
-## Austauschverträge
+## Autoritative Daten
 
-Das versionierte [JSON-Schema](../../../../schemas/asset-studio/contracts-v1.json)
-definiert VariantKey, BuildRequest, BuildResult, RuntimePayload,
-DeploymentJournal und Review. Unbekannte Felder/Versionen werden abgelehnt.
-Optionale Dimensionen statischer Assets sind `null`, keine erfundene Animation.
-Input-Fingerprint, SHA-256 der Ausgabebytes und Deployment-Payload-Digest
-haben getrennte Felder. Geometrie/Raster und Timing gehören zum jeweiligen
-Ergebnis, volatile Logzeiten nicht zum Fingerprint.
+| Inhalt | Maßgebliche Ablage |
+| --- | --- |
+| Aktueller Pythoncode und deklarierte Hilfsdateien | `.tools/scrips/` |
+| Aktuelle Pipelineverschaltung, Parameter, Folder | `.tools/piplins/` |
+| IDs, Skriptbeschreibungen, Zuordnungen, Freigaben, Archiv/Papierkorb | Bestehender SQLite-Katalog |
+| Koordinaten, Zoom und Ansicht | `layouts`, unabhängig vom Ausführungsfingerprint |
+| Unveränderliche registrierte Quellbytes und Ressourcen | Bestehender hashbasierter BlobStore |
+| Markdowntext, Dokument-ID und Revision | Bestehender Dokumentdienst und seine Dateiprojektion |
 
-## Fehler, Sicherheit und Grenzen
+`pipeline_definition` und `pipeline_usage` sind verschiedene Objekte. Mehrere
+Verwendungen referenzieren eine Definition. Gewöhnliche `belongs_to`, `uses`
+und `depends_on`-Projektbeziehungen ersetzen keine Ergebnisverbindung.
+Die Verwendung enthält ausdrücklich benannte Vorgängeranschlüsse und eine
+von Bildschirmkoordinaten getrennte fachliche Reihenfolge.
 
-Strukturierte Fehler: `validation`, `conflict`, `unavailable`, `integrity`,
-`cancelled`, `storage`. Meldung und technische Details sind getrennt;
-Logeinträge tragen eine Auftrags-ID. Keine Telemetrie und kein Geheimnisexport.
-Standardgrenzen: 64 MiB Importdatei, 32 Millionen Bildpixel, 1 MiB Markdown,
-64 MiB Metadaten-Snapshot; vor Kopieren zusätzlich freier Speicher prüfen.
-Größere echte Produktionsassets benötigen später eine bewusste Konfiguration.
+Schema 11 ergänzt aktuelle Dateibesitzlisten, Pipelineprüfstatus, Ergebnisse,
+Versuche, Schrittcache und Lebenszykluszustände. Schema 12 ergänzt historische
+Ergebnisnachweise und Besitzlisten für Laufkopien. Gemeinsame Hilfsdateien
+können mehrere Besitzer besitzen. Alte Auftragstabellen werden erst nach
+inhaltlicher Ergebnisübernahme entfernt, nicht blind beim Schema-Upgrade.
 
-Schreibwurzeln müssen existieren, symlinkfrei und ohne Überlappung sein. Jeder
-Schreibzugriff prüft seine Grenze erneut. Importe kopieren über Laufwerke,
-prüfen Hash/Länge und registrieren danach; sie behaupten keine atomare
-Cross-Device-Verschiebung. Journale und verwaiste Dateien werden nur gemeldet.
-Keine Sicherheitsgarantie gegen einen bösartigen zweiten OS-Benutzer;
-lokale Einzelbenutzerdaten, kein gemeinsam beschreibbares Netzlaufwerk.
+## Ausführung und Freigabe
 
-Statuswerte: `not_started`, `waiting_external`, `ready`, `running`, `blocked`,
-`failed`, `cancelled`, `passed`, `stale`, `not_required`. Letzteres erfordert
-einen Typgrund. `skipped` oder fehlende Tools zählen nie als Erfolg.
-Bearbeitung, Build, Sichtabnahme, Godot-Test und Runtime bleiben getrennt.
-Neue Entwürfe entwerten keine historische Freigabe eines alten Builds.
+Ein Dry-run prüft ohne Verarbeitung und kann seinen lokalen Prüfstatus
+speichern. Die Freigabe bindet den aktuellen ausführbaren Gesamtstand samt
+Code, Hilfsdateien, Bibliotheksbestand, Parametern und wirksamer Verschaltung.
+Projekt-Eingabezuordnungen werden davon getrennt validiert. Eingabefehler
+widerrufen keine unveränderte Codefreigabe.
 
-## Ergänzung Paket 5
+Vor jedem Start wird die Freigabe erneut geprüft. Skripte, Hilfsdateien,
+Ressourcen und Eingaben werden für den Durchgang eingefroren. Je Verwendung
+werden erst sämtliche betroffenen Assetquellen verarbeitet; Folge-Verwendungen
+beginnen nach erfolgreichem Abschluss der gesamten Vorgängerphase.
 
-Asset-Anforderungen verwenden [Schema Version 1](../../../../schemas/asset-studio/asset-definition-v1.json)
-und zusätzliche semantische Domain-Prüfungen. Pose-UUIDs und externe
-Bestandsbeobachtungen gehören zur Asset-Karte; sie sind keine Build-Ergebnisse.
-Der [lesende Scanner](INVENTORY.md) darf ausdrücklich ausgewählte Unterordner
-einer bestehenden Wurzel erfassen, legt dort aber nichts an. Diese Lesewurzeln
-sind in Migration 3 separat lokal gebunden und fehlen im portablen Snapshot.
-Qt-Lesearbeiter schreiben nicht in SQLite; die kurze, explizite Übernahme
-erfolgt nach erneuter Datei-/Revisionsprüfung über den Anwendungsdienst.
+Die Ausführung ist seriell, mit höchstens einem vorgemerkten erneuten Abgleich.
+Qt bleibt bedienbar. Pause verhindert Starts; Abbruch beendet kontrolliert den
+Prozessbaum. Identische fehlgeschlagene Fingerprints warten auf Korrektur oder
+einen ausdrücklichen neuen Versuch. Unabhängige gültige Ketten bleiben nutzbar.
 
-## Ergänzung T017
+Der Schrittcache prüft Ergebnisbytes und Vertrag vor Wiederverwendung. Folder
+veröffentlichen ausschließlich vollständig geprüfte Ergebnisse in verwalteten
+Bereichen. Ein erneuter Vergleich des wirksamen Eingabe-/Graph-/Codestands
+verhindert die Veröffentlichung eines inzwischen veralteten Durchgangs als
+aktuelles Ergebnis. Ergebnisse bleiben nach Asset und Verwendung unterscheidbar.
 
-Migration 4 und [Auftragsverwaltung](JOBS.md) halten lokale Ausführungsnachweise
-von transportierten Metadaten getrennt. CLI und QProcess benutzen denselben
-Supervisor und den eingefrorenen Vertrag `studio-job-v1`. Registrierung,
-Hashprüfung und sichere Argumentlisten ersetzen keine Sandbox für fremde
-Werkzeuge. Im ursprünglichen Paket waren ausschließlich Diagnose und lesender
-Help-Aufruf freigegeben. Projektpipelines ergänzen inzwischen den geprüften
-Bildadapter; Godot-Bereitstellung bleibt separat gesperrt.
+## Transaktionen, Konflikte und Dateibesitz
 
-## Ergänzung T018
+`Catalog.transaction()` und `FileChanges` koordinieren SQL und Dateien. Schreiben,
+Verschieben und besitzgebundenes Löschen werden journalgeführt ausgeführt und
+bei Fehlern zurückgenommen. Vor Überschreiben werden Hash und Objekt-Revision
+geprüft. Externe Änderungen und App-Entwürfe dürfen einander nicht still ersetzen.
+Fehlende aktuelle Dateien werden nicht aus historischem Code rekonstruiert.
 
-Der [Buildplan](BUILDPLAN.md) ist ein eigener typisierter DAG, keine Ableitung
-aus Canvas-Positionen oder Projekt-Hierarchie. Migration 5 registriert nur
-lokal geprüfte Ergebnisse im Cache; portable Snapshots bringen keine
-Cache-Vertrauensstellung mit. Input-Fingerprint, vollständige Ausgabedigestliste
-und Digests der tatsächlichen Vorgängerresultate werden separat geprüft.
-Dry-run ist schreibfrei, in der CLI sogar mit SQLite-Nur-Lese-Verbindung.
-Die neun Diagnosephasen bleiben als technische Selbstprüfung ausführbar.
-Echte Bildrezepte verwenden inzwischen denselben Buildplan und Cache.
+Archiv hat kein Ablaufdatum. Papierkorb besitzt UTC-Entfernungszeit und exakt
+720 Stunden Frist. Wiederherstellung mit neuer Zielzuordnung ist ein gemeinsamer
+Undo-Schritt. Bereinigung prüft aktuelle Frist, Dateibesitz, Hash und verbleibende
+Referenzen und läuft nur bei geöffneter App. Fremde Dateien bleiben erhalten.
+Nach Bereinigung werden betroffene Undo-Einträge verworfen.
 
-## Ergänzung: projektweite Canvas-Pipelines
+## Migration und historische Verträge
 
-Migration 6 ergänzt die lokale, hashgebundene Pluginregistrierung. Projektprofile
-liegen versioniert am bestehenden Projektobjekt. Rezepte sind `pipeline`-Karten
-direkt unter dem Projekt, als Geschwister des einzigen globalen Rahmens;
-`pipeline_assignment`-Objekte verweisen auf sie. Projektstandard- und Typregeln
-gehören zum Projekt, explizite Zuweisungen zum jeweiligen Asset. Migration 7
-übernimmt ältere Besitzer transaktional mit Sicherung und zusätzlicher Revision;
-IDs, Rezeptdaten und historische Snapshots bleiben erhalten. Knotenlayouts
-bleiben in `layouts`, technische Verbindungen und Parameter
-im Rezept. Projektbeziehungen erhalten keine ausführbare Bedeutung.
+Vor destruktiven Schritten werden Katalog und ausdrücklich verwaltete Dateien
+mit Manifest gesichert. Unterschiedliche gebundene Codefassungen erhalten
+eigene stabile Skriptidentitäten. Wirksame frühere Zuweisungsprioritäten werden
+in konkrete Verwendungen übertragen, Mehrdeutigkeiten sichtbar blockiert.
 
-`PipelineService`/`ProfileService` verwalten Revisionen und Zuweisungsprioritäten.
-`RecipeBuildService` übersetzt in den bestehenden DAG, `studio-image` führt echte
-PyGameTools-Bildalgorithmen über `JobService`/Supervisor aus. `RecipeResultService`
-prüft veröffentlichte Ableitungen desselben Assets und deren Aktualität. GUI-
-Arbeiter führen diese Dienste außerhalb des UI-Threads aus, kein zweiter Runner.
+Alte Paket-/Rezeptdecoder dienen ausschließlich der Übernahme und des bewussten
+Imports. Historische Pakete steuern keinen aktuellen Pythonlauf. Frühere
+Ergebnisse und Nachweise werden vor Entfernung der Auftragsobjekte und Tabellen
+übertragen. `JobService`, `JobStore`, Buildplan-/Adapter-Ausführung und ihre
+UI-/CLI-Einstiege sind entfernt. Kanbanaufgaben, Issues, Dokumente und
+Entwicklungsarbeitspläne sind davon unabhängig.
 
-`PluginService` liest ausschließlich deklarative Manifeste; fremder Code läuft
-erst nach ausdrücklicher Freigabe im Worker. `PipelineExchange` übernimmt geprüfte,
-eigenständige Rezeptkopien ohne Assets, Jobs oder lokale Codefreigaben. Details,
-Austauschschemata und tatsächliche Grenzen: [Projektpipelines](PIPELINES.md).
+Der ältere Vertrag `contracts-v1.json` bleibt für vorhandene historische
+Metadaten und gesonderte spätere Export-/Reviewdaten lesbar. Er ist nicht der
+aktuelle Pipelineausführungsvertrag.
 
-## Ergänzung: Skriptpakete und lesbare Asset-Ablage
+## Grenzen
 
-`studio-python-step-v2` ergänzt den bestehenden Bildadapter um ein echtes
-Python-Ergebnis mit Geometrie-Metadaten. Parameter und optionale Bedienaktionen
-kommen aus dem Paketmanifest. Der generische UI-Einstieg lädt freigegebenen
-Paketcode ausschließlich bei ausdrücklichem Aufruf. Verarbeitung und optionale
-GUI-Aktionen haben getrennte Lebenszyklen; v1 bleibt kompatibel.
+Lokale Einzelbenutzerdaten, kein Netzlaufwerk-Multiwriter. Python-Umgebungen
+trennen Bibliotheken, bieten aber keine Sicherheits-Sandbox. Freigegebener Code
+wird als lokaler Code ausgeführt. Kontrollierte Prozesssteuerung benötigt
+gegenwärtig Linux `/proc`. Sichere Pfadprüfung verbietet Elternpfade und Symlink-
+Auswege; sie ist keine Garantie gegen einen bösartigen zweiten OS-Benutzer.
 
-Migration 8 ergänzt `card_paths`, `managed_files`, `asset_publications` und
-`file_commits`. `ProjectFiles` bildet fachlichen Besitz als Ordner ab. Die äußere
-Katalogtransaktion koordiniert Änderungen mit einem wiederaufnehmbaren
-Dateijournal. Layoutänderungen lösen keinen Ordnerabgleich oder Bildbuild aus.
-Vollständige Bildläufe veröffentlichen geprüfte Kopien beim Asset; der gemeinsame
-Job-Cache bleibt erhalten. Bedienung und Grenzen: [Skriptpakete](SKRIPTPAKETE.md).
+Markdowninhalte führen beim Anzeigen oder Navigieren keinen Build oder
+Pythoncode aus. Code-/SVG-/Bilddarstellung unterliegt weiterhin den bestehenden
+Dokument- und Medienregeln. Automatische Dokumenterzeugung wurde nur dort
+angepasst, wo Ergebnisgalerien auf den neuen Ergebnisvertrag verweisen müssen.

@@ -143,9 +143,29 @@ Hashes, fehlende/verwaiste Blobs und temporäre Dateien, löscht aber nichts.
 Nach einem Abbruch kann dieselbe Quelle erneut importiert werden; vollständige
 Blobs werden dedupliziert. Ein beschädigter Teilblob wird nicht überschrieben:
 zuerst Fund und Journal prüfen, anschließend gezielte manuelle Recovery.
-Kein Netzlaufwerk-Multiwriter und keine automatische Dateibereinigung.
+Kein Netzlaufwerk-Multiwriter. Der 30-Tage-Papierkorb bereinigt ausschließlich
+zugehörige verwaltete Daten bei geöffnetem Projekt; Archiv und getrennte
+Sicherungen werden dabei nicht automatisch gelöscht.
 
 `Catalog.export_snapshot()` exportiert ausschließlich Metadaten. Der Import
 ist nur in einen neuen leeren Katalog erlaubt. Nicht enthaltene Originalbytes
 müssen separat geprüft bereitgestellt werden. Fremde Prüf-/Freigabe-/Deployment-
 Datensätze werden nicht übernommen; importierte Revisionen bleiben ungeprüft.
+
+
+## Prüfungen des Umbaus auf zwei Haupteditoren
+
+Der [laufend gepflegte Arbeitsplan](../plans/asset-studio-zwei-editoren-und-automatik.md)
+nennt tatsächliche Ergebnisse und getrennte Ausgangsfehler. Gezielte neue
+Prüfungen betreffen `test_pipeline_workspace.py`, `test_pipeline_execution.py`,
+`test_workspace_migration.py`, `test_workspace_exchange.py`,
+`test_lifecycle_service.py` und `test_workspace_demo.py`. Echte Qt-Ereignisse
+stehen unter `gui/test_two_editors.py`, `gui/test_pipeline_automation.py` und
+`gui/test_workspace_storage_search.py`.
+
+Ausführungstests starten echte kontrollierte Pythonprozesse in temporären
+Projekten. Migrationstests unterbrechen gezielt das SQL-/Dateijournal. Die
+Papierkorbfrist verwendet eine steuerbare UTC-Uhr. Bild-/GIF-Fixtures sind
+synthetisch; fremde Projektordner werden nicht für destruktive Tests verwendet.
+Alte ausschließlich auf die entfernte Auftragsverwaltung bezogene Tests wurden
+abgelöst, fachliche Quellen-, Masken-, Bild-, Dokument- und Canvasprüfungen bleiben.

@@ -184,8 +184,8 @@ class CardItem(QGraphicsRectItem):
             self.view.moved.emit(self.identifier, self.pos().x(), self.pos().y())
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if self.kind == "pipeline":
-            self.view.open_requested.emit(self.identifier)
+        if self.kind in {"pipeline", "pipeline_usage"}:
+            self.setSelected(True)
         else:
             self.view.toggle_requested.emit(self.identifier)
         event.accept()
@@ -214,7 +214,10 @@ class IconCardItem(CardItem):
         self.setToolTip(title + "\n" + summary + "\nDoppelklick: öffnen · Port ziehen: zuordnen")
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        self.view.open_requested.emit(self.identifier)
+        if self.kind == "pipeline_usage":
+            self.setSelected(True)
+        else:
+            self.view.open_requested.emit(self.identifier)
         event.accept()
 
     def resize(self, width, height):
@@ -267,5 +270,8 @@ class WorkflowIconItem(CardItem):
         super().resize(self.WIDTH, self.HEIGHT)
 
     def mouseDoubleClickEvent(self, event):
-        self.view.open_requested.emit(self.identifier)
+        if self.kind == "pipeline_usage":
+            self.setSelected(True)
+        else:
+            self.view.open_requested.emit(self.identifier)
         event.accept()

@@ -45,6 +45,7 @@ class DocumentEditor(QWidget):
         self.editor = LiveMarkdownEditor()
         self.editor.local_link = self.follow_link
         self.editor.local_resource = self.local_resource
+        self.editor.import_image = self.import_image
         self.editor.setObjectName("markdown_editor")
         self.editor.setAccessibleName("Markdown-Text bearbeiten")
         self.editor.setPlaceholderText("Noch kein Dokument. Über + Dokumentation anlegen.")
@@ -138,6 +139,7 @@ class DocumentEditor(QWidget):
     def _load(self, identifier: str | None) -> None:
         self._loading = True
         self.current = self.service.catalog.get(identifier) if identifier else None
+        self.editor.bind_document(self.service, identifier)
         self.editor.setPlainText(self.current.data["body"] if self.current else "")
         generated = bool(self.current and self.current.data["document_type"] == "generated")
         self.editor.setReadOnly(self.current is None or generated)
@@ -202,14 +204,39 @@ class DocumentEditor(QWidget):
         if not self.service or not self.current:
             return
         try:
-            target = self.service.resolve_link(self.service.path(self.current.id), url.path())
+            from urllib.parse import unquote, urlsplit
+            from PySide6.QtCore import QUrl
+            wiki = url.scheme() == "studio-wiki"
+            text = unquote(url.toString().split(":",
+                1)[1]) if wiki else url.toString(QUrl.FullyEncoded)
+            parts = urlsplit(text)
+            if not parts.path:
+                self.editor.scroll_section(parts.fragment)
+                return
+            candidates = self.service.link_candidates(self.current.id, text, wiki=wiki)
+            if len(candidates) > 1:
+                labels = [str(t["path"].relative_to(self.service.catalog.path.parent))
+                    for t in candidates]
+                choice, accepted = QInputDialog.getItem(self, "Dokument auswählen",
+                    "Mehrere passende Dokumente", labels, 0, False)
+                if not accepted:
+                    return
+                candidates = [candidates[labels.index(choice)]]
+            target = candidates[0] if candidates else None
             if target and target["kind"] == "document":
                 (self.navigate or self.open_document)(target["id"])
+                if self.current.id == target["id"] and parts.fragment:
+                    self.editor.scroll_section(parts.fragment)
             elif target and target["kind"] == "index" and self.confirm_discard():
                 from .project_links import ProjectMarkdownView
                 dialog = ProjectMarkdownView(self.service, target["path"], self)
+                if parts.fragment:
+                    dialog.scroll_section(parts.fragment)
                 dialog.exec()
                 dialog.deleteLater()
+            elif not target:
+                QMessageBox.information(self, "Dokument fehlt",
+                    "Internes Dokument nicht gefunden: " + text)
         except (StudioError, OSError) as error:
             show_error(self, error)
 
@@ -221,6 +248,29 @@ class DocumentEditor(QWidget):
             except (StudioError, OSError):
                 pass
         return None
+
+    def import_image(self, source):
+        from urllib.parse import quote
+        import os
+        from .media_source import inspect_image
+        from ...application.document_resources import read_image_file
+        if not self.current or self.editor.isReadOnly():
+            raise StudioError("validation", "Ein bearbeitbares Dokument auswählen.")
+        inspect_image(read_image_file(source, self.editor.media.limits.transferred),
+                      self.editor.media.limits)
+        updated = self.service.attach(self.current.id, source, self.current.revision_no)
+        self.current = updated
+        self.attachments.clear()
+        for item in updated.data["attachments"]:
+            self.attachments.addItem(item["original_name"])
+        self.attachments.setVisible(True)
+        path = self.service.attachment_path(updated.id, len(updated.data["attachments"]) - 1)
+        return quote(os.path.relpath(path,
+            self.service.path(updated.id).parent).replace(os.sep, "/"), safe="/.-_")
+
+    def closeEvent(self, event):
+        self.editor.media.stop()
+        super().closeEvent(event)
 
     def new_document(self) -> None:
         if not self.confirm_discard() or not self.owner_id:

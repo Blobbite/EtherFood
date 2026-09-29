@@ -12,6 +12,7 @@ from etherfood_studio.application.issue_service import Finding, IssueService
 from etherfood_studio.ui.main_window import MainWindow
 from etherfood_studio.ui.asset_wizard import AssetWizard
 from etherfood_studio.ui.tasks.editor import TaskEditor
+from etherfood_studio.ui.project_tree import EDGE_ROLE
 
 
 @pytest.fixture
@@ -76,8 +77,12 @@ def test_search_document_open_preserves_unsaved_content(window, monkeypatch):
     assert window.documents.current.id == first.id
     assert window.documents.editor.toPlainText() == "Ungespeichert"
     monkeypatch.setattr(QMessageBox, "question", lambda *a: QMessageBox.Save)
-    window.search.show_record(second.id)
-    window.search.edit_current()
+    window.tabs.setCurrentWidget(window.search)
+    window.search.query.setText("Zweites Dokument")
+    row = next(i for i, hit in enumerate(window.search.hits) if hit.id == second.id)
+    window.search.table.selectRow(row)
+    window.search.table.setFocus()
+    QTest.keyClick(window.search.table, Qt.Key_Return)
     assert service.catalog.get(first.id).data["body"] == "Ungespeichert"
     assert window.documents.current.id == second.id
     assert window.tabs.currentWidget() == window.documents
@@ -268,21 +273,23 @@ def test_visible_status_and_using_same_asset_from_two_chapters(window, monkeypat
         context_action(window, owner, "context_use_existing").trigger()
     assert len(window.project.cards()) == count
     references = [item for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
-                  if item.data(0, Qt.UserRole) == shared.id and item.text(0).startswith("↪")]
+                  if item.data(0, Qt.UserRole) == shared.id and item.data(0, EDGE_ROLE)]
     assert len(references) == 2
     for reference in references:
         window.tree.setCurrentItem(reference)
         assert window.selected_id == shared.id
-        assert "Externe Eingabe fehlt" in window.workflow_status.text()
-        assert "waiting_external" not in window.details.toPlainText()
-        assert "2 Ort(en)" in window.usage.text() and "Projektweite Inhalte" in window.usage.text()
-        assert shared.id in window.details.toPlainText()
+        assert reference.parent().text(0) == "Verwendungen"
+        card = window.canvas.items_by_id[shared.id]
+        assert "Externe Eingabe fehlt" in card.toolTip()
+        assert "waiting_external" not in card.toolTip()
+        assert "Projektweite Inhalte" in window.breadcrumb.text()
+        assert window.project.catalog.get(shared.id).owner_id == global_id
     window.commands.link(shared.id, ids["two"], "depends_on")
     window.refresh()
-    assert "Blockiert" in window.workflow_status.text()
-    assert "Kapitel 2" in window.workflow_status.text()
+    assert "Blockiert" in window.canvas.items_by_id[shared.id].toolTip()
+    assert "Kapitel 2" in window.canvas.items_by_id[shared.id].toolTip()
     window.undo(False)
-    assert "Externe Eingabe fehlt" in window.workflow_status.text()
+    assert "Externe Eingabe fehlt" in window.canvas.items_by_id[shared.id].toolTip()
 
 
 def test_canvas_selection_can_save_dirty_note_without_deleting_active_mouse_item(

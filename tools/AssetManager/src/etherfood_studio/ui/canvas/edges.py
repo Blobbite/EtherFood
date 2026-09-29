@@ -14,7 +14,13 @@ from ..theme import color as theme_color
 if TYPE_CHECKING:
     from .view import Canvas
 
-EDGE_LABELS = {"belongs_to": "gehört zu", "uses": "verwendet", "depends_on": "benötigt"}
+EDGE_LABELS = {
+    "belongs_to": "gehört zu",
+    "uses": "verwendet",
+    "depends_on": "benötigt",
+    "input_scope": "Originaleingaben",
+    "pipeline_result": "Ergebnisübergabe",
+}
 
 
 def curve(start: QPointF, end: QPointF) -> QPainterPath:
@@ -69,6 +75,8 @@ class EdgeItem(QGraphicsPathItem):
             "belongs_to": ("#6b849c", Qt.PenStyle.SolidLine),
             "uses": ("#187e93", Qt.PenStyle.DashLine),
             "depends_on": ("#af5427", Qt.PenStyle.DotLine),
+            "input_scope": ("#187e93", Qt.PenStyle.DashDotLine),
+            "pipeline_result": ("#8971a5", Qt.PenStyle.SolidLine),
         }[self.kind]
         self.setPen(QPen(QColor(color), 2, style))
         self.setZValue(-1)
@@ -79,7 +87,7 @@ class EdgeItem(QGraphicsPathItem):
         self.caption.setPen(QPen(QColor(color), 0.6))
         self.caption.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
         self.caption.setToolTip(self.set_edge_tooltip())
-        text = QGraphicsSimpleTextItem(EDGE_LABELS[self.kind], self.caption)
+        text = QGraphicsSimpleTextItem(edge.get("label", EDGE_LABELS[self.kind]), self.caption)
         text.setBrush(QColor(color))
         text.setPos(5, 3)
         text.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
@@ -90,7 +98,12 @@ class EdgeItem(QGraphicsPathItem):
         self.apply_appearance()
 
     def apply_appearance(self) -> None:
-        color = QColor(theme_color("edge_" + self.kind))
+        color = QColor(
+            theme_color(
+                "edge_"
+                + {"input_scope": "uses", "pipeline_result": "depends_on"}.get(self.kind, self.kind)
+            )
+        )
         pen = QPen(self.pen())
         pen.setColor(color)
         self.setPen(pen)

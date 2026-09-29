@@ -21,6 +21,7 @@ from .items import CardItem, IconCardItem, KIND_NAMES, ProjectItem
 class Canvas(QGraphicsView):
     EDGE_PEEK_PIXELS = 48.0
 
+    delete_requested = Signal()
     selected = Signal(str)
     open_requested = Signal(str)
     moved = Signal(str, float, float)
@@ -104,26 +105,36 @@ class Canvas(QGraphicsView):
             positions[identifier] = {"x": depth * 295, "y": cursor, "w": width, "h": 100}
             if card.kind == "note":
                 positions[identifier] |= {"w": 144, "h": 62}
-            if card.kind == "pipeline":
+            if card.kind in {"pipeline", "pipeline_usage"}:
                 positions[identifier] |= {"w": 144, "h": 62}
             if card.kind == "project":
                 positions[identifier] |= {"w": ProjectItem.WIDTH, "h": ProjectItem.HEIGHT}
             cursor += 175 if card.kind == "project" else 125
             children = [row for row in cards if row.owner_id == identifier]
-            children.sort(key=lambda row: (
-                {"pipeline": 0, "global": 1}.get(row.kind, 2),
-                row.data.get("order", 0), row.title,
-            ))
+            children.sort(
+                key=lambda row: (
+                    {"pipeline": 0, "pipeline_usage": 0, "global": 1}.get(row.kind, 2),
+                    row.data.get("order", 0),
+                    row.title,
+                )
+            )
             for child in children:
-                arrange(child.id, depth + (0 if child.kind in {"global", "act", "pipeline"}
-                                           else 1))
+                arrange(
+                    child.id,
+                    depth
+                    + (0 if child.kind in {"global", "act", "pipeline", "pipeline_usage"} else 1),
+                )
 
         arrange(project.project().id, 0)
         def rendered_layout(identifier):
             value = positions[identifier] | project.catalog.layout(identifier)
             kind = project.catalog.get(identifier).kind
-            fixed = {"project": (ProjectItem.WIDTH, ProjectItem.HEIGHT),
-                     "pipeline": (144, 62), "note": (144, 62)}
+            fixed = {
+                "project": (ProjectItem.WIDTH, ProjectItem.HEIGHT),
+                "pipeline": (144, 62),
+                "pipeline_usage": (144, 62),
+                "note": (144, 62),
+            }
             if kind in fixed:
                 value |= dict(zip(("w", "h"), fixed[kind]))
             return value
@@ -180,13 +191,19 @@ class Canvas(QGraphicsView):
             if card.kind == "note":
                 item = IconCardItem(card.id, card.title, "note", "Notizbereich öffnen", self,
                                     NOTE_COLORS["yellow"][1])
-            elif card.kind == "pipeline":
-                item = IconCardItem(card.id, card.title, "pipeline", statuses.summary(card.id),
-                                    self)
+            elif card.kind in {"pipeline", "pipeline_usage"}:
+                item = IconCardItem(
+                    card.id, card.title, card.kind, "Pipeline bearbeiten: Rechtsklick", self
+                )
             elif card.kind == "project":
                 summary = "Projektaufbau · " + " · ".join(
-                    f"{sum(r.kind == kind for r in cards)} {name}" for kind, name in
-                    (("act", "Akte"), ("pipeline", "Pipelines"), ("asset", "Assets")))
+                    f"{sum(r.kind == kind for r in cards)} {name}"
+                    for kind, name in (
+                        ("act", "Akte"),
+                        ("pipeline_usage", "Pipelines"),
+                        ("asset", "Assets"),
+                    )
+                )
                 item = ProjectItem(card.id, card.title, summary, self)
             else:
                 item = CardItem(card.id, card.title, card.kind, statuses.summary(card.id), self,
@@ -224,6 +241,28 @@ class Canvas(QGraphicsView):
                                   "source_id": record.id, "target_id": record.owner_id})
             if record.id == selected_id:
                 item.setSelected(True)
+        for usage in cards:
+            if usage.kind != "pipeline_usage":
+                continue
+            for target in usage.data["targets"]:
+                content_edges.append(
+                    {
+                        "id": f"scope:{usage.id}:{target}",
+                        "kind": "input_scope",
+                        "source_id": target,
+                        "target_id": usage.id,
+                    }
+                )
+            for index, edge in enumerate(usage.data["connections"]):
+                content_edges.append(
+                    {
+                        "id": f"result:{usage.id}:{index}",
+                        "kind": "pipeline_result",
+                        "source_id": edge["usage"],
+                        "target_id": usage.id,
+                        "label": edge["out"] + " → " + edge["in"],
+                    }
+                )
         for edge in project.catalog.relations() + content_edges:
             source = self.items_by_id.get(edge["source_id"])
             target = self.items_by_id.get(edge["target_id"])
@@ -321,7 +360,10 @@ class Canvas(QGraphicsView):
         self.connection = None
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        if event.key() == Qt.Key.Key_Escape and self._pan_anchor is not None:
+        if event.key() == Qt.Key.Key_Delete:
+            self.delete_requested.emit()
+            event.accept()
+        elif event.key() == Qt.Key.Key_Escape and self._pan_anchor is not None:
             self._stop_panning()
             event.accept()
         elif event.key() == Qt.Key.Key_Escape and self.connection:

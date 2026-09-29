@@ -4,7 +4,7 @@ from PySide6.QtCore import QEvent, QSignalBlocker, Qt, QTimer, Signal
 from PySide6.QtGui import QKeySequence
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QFrame, QGridLayout, QHBoxLayout, QMenu, QTableWidget,
-    QTableWidgetItem, QToolButton, QVBoxLayout, QWidget,
+    QMessageBox, QTableWidgetItem, QToolButton, QVBoxLayout, QWidget,
 )
 
 from .markdown_source import MarkdownTable
@@ -18,11 +18,14 @@ class MarkdownTableEditor(QWidget):
     redo_requested = Signal()
 
     def __init__(self, model: MarkdownTable, read_only: bool, parent=None,
-                 *, references: str = "") -> None:
+                 *, references: str = "", media=None, open_link=None,
+                     reference_handler=None) -> None:
         super().__init__(parent)
         self.setObjectName("markdown_table_editor")
         self.model = model
         self.read_only = read_only
+        self.reference_handler = reference_handler
+        self.open_link = open_link
         self.selection_axis = None
         self.layout_timer = QTimer(self)
         self.layout_timer.setSingleShot(True)
@@ -43,7 +46,8 @@ class MarkdownTableEditor(QWidget):
         self.table.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.table.setWordWrap(True)
-        self.table.setItemDelegate(MarkdownCellDelegate(references, self.table))
+        self.table.setItemDelegate(MarkdownCellDelegate(references, self.table,
+                                                        media=media, open_link=open_link))
         self.table.installEventFilter(self)
         self.table.viewport().installEventFilter(self)
         self.table.cellPressed.connect(self.clear_selection_axis)
@@ -114,6 +118,16 @@ class MarkdownTableEditor(QWidget):
             self.layout_timer.start(0)
         if (watched is self.table
                 and event.type() in {QEvent.ShortcutOverride, QEvent.KeyPress}):
+            if event.matches(QKeySequence.Copy) or event.matches(QKeySequence.Paste):
+                if event.type() == QEvent.KeyPress:
+                    self.copy_cells() if event.matches(QKeySequence.Copy) else self.paste_cells()
+                event.accept()
+                return True
+            if event.key() in {Qt.Key_Tab, Qt.Key_Backtab}:
+                if event.type() == QEvent.KeyPress:
+                    self.next_cell(event.key() == Qt.Key_Backtab
+                        or bool(event.modifiers() & Qt.ShiftModifier))
+                return True
             undo, redo = event.matches(QKeySequence.Undo), event.matches(QKeySequence.Redo)
             delete = event.key() in {Qt.Key_Delete, Qt.Key_Backspace}
             if undo or redo or delete:
@@ -207,7 +221,136 @@ class MarkdownTableEditor(QWidget):
             action = menu.addAction(title, callback)
             action.setEnabled(self.removal_allowed(axis))
             action.setObjectName("markdown_delete_" + axis)
+        row, column = self.table.currentRow(), self.table.currentColumn()
+        for title, callback in (
+            ("Zeile oberhalb einfügen", lambda: self.insert_row(max(1, row))),
+            ("Zeile unterhalb einfügen", lambda: self.insert_row(row + 1)),
+            ("Spalte links einfügen", lambda: self.insert_column(max(0, column))),
+            ("Spalte rechts einfügen", lambda: self.insert_column(column + 1)),
+        ):
+            menu.addAction(title, callback).setEnabled(not self.read_only)
+        for title, value in (("Linksbündig", "left"), ("Zentriert", "center"), ("Rechtsbündig",
+            "right")):
+            menu.addAction(title, lambda checked=False, v=value: self.align_column(v)).setEnabled(
+                not self.read_only and column >= 0)
+        menu.addAction("Zellen kopieren", self.copy_cells)
+        menu.addAction("Zellen einfügen …", self.paste_cells).setEnabled(not self.read_only)
+        for title, before, after in (("Fett", "**", "**"), ("Kursiv", "*", "*"),
+                                      ("Durchstreichen", "~~", "~~"), ("Inline-Code", "`", "`")):
+            menu.addAction(title, lambda checked=False, a=before, b=after:
+                           self.format_cell(a, b)).setEnabled(not self.read_only)
+        item = self.table.currentItem()
+        if item is not None:
+            from PySide6.QtCore import QUrl
+            from .markdown_syntax import link_spans
+            for _, _, token in link_spans(item.text(), self.table.itemDelegate().references):
+                target = token.attrGet("href") or token.attrGet("src")
+                actions = QMenu(("Bild: " if token.type == "image" else "Link: ") + target, menu)
+                menu.addMenu(actions)
+                if token.type != "image" and self.open_link:
+                    actions.addAction("Link öffnen", lambda checked=False,
+                        url=target: self.open_link(QUrl(url)))
+                actions.addAction("Ziel kopieren", lambda checked=False,
+                    url=target: QApplication.clipboard().setText(url))
+                if self.reference_handler:
+                    actions.addAction("Link bearbeiten …" if token.type != "image"
+                        else "Bild bearbeiten …",
+                                      lambda checked=False,
+                                          t=token: self.reference_handler(row, column, "edit",
+                                              t)).setEnabled(not self.read_only)
+                    if token.type != "image":
+                        actions.addAction("Verknüpfung entfernen", lambda checked=False, t=token:
+                                          self.reference_handler(row, column, "remove",
+                                              t)).setEnabled(not self.read_only)
+            if self.reference_handler:
+                for title, action in (("Link einfügen …", "link"), ("Bild einfügen …", "image")):
+                    menu.addAction(title, lambda checked=False, a=action:
+                                   self.reference_handler(row, column, a,
+                                       None)).setEnabled(not self.read_only)
         return menu
+
+    def format_cell(self, before, after):
+        if self.read_only or self.table.currentItem() is None:
+            return
+        value = self.table.currentItem().text() or "Text"
+        self.table.currentItem().setText(before + value + after)
+
+    def align_column(self, value):
+        if not self.read_only and self.table.currentColumn() >= 0:
+            self.model.align(self.table.currentColumn(), value)
+            self.commit()
+
+    def next_cell(self, backwards=False):
+        row, col = self.table.currentRow(), self.table.currentColumn()
+        index = max(0, row * self.table.columnCount() + col + (-1 if backwards else 1))
+        if index >= self.table.rowCount() * self.table.columnCount():
+            if self.read_only:
+                return
+            self.insert_row()
+        self.table.setCurrentCell(index // self.table.columnCount(),
+            index % self.table.columnCount())
+        if not self.read_only:
+            self.table.editItem(self.table.currentItem())
+
+    def copy_cells(self):
+        import csv
+        from io import StringIO
+        selection = self.table.selectedIndexes()
+        if not selection:
+            return
+        rows = range(min(i.row() for i in selection), max(i.row() for i in selection) + 1)
+        cols = range(min(i.column() for i in selection), max(i.column() for i in selection) + 1)
+        output = StringIO(newline="")
+        csv.writer(output, delimiter="\t", lineterminator="\n").writerows(
+            [[self.table.item(r, c).text() for c in cols] for r in rows])
+        QApplication.clipboard().setText(output.getvalue().removesuffix("\n"))
+
+    def paste_cells(self):
+        import csv
+        from io import StringIO
+        if self.read_only:
+            return
+        values = list(csv.reader(StringIO(QApplication.clipboard().text()), delimiter="\t"))
+        if not values or not any(values):
+            return
+        row, col = max(0, self.table.currentRow()), max(0, self.table.currentColumn())
+        height, width = row + len(values), col + max(map(len, values))
+        if width > 50 or (height + 1) * width > 3000:
+            QMessageBox.information(self, "Tabelle zu groß",
+                "Einfügen überschreitet die Grenze von 50 Spalten / 3000 Zellen.")
+            return
+        if len(values) * max(map(len,
+            values)) > 1 or height > len(self.model.rows) or width > len(self.model.separators):
+            message = (f"Ab Zeile {row + 1}, Spalte {col + 1}: {len(values)} Zeilen, "
+                       f"{max(map(len, values))} Spalten einsetzen. Neue Größe: "
+                       f"{max(height, len(self.model.rows))} × "
+                       f"{max(width, len(self.model.separators))}.\n\n"
+                       "Neue Werte:\n" + "\n".join(" | ".join(v) for v in values) +
+                       "\n\nBisherige Werte:\n" + "\n".join(" | ".join(v[col:width])
+                                                           for v in self.model.rows[row:height]))
+            from html import escape
+            message = '<pre style="white-space: pre-wrap">' + escape(message) + '</pre>'
+            if QMessageBox.question(self, "Mehrere Zellen einfügen?", message,
+                                    QMessageBox.Yes | QMessageBox.No,
+                                        QMessageBox.No) != QMessageBox.Yes:
+                return
+        while len(self.model.separators) < width:
+            self.model.insert_column(len(self.model.separators))
+        while len(self.model.rows) < height:
+            self.model.insert_row(len(self.model.rows))
+        for r, values_row in enumerate(values, row):
+            for c, value in enumerate(values_row, col):
+                self.model.edit(r, c, value)
+        self.commit()
+
+    def confirm_removal(self, values):
+        from html import escape
+        nonempty = [value for value in values if value.strip()]
+        message = ('<pre style="white-space: pre-wrap">Diese Inhalte werden entfernt:\n\n' +
+                   escape("\n".join(nonempty)) + '</pre>')
+        return not nonempty or QMessageBox.question(
+            self, "Inhalte entfernen?", message,
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No) == QMessageBox.Yes
 
     def header_context(self, header, axis: str, point) -> None:
         index = header.logicalIndexAt(point)
@@ -262,12 +405,17 @@ class MarkdownTableEditor(QWidget):
 
     def remove_rows(self) -> None:
         if self.removal_allowed("row"):
-            self.model.remove_rows([index.row() for index in
-                                    self.table.selectionModel().selectedRows()])
+            rows = [index.row() for index in self.table.selectionModel().selectedRows()
+                if index.row() > 0]
+            if not self.confirm_removal([value for row in rows for value in self.model.rows[row]]):
+                return
+            self.model.remove_rows(rows)
             self.commit()
 
     def remove_columns(self) -> None:
         if self.removal_allowed("column"):
-            self.model.remove_columns([index.column() for index in
-                                       self.table.selectionModel().selectedColumns()])
+            cols = [index.column() for index in self.table.selectionModel().selectedColumns()]
+            if not self.confirm_removal([row[col] for row in self.model.rows for col in cols]):
+                return
+            self.model.remove_columns(cols)
             self.commit()

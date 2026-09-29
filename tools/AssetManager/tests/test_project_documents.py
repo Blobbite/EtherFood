@@ -14,8 +14,10 @@ from etherfood_studio.application.project_service import ProjectService
 from etherfood_studio.domain.assets import default_definition
 from etherfood_studio.domain.models import StudioError
 from etherfood_studio.storage.blob_store import file_hash
-from test_script_platform import asset, import_scale, run
-
+from legacy_fixtures import asset, import_scale, offline_pillow
+from test_pipeline_processing import run
+from test_pipeline_workspace import passthrough
+from etherfood_studio.application.pipeline_workspace import PipelineWorkspace
 
 @pytest.fixture
 def project(tmp_path):
@@ -46,8 +48,8 @@ def assert_links(root):
 def test_sections_are_idempotent_and_reopening_does_not_create_revisions(project):
     act = project.create_card("act", "Akt 1", project.project().id)
     chapter = project.create_card("chapter", "Kapitel 1", act.id)
-    pipeline = PipelineService(project).create("Skalierung")
-    assert project.files.path(pipeline.id).relative_to(project.files.root).parts[0] == ".pipelines"
+    _, pipeline = passthrough(project, "Skalierung")
+    PipelineWorkspace(project).use(pipeline.id)
     for card in project.cards():
         doc = section(project, card.id)
         assert docpath(project, doc).is_file()
@@ -167,29 +169,27 @@ def test_layout_does_not_change_document_revisions_or_files(project):
                               docpath(project, doc).stat().st_mtime_ns) for doc in documents}
 
 
-def test_build_galleries_belong_to_assets_not_the_pipeline(project, tmp_path):
-    recipe = import_scale(project)
-    act = project.create_card("act", "Akt", project.project().id)
-    for number in (1, 2):
-        chapter = project.create_card("chapter", f"Kapitel {number}", act.id)
-        record, source = asset(project, tmp_path, chapter.id)
-        digest = file_hash(source)
-        PipelineService(project).assign(recipe.id, asset_id=record.id)
-        report, result = run(project, record)
-        gallery = project.files.path(record.id) / "Ergebnisse/scaled/index.md"
-        body = gallery.read_text()
-        assert "| Datei | Vorschau |" in body and "![" in body
-        assert result["image_path"].split("/")[-1] in body
-        assert report["published"] and file_hash(source) == digest
-        with gallery.open("a") as stream:
-            stream.write("Eigene Bewertung.\n")
-        project.rename(chapter.id, f"Kapitel Neu {number}", chapter.revision_no)
-        assert "Eigene Bewertung." in (project.files.path(record.id) /
-                                        "Ergebnisse/scaled/index.md").read_text()
-        project.reorder(chapter.id, number, project.catalog.get(chapter.id).revision_no)
-        assert "Eigene Bewertung." in (project.files.path(record.id) /
-                                        "Ergebnisse/scaled/index.md").read_text()
-    assert not list(project.files.path(recipe.id).rglob("*.png"))
+def test_result_galleries_belong_to_assets_and_survive_moves(project, tmp_path):
+    from etherfood_studio.application.pipeline_execution import PipelineExecution
+    from test_pipeline_execution import source_asset, approved
+
+    record, source = source_asset(project, tmp_path, "Galerie", "blue")
+    _, definition, usage = approved(project, "Galerie", [record.id])
+    report = PipelineExecution(project).run()
+    assert report["state"] == "succeeded", report
+    gallery = project.files.path(record.id) / "Ergebnisse" / usage.id / "index.md"
+    body = gallery.read_text()
+    assert "| Datei | Vorschau |" in body and "![" in body
+    original = project.files.path(record.id)
+    gallery.write_text(body + "\nEigene Bewertung.\n")
+    current = project.catalog.get(record.id)
+    project.rename(record.id, "Galerie umbenannt", current.revision_no)
+    assert not original.exists()
+    assert (
+        "Eigene Bewertung."
+        in (project.files.path(record.id) / "Ergebnisse" / usage.id / "index.md").read_text()
+    )
+    assert not list((project.files.root / ".tools/piplins").rglob("*.png"))
     assert_links(project.files.root)
 
 
@@ -222,13 +222,20 @@ def test_version_eight_project_migrates_folders_and_documents_with_backup(tmp_pa
     migrated = ProjectService.open(root)
     try:
         assert migrated.catalog.last_backup.is_file()
-        assert migrated.catalog.get(card.id) == original
+        assert migrated.catalog.get(card.id).id == original.id
+        assert (
+            migrated.catalog.get(card.id).data["asset_definition"]["poses"]
+            == original.data["asset_definition"]["poses"]
+        )
+        assert migrated.catalog.history(card.id)[0]["data"] == original.data
         assert migrated.files.path(card.id) == root / "Projektweit/Assets/NPC/NPC"
         assert migrated.files.path(pipeline.id) == root / ".pipelines/Altes Rezept"
         assert not (root / "Altes Rezept").exists()
         assert (root / "Index.md").is_file()
         assert_links(root)
-        assert migrated.catalog.db.execute("SELECT count(*) FROM jobs").fetchone()[0] == 0
+        assert not migrated.catalog.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE name='jobs'"
+        ).fetchone()
         rows = migrated.catalog.records()
         reopened = ProjectService.open(root)
         try:
@@ -259,9 +266,11 @@ def test_document_projection_failure_rolls_back_catalog_and_files(project, monke
                      for p in project.files.root.rglob("*.md")}
 
 
-def test_second_example_package_executes_duration_preserving_frame_selection(project, tmp_path):
+def test_second_example_package_executes_duration_preserving_frame_selection(
+    project, tmp_path, offline_pillow
+):
     from copy import deepcopy
-    from test_script_platform import EXAMPLE
+    from legacy_fixtures import EXAMPLE
 
     owner = next(r for r in project.cards() if r.kind == "global")
     record, _ = asset(project, tmp_path, owner.id, animated=True)
@@ -271,6 +280,7 @@ def test_second_example_package_executes_duration_preserving_frame_selection(pro
     pipelines = PipelineService(project)
     pipelines.save(recipe.id, data, recipe.revision_no)
     pipelines.assign(recipe.id, asset_id=record.id)
-    _, result = run(project, record)
+    _, results = run(project, record)
+    result = results[0]
     assert result["metadata"]["source_indices"] == list(range(0, 16, 2))
     assert result["metadata"]["fps"] == 4.0 and result["metadata"]["duration"] == 2.0

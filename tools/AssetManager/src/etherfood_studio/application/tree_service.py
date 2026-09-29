@@ -21,7 +21,10 @@ class TreeService:
 
     def capture(self, identifier: str, edge_id: str | None = None) -> TreeDrag:
         record = self.catalog.get(identifier)
-        edge = next((row for row in self.catalog.relations() if row["id"] == edge_id), None)
+        edge = next(
+            (row for row in self.catalog.relations(include_inactive=True) if row["id"] == edge_id),
+            None,
+        )
         if edge_id and (not edge or edge["kind"] != "uses" or edge["target_id"] != identifier):
             raise StudioError("conflict", "Verwendungs-Verweis ist nicht mehr aktuell.")
         return TreeDrag(record, edge)
@@ -30,6 +33,40 @@ class TreeService:
         record = self.catalog.get(drag.record.id)
         self.project._check_revision(record, drag.record.revision_no)
         target = self.project.require_active_card(target_id)
+        from .lifecycle_service import LifecycleService
+
+        life = LifecycleService(self.project)
+        inactive = life.state(drag.edge["id"] if drag.edge else record.id)
+        if inactive:
+            if copy:
+                raise StudioError("validation", "Ablagen werden wiederhergestellt, nicht kopiert.")
+            from dataclasses import replace
+
+            restored = replace(record, archived=False)
+            if drag.edge:
+                self.project.require_active_card(record.id)
+                remaining = [e for e in self.catalog.relations() if e["id"] != drag.edge["id"]]
+                validate_relation(target, restored, "uses", remaining)
+                if any(
+                    e["source_id"] == target.id
+                    and e["target_id"] == record.id
+                    and e["kind"] == "uses"
+                    for e in remaining
+                ):
+                    raise StudioError("conflict", "Verwendung existiert am Ziel bereits.")
+            elif record.kind in {"document", "task", "issue"}:
+                if target.id in life.subtree(record.id):
+                    raise StudioError("validation", "Ungültiges Wiederherstellungsziel.")
+            else:
+                validate_relation(
+                    restored,
+                    target,
+                    "belongs_to",
+                    [e for e in self.catalog.relations() if e["source_id"] != record.id],
+                )
+                if target.id in life.subtree(record.id):
+                    raise StudioError("validation", "Ziel liegt im eigenen Teilbaum.")
+            return "restore"
         self.project.require_active_card(record.id if record.kind in {"asset", "package"}
                                          else record.owner_id or record.id)
         if record.archived:
@@ -54,7 +91,15 @@ class TreeService:
     def apply(self, drag: TreeDrag, target_id: str, copy: bool = False) -> None:
         with self.catalog.transaction():
             action = self.validate(drag, target_id, copy)
-            if action == "move":
+            if action == "restore":
+                from .lifecycle_service import LifecycleService
+
+                LifecycleService(self.project).command(
+                    self.commands,
+                    [drag.edge["id"] if drag.edge else drag.record.id],
+                    target=target_id,
+                )
+            elif action == "move":
                 self.commands.move(drag.record.id, target_id, drag.record.revision_no)
             elif action == "link":
                 self.commands.link(target_id, drag.record.id, "uses")

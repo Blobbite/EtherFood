@@ -30,10 +30,13 @@ class Catalog:
                  target_version: int = CURRENT_VERSION, read_only: bool = False) -> None:
         self.path = real_path(path, must_exist=not create)
         self._lock = RLock()
+        self.pipeline_changed = None
+        self.pipeline_dirty = False
         self._depth = 0
         self.projection = None
         self.projection_dirty = False
         self.projection_builds = set()
+        self._file_changes = []
         self.last_backup: Path | None = None
         if create:
             target = safe_target(self.path.parent, self.path.name)
@@ -90,7 +93,9 @@ class Catalog:
             if outer:
                 self.db.execute("BEGIN IMMEDIATE")
                 self.projection_dirty = False
+                self.pipeline_dirty = False
                 self.projection_builds = set()
+                self._file_changes = []
             self._depth += 1
             files = None
             try:
@@ -98,12 +103,17 @@ class Catalog:
                 if outer:
                     if self.projection is not None and self.projection_dirty:
                         files = self.projection.prepare()
+                    for change in self._file_changes:
+                        change.committed()
                     self.db.execute("COMMIT")
             except Exception:
                 if outer and self.db.in_transaction:
                     self.db.execute("ROLLBACK")
                 if files is not None:
                     files.rollback()
+                if outer:
+                    for change in reversed(self._file_changes):
+                        change.rollback()
                 raise
             finally:
                 self._depth -= 1
@@ -113,6 +123,25 @@ class Catalog:
                     files.finish()
                 except OSError:
                     pass
+            if outer:
+                for change in self._file_changes:
+                    try:
+                        change.finish()
+                    except OSError:
+                        pass
+                self._file_changes = []
+                if self.pipeline_dirty and self.pipeline_changed:
+                    self.pipeline_changed()
+
+    def file_changes(self):
+        """Join current workspace writes to the same outer SQL/file transaction."""
+        if not self._depth:
+            raise StudioError("storage", "Dateiänderung benötigt eine Katalogtransaktion.")
+        if not self._file_changes:
+            from .file_changes import FileChanges
+
+            self._file_changes.append(FileChanges(self))
+        return self._file_changes[0]
 
     @staticmethod
     def _decode(row: sqlite3.Row) -> Record:
@@ -160,10 +189,41 @@ class Catalog:
         self._history(record)
 
     def _history(self, record: Record) -> None:
-        if record.kind in {"project", "global", "act", "chapter", "package", "asset",
-                           "pipeline", "note", "source_revision", "document", "task", "issue",
-                           "pipeline_assignment"} or record.kind == "build" and \
-                record.data.get("published"):
+        if record.kind in {
+            "project",
+            "act",
+            "chapter",
+            "global",
+            "asset",
+            "package",
+            "source_revision",
+            "mask_revision",
+            "script",
+            "pipeline_definition",
+            "pipeline_usage",
+        }:
+            self.pipeline_dirty = True
+        if (
+            record.kind
+            in {
+                "project",
+                "global",
+                "act",
+                "chapter",
+                "package",
+                "asset",
+                "pipeline",
+                "note",
+                "source_revision",
+                "document",
+                "task",
+                "issue",
+                "pipeline_assignment",
+                "pipeline_usage",
+            }
+            or record.kind == "build"
+            and record.data.get("published")
+        ):
             self.projection_dirty = True
         if record.kind == "build" and record.data.get("published"):
             self.projection_builds.add(record.id)
@@ -201,13 +261,20 @@ class Catalog:
             "SELECT snapshot FROM revisions WHERE object_id=? ORDER BY revision_no", (identifier,),
         )]
 
-    def relations(self) -> list[dict]:
-        return [dict(row) for row in self.db.execute("SELECT * FROM relations ORDER BY id")]
+    def relations(self, *, include_inactive=False) -> list[dict]:
+        query = "SELECT * FROM relations"
+        if (
+            not include_inactive
+            and self.db.execute("SELECT 1 FROM sqlite_master WHERE name='lifecycle'").fetchone()
+        ):
+            query += " WHERE id NOT IN (SELECT id FROM lifecycle WHERE entity_kind='reference')"
+        return [dict(row) for row in self.db.execute(query + " ORDER BY id")]
 
     def add_relation(self, source: str, target: str, kind: str,
                      *, identifier: str | None = None) -> str:
         identifier = identifier or new_id()
         with self.transaction():
+            self.pipeline_dirty = self.pipeline_dirty or kind in {"uses", "belongs_to"}
             self.db.execute("INSERT INTO relations VALUES (?,?,?,?)",
                             (identifier, source, target, kind))
             self.projection_dirty = True
@@ -215,6 +282,7 @@ class Catalog:
 
     def remove_relation(self, identifier: str) -> None:
         with self.transaction():
+            self.pipeline_dirty = True
             self.db.execute("DELETE FROM relations WHERE id=?", (identifier,))
             self.projection_dirty = True
 

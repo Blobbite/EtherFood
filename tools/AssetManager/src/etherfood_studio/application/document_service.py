@@ -58,6 +58,8 @@ class DocumentService:
         self.project._check_revision(record, expected_revision)
         if record.kind != "document" or record.data.get("document_type") != "manual":
             raise StudioError("validation", "Generierte Berichte sind hier schreibgeschützt.")
+        if record.data["body"] == body:
+            return record
         if record.data.get("automation"):
             from .project_documents import START, END, generated
             content = record.data["body"].split(START)[1].split(END)[0]
@@ -148,17 +150,17 @@ class DocumentService:
         row = self.catalog.db.execute(
             "SELECT * FROM document_files WHERE id=?", (identifier,)).fetchone()
         if not row:
-            raise StudioError("unavailable", "Dokumentdatei ist noch nicht verfügbar.")
+            record = self.catalog.get(identifier)
+            return self.project.files.path(record.owner_id) / (record.id + ".md")
         return self.project.files.path(row["owner_id"]) / row["path"]
 
     def resolve_link(self, base, relative):
         """Only indexed Markdown and hash-verified local images, never arbitrary file reads."""
-        from ..storage.paths import safe_target
+        from .document_resources import project_target
 
         root = self.catalog.path.parent
         try:
-            candidate = Path(os.path.abspath(base.parent / relative))
-            candidate = safe_target(root, str(candidate.relative_to(root)))
+            candidate = project_target(root, base, relative)
             for row in self.catalog.db.execute("SELECT * FROM document_files"):
                 if candidate == self.project.files.path(row["owner_id"]) / row["path"]:
                     return {"kind": "document", "id": row["id"], "path": candidate}
@@ -168,6 +170,74 @@ class DocumentService:
                         file_hash(candidate) == row["sha256"]:
                     return {"kind": "image" if candidate.suffix in {".png", ".gif"} else "index",
                             "path": candidate}
+            for row in self.catalog.db.execute("SELECT path,sha256 FROM current_files"):
+                if candidate == root / row["path"] and candidate.is_file() and \
+                        file_hash(candidate) == row["sha256"]:
+                    from PIL import Image
+                    try:
+                        with Image.open(candidate) as image:
+                            if image.format in {"PNG", "JPEG", "WEBP", "GIF"}:
+                                return {"kind": "image", "path": candidate}
+                    except (OSError, ValueError):
+                        pass
         except (StudioError, OSError, ValueError):
             pass
         return None
+
+    def link_candidates(self, identifier, target, *, wiki=False, base=None):
+        """Exact project paths win; a wiki name never silently chooses among duplicates."""
+        from urllib.parse import unquote, urlsplit
+        from .document_resources import project_target
+
+        base = base or self.path(identifier)
+        path = urlsplit(target).path
+        if not path:
+            return [{"kind": "document", "id": identifier, "path": base}] if identifier else [
+                {"kind": "index", "path": base}]
+        names = [path]
+        if wiki and not Path(unquote(path)).suffix:
+            names += [path + ".md", path + ".markdown"]
+        for name in names:
+            resolved = self.resolve_link(base, name)
+            if resolved:
+                return [resolved]
+            candidate = project_target(self.catalog.path.parent, base, name)
+            if candidate.is_file() and candidate.suffix.lower() in {".md", ".markdown"}:
+                return [{"kind": "index", "path": candidate}]
+        if wiki and "/" not in path and "\\" not in path:
+            stem = Path(unquote(path)).stem.casefold()
+            return [{"kind": "document", "id": row.id, "path": self.path(row.id)}
+                    for row in self.catalog.records() if row.kind == "document" and not row.archived
+                    and (row.title.casefold() == stem or self.path(row.id).stem.casefold() == stem)]
+        candidate = project_target(self.catalog.path.parent, base, path)
+        if candidate.is_file() and candidate.suffix.lower() in {".md", ".markdown"}:
+            return [{"kind": "index", "path": candidate}]
+        return []
+
+    def image_file(self, identifier, target, grants=None, *, base=None):
+        """Return a checked path and expected digest for the asynchronous media reader."""
+        from urllib.parse import unquote, urlsplit
+        from .document_resources import project_target
+
+        parts = urlsplit(target)
+        if parts.scheme == "file":
+            selected = Path(unquote(parts.path)).absolute()
+            grant = (grants or {}).get(str(selected))
+            if not grant or parts.netloc:
+                raise StudioError("permission",
+                    "Externe Datei gezielt über Zugriff erlauben auswählen.")
+            return real_path(selected), grant.digest
+        path = project_target(self.catalog.path.parent, base or self.path(identifier), target)
+        attachments = self.catalog.get(identifier).data["attachments"] if identifier else []
+        for item in attachments:
+            if path == self.blobs.path_for(item["sha256"]):
+                return path, item["sha256"]
+        for row in self.catalog.db.execute("SELECT * FROM managed_files"):
+            if path == self.project.files.path(row["owner_id"]) / row["path"]:
+                return path, row["sha256"]
+        for row in self.catalog.db.execute("SELECT path,sha256 FROM current_files"):
+            if path == self.catalog.path.parent / row["path"]:
+                return path, row["sha256"]
+        if not path.is_file():
+            raise StudioError("missing", "Bildquelle fehlt. Quelle ändern oder erneut versuchen.")
+        return path, None

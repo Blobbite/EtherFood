@@ -4,9 +4,22 @@ from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap, QPolygonF
 from .theme import is_dark
 
-KIND_NAMES = {"project": "Projekt", "global": "Projektweit", "act": "Akt", "chapter": "Kapitel",
-              "asset": "Asset", "package": "Paket", "note": "Notiz", "document": "Dokument",
-              "task": "Aufgabe", "issue": "Issue", "pipeline": "Pipeline"}
+KIND_NAMES = {
+    "project": "Projekt",
+    "global": "Projektweit",
+    "act": "Akt",
+    "chapter": "Kapitel",
+    "asset": "Asset",
+    "package": "Paket",
+    "note": "Notiz",
+    "document": "Dokument",
+    "task": "Aufgabe",
+    "issue": "Issue",
+    "pipeline": "Pipeline",
+    "pipeline_usage": "Pipelineverwendung",
+    "pipeline_definition": "Pipelinedefinition",
+    "script": "Python-Skript",
+}
 DOCUMENT_COLOR = "#eee4f8"
 
 
@@ -16,9 +29,18 @@ def kind_icon(kind: str) -> QIcon:
     if kind in {"asset", "note", "document", "task"}:
         return drawn_icon(kind)
     from .action_icons import action_icon
-    return action_icon({"project": "computer", "global": "globe", "act": "folder",
-                        "chapter": "folder", "package": "package",
-                        "pipeline": "pipeline"}.get(kind, "file"))
+    return action_icon(
+        {
+            "project": "computer",
+            "global": "globe",
+            "act": "folder",
+            "chapter": "folder",
+            "package": "package",
+            "pipeline": "pipeline",
+            "pipeline_usage": "pipeline",
+            "pipeline_definition": "pipeline",
+        }.get(kind, "file")
+    )
 
 
 def record_icon(record) -> QIcon:

@@ -16,9 +16,18 @@ from .project_files import component
 
 START = "<!-- STUDIO:AUTO START -->"
 END = "<!-- STUDIO:AUTO END -->"
-KINDS = {"project": "Projekt", "global": "Projektweit", "act": "Akt",
-         "chapter": "Kapitel", "package": "Asset-Paket", "asset": "Asset",
-         "pipeline": "Pipeline", "note": "Notizbereich"}
+KINDS = {
+    "project": "Projekt",
+    "global": "Projektweit",
+    "act": "Akt",
+    "chapter": "Kapitel",
+    "package": "Asset-Paket",
+    "asset": "Asset",
+    "pipeline": "Pipeline",
+    "pipeline_usage": "Pipelineverwendung",
+    "pipeline_definition": "Pipelinedefinition",
+    "note": "Notizbereich",
+}
 
 
 def text(value):
@@ -103,6 +112,9 @@ class ProjectDocuments:
         self.ensure(cards)
         self.cards = {r.id: r for r in cards}
         self.visible = self.project.content_scope()
+        self.visible.update(
+            r.id for r in cards if r.kind == "pipeline_definition" and not r.archived
+        )
         docs = [r for r in self.records.values()
                 if r.kind == "document" and r.owner_id in self.cards]
         old = {r["id"]: dict(r) for r in self.catalog.db.execute("SELECT * FROM document_files")}
@@ -265,7 +277,7 @@ class ProjectDocuments:
                 if current:
                     for artifact in current["artifacts"]:
                         paths.add(directory / artifact["image_path"])
-                        paths.add((directory / artifact["image_path"]).parent / "index.md")
+                        paths.add(directory / artifact["gallery"] / "index.md")
                         if artifact.get("preview_path"):
                             paths.add(directory / artifact["preview_path"])
                             paths.add((directory / artifact["preview_path"]).parent / "index.md")
@@ -291,7 +303,7 @@ class ProjectDocuments:
         current = self.results(card.id)
         if not current:
             return lines + ["Noch keine geprüften Pipeline-Ausgaben veröffentlicht."]
-        profiles = sorted({str(Path(a["image_path"]).parent) for a in current["artifacts"]})
+        profiles = sorted({a["gallery"] for a in current["artifacts"]})
         profiles += sorted({str(Path(a["preview_path"]).parent) for a in current["artifacts"]
                             if a.get("preview_path")})
         lines += ["- " + self.link(base, self.files.path(card.id) / profile / "index.md",
@@ -300,17 +312,32 @@ class ProjectDocuments:
                         "`. Aktuelle Gültigkeit im Asset-Arbeitsbereich prüfen."]
 
     def results(self, owner):
-        name = "Ergebnisse/aktuell.json"
-        path = self.files.path(owner) / name
-        expected = self.files.files.get((owner, name))
-        if not expected or not path.is_file() or file_hash(path) != expected:
+        if not self.catalog.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE name='pipeline_results'"
+        ).fetchone():
             return None
-        result = json.loads(path.read_text(encoding="utf-8"))
-        if result.get("contract") == "studio-workflow-publication-v1":
-            result["artifacts"] = [
-                {**item, "image_path": item["path"]} for item in result["artifacts"]
-            ]
-        return result
+        artifacts, identifiers = [], []
+        for row in self.catalog.db.execute(
+            "SELECT * FROM pipeline_results WHERE asset_id=? AND current=1", (owner,)
+        ):
+            for port, items in json.loads(row["outputs"]).items():
+                for item in items:
+                    target = safe_target(self.root, item["path"])
+                    if target.is_file() and file_hash(target) == item["sha256"]:
+                        artifacts.append(
+                            item
+                            | {
+                                "image_path": os.path.relpath(target, self.files.path(owner)),
+                                "gallery": "Ergebnisse/" + row["usage_id"],
+                                "port": port,
+                            }
+                        )
+                        identifiers.append(row["id"])
+        return (
+            {"artifacts": artifacts, "run_id": ", ".join(dict.fromkeys(identifiers))}
+            if artifacts
+            else None
+        )
 
     def markdown(self, change, owner, name, body):
         body = START + "\n" + body.rstrip() + "\n" + END + "\n"
@@ -361,7 +388,7 @@ class ProjectDocuments:
                 continue
             groups = {}
             for artifact in current["artifacts"]:
-                groups.setdefault(str(Path(artifact["image_path"]).parent), []).append(artifact)
+                groups.setdefault(artifact["gallery"], []).append(artifact)
                 if artifact.get("preview_path"):
                     groups.setdefault(str(Path(artifact["preview_path"]).parent), []).append(
                         {**artifact, "image_path": artifact["preview_path"]})
@@ -372,5 +399,10 @@ class ProjectDocuments:
                 for artifact in artifacts:
                     target = self.files.path(card.id) / artifact["image_path"]
                     link = self.link(base, target, target.name)
-                    body += "| " + link + " | !" + link + " |\n"
+                    preview = (
+                        "!" + link
+                        if artifact.get("type") in {"image", "spritesheet", "gif"}
+                        else "Datei"
+                    )
+                    body += "| " + link + " | " + preview + " |\n"
                 self.markdown(change, card.id, directory + "/index.md", body)

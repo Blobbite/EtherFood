@@ -23,8 +23,10 @@ class Navigation:
 
     def show_tree(self, point: QPoint) -> None:
         item = self.window.tree.itemAt(point)
-        if item:
-            menu = self.menu(item.data(0, Qt.ItemDataRole.UserRole))
+        if item and item.data(0, Qt.UserRole):
+            from .project_tree import EDGE_ROLE
+
+            menu = self.menu(item.data(0, Qt.UserRole), item.data(0, EDGE_ROLE))
             menu.exec(self.window.tree.viewport().mapToGlobal(point))
             menu.deleteLater()
 
@@ -33,7 +35,10 @@ class Navigation:
             return
         card = self.window.canvas.card_at(self.window.canvas.mapToScene(point))
         if card:
-            menu = self.menu(card.identifier)
+            selected = self.window.canvas.selected_ids()
+            menu = self.menu(
+                card.identifier, selection=selected if card.identifier in selected else None
+            )
         else:
             selected = self.window.selected_id
             if len(self.window.canvas.selected_ids()) <= 1 and selected and \
@@ -47,20 +52,16 @@ class Navigation:
         menu.exec(self.window.canvas.viewport().mapToGlobal(point))
         menu.deleteLater()
 
-    def add_pipeline_actions(self, menu: QMenu) -> None:
-        menu.addSection("Pipelines des Projekts")
-        for title, name, call in (
-            ("Ablaufeditor öffnen …", "context_workflow_open", self.window.show_pipeline_menu),
-            ("Neuer Ablauf …", "context_pipeline_new", lambda: self.window.create_pipeline()),
-            (
-                "Werkzeugpaket / Ablauf importieren …",
-                "context_pipeline_import",
-                self.window.import_pipeline,
-            ),
-        ):
-            item = menu.addAction(kind_icon("pipeline"), title)
-            item.setObjectName(name)
-            item.triggered.connect(call)
+    def add_pipeline_actions(self, menu, identifier=None):
+        item = menu.addAction(kind_icon("pipeline"), "Pipeline verwenden …")
+        item.setObjectName("context_pipeline_use")
+        item.triggered.connect(
+            lambda: (
+                self._on_card(identifier, self.window.use_pipeline)
+                if identifier
+                else self.window.use_pipeline()
+            )
+        )
 
     def _on_card(self, identifier: str, call: Callable) -> None:
         if self.window.select_card(identifier):
@@ -77,10 +78,26 @@ class Navigation:
         except (StudioError, OSError) as error:
             show_error(self.window, error)
 
-    def menu(self, identifier: str) -> QMenu:
+    def menu(self, identifier: str, edge_id=None, selection=None) -> QMenu:
         window = self.window
         record = window.project.catalog.get(identifier)
         menu = QMenu(window)
+        from ..application.lifecycle_service import LifecycleService
+
+        service = LifecycleService(window.project)
+        stored_id = edge_id or identifier
+        selection = selection or [identifier]
+        stored = service.state(stored_id)
+        if stored:
+            menu.addAction("Wiederherstellen", lambda: window.restore_content(stored_id))
+            if stored["state"] == "archived":
+                menu.addAction("Entfernen …", lambda: window.store_content([stored_id], "trash"))
+            return menu
+        if edge_id:
+            menu.addAction("Original anzeigen", lambda: window.select_card(identifier))
+            menu.addAction("Archivieren …", lambda: window.store_content([edge_id], "archived"))
+            menu.addAction("Entfernen …", lambda: window.store_content([edge_id], "trash"))
+            return menu
         window.canvas_actions.add_arrangements(menu, identifier)
 
         def action(title: str, name: str, kind: str, call: Callable) -> None:
@@ -100,17 +117,52 @@ class Navigation:
                     not record.data.get("automation"):
                 action("Umbenennen …", "context_rename", "document",
                        lambda: self.rename_document(identifier))
+            if not record.data.get("automation"):
+                action(
+                    "Archivieren …",
+                    "context_archive",
+                    record.kind,
+                    lambda: window.store_content(selection, "archived"),
+                )
+                action(
+                    "Entfernen …",
+                    "context_remove",
+                    record.kind,
+                    lambda: window.store_content(selection, "trash"),
+                )
             return menu
         action("Ordner öffnen", "context_folder", "document",
                lambda: self.open_folder(identifier))
         action("Dokumente / Notiz öffnen", "context_open", "document",
                lambda: self._on_card(identifier, self.open_notes))
         if not record.archived:
-            if record.kind == "pipeline":
-                action("Pipeline öffnen …", "context_pipeline_open", "pipeline",
-                       lambda: window.open_pipeline(identifier))
-            if record.kind == "project":
-                self.add_pipeline_actions(menu)
+            if record.kind == "pipeline_usage":
+                action(
+                    "Pipeline bearbeiten",
+                    "context_pipeline_edit",
+                    "pipeline",
+                    lambda: window.open_pipeline(identifier),
+                )
+                action(
+                    "Eingaben / Ergebnisverbindungen …",
+                    "context_pipeline_inputs",
+                    "pipeline",
+                    lambda: window.usage_editor.open(identifier),
+                )
+                action(
+                    "Reihenfolge: nach oben",
+                    "context_usage_up",
+                    "pipeline",
+                    lambda: window.usage_editor.reorder(identifier, -1),
+                )
+                action(
+                    "Reihenfolge: nach unten",
+                    "context_usage_down",
+                    "pipeline",
+                    lambda: window.usage_editor.reorder(identifier, 1),
+                )
+            if record.kind in {"project", "global", "act", "chapter", "asset", "package"}:
+                self.add_pipeline_actions(menu, identifier)
                 menu.addSeparator()
             if record.kind == "asset":
                 action("Asset-Menü öffnen …", "context_asset_workspace", "asset",
@@ -136,9 +188,18 @@ class Navigation:
         action("Umbenennen …", "context_rename", record.kind,
                lambda: self._on_card(identifier, window.rename_dialog))
         if record.kind not in {"project", "global"}:
-            action("Wiederherstellen" if record.archived else "Archivieren …",
-                   "context_archive", record.kind,
-                   lambda: self._on_card(identifier, window.archive_dialog))
+            action(
+                "Archivieren …",
+                "context_archive",
+                record.kind,
+                lambda: window.store_content(selection, "archived"),
+            )
+            action(
+                "Entfernen …",
+                "context_remove",
+                record.kind,
+                lambda: window.store_content(selection, "trash"),
+            )
         return menu
 
     def document_canvas(self, identifier, visible):

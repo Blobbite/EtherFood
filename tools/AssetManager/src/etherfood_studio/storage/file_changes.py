@@ -74,6 +74,19 @@ class FileChanges:
             self.move(target, backup)
         self.move(temporary, target)
 
+    def delete(self, target, expected):
+        """Remove only verified owned bytes, reversibly until the SQL commit succeeds."""
+        safe_target(self.root, self.relative(target))
+        if not target.exists():
+            return
+        require(
+            target.is_file() and file_hash(target) == expected,
+            "Geänderte oder fremde Datei wird nicht bereinigt: " + self.relative(target),
+        )
+        backup = self.journal.parent / (self.identifier + "-" + new_id() + ".deleted")
+        self.backups.append({"path": self.relative(backup), "sha256": expected})
+        self.move(target, backup)
+
     def committed(self):
         self.catalog.db.execute("INSERT INTO file_commits VALUES (?)", (self.identifier,))
 

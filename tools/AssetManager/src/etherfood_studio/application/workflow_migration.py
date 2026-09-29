@@ -189,7 +189,7 @@ class WorkflowMigration:
                     made[profile] = identifier
                     if old != "graphics" or profile in selected_targets:
                         streams[node["id"]].append((identifier, profile))
-                    if (node["id"] not in nonleaves or old in {"graphics", "gif"}) and (
+                    if (node["id"] not in nonleaves or old == "gif") and (
                         old != "graphics" or profile in selected_targets
                     ):
                         spec = self.service.manifests().get(name, {})

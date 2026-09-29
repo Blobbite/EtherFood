@@ -1,0 +1,102 @@
+{
+  "M01": {
+    "source": "# Titel\n\n**Fett** *Kursiv* ~~Weg~~ `Code`\nweich  \nhart\\\nnoch hart\n",
+    "expected": "Überschrift und Inline-Formatierung; weicher Umbruch bleibt im Absatz, beide harten Umbrüche sind sichtbar. Ansicht erhält Quelle und Revision."
+  },
+  "M02": {
+    "source": "> Zitat\n>\n> > Kind\n\n3) Drei\n4) Vier\n\n- Eins\n  - Kind\n\n~~~python\n**nur Code**\n~~~\n\nDanach normal.\n",
+    "expected": "Verschachtelte Blöcke bleiben getrennt. Nummerierung beginnt bei 3. Code formatiert keinen Folgeabsatz."
+  },
+  "M03": {
+    "source": "- [ ] Offen\n- [X] Erledigt\n\n```md\n- [ ] Code\n```\n",
+    "expected": "Nur angeklickter Aufgabenmarker ändert sich. Undo und erneutes Öffnen erhalten Werte. Schreibschutz verhindert Änderungen."
+  },
+  "M04": {
+    "source": "[Link][ A B ] [a b][] [A B]\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\nAbstand\n\n[a b]: <dokumente/NPC Beschreibung.md> \"Titel\"\n[A B]: falsch.md\n",
+    "expected": "Alle drei Referenzen verwenden die erste gültige Definition samt Titel, auch über Blockgrenzen."
+  },
+  "M05": {
+    "source": "# Start\n\n[Hier](#ziel) [Andere Datei](andere.md#ziel)\n\n## Ziel\n",
+    "expected": "Interne Navigation bleibt in der Anwendung; Ziele werden hervorgehoben. Abbruch beim ungespeicherten Dokument erhält den Entwurf."
+  },
+  "M06": {
+    "source": "# A\n# A-1\n# A\n# A\n# !!!\n\n[Fehlt](#unbekannt)\n",
+    "expected": "Kennungen a, a-1, a-2, a-3, abschnitt. Fehlender Abschnitt erzeugt einen Hinweis."
+  },
+  "M07": {
+    "source": "[[NPC]] [[dokumente/NPC.md]] [[NPC#animationen|Zu den Animationen]]\n\n`[[kein Link]]` \\[[maskiert]]\n",
+    "expected": "Exakter Pfad vor Namenssuche; bei Mehrdeutigkeit Auswahl. Kurzsyntax in Code und maskiertem Text bleibt Text."
+  },
+  "M08": {
+    "source": "![PNG](bilder/a.png) ![JPEG](bilder/b.jpg) ![WebP](bilder/c.webp) ![SVG](bilder/d.svg) ![Fehlender NPC](fehlt.png)\n",
+    "expected": "Dateiinhalte bestimmen das Format. Bilder bleiben proportional, fehlen sie, bleiben Alternativtext und konkrete Aktion sichtbar."
+  },
+  "M09": {
+    "source": "![Zwei Frames](bilder/idle.gif)\n",
+    "expected": "Synthetische rote und blaue Frames wechseln mit 140/260 ms. Pause hält das Bild; Fortsetzen setzt die Wiedergabe fort."
+  },
+  "M10": {
+    "source": "[![NPC](bilder/a.png)](andere.md#ziel)\n",
+    "expected": "Bildquelle wird unabhängig geladen. Das äußere Ziel wird erst durch einen eigenen Klick geöffnet."
+  },
+  "M11": {
+    "source": "![Extern](https://example.org/nicht-abrufen.png)\n",
+    "expected": "Ohne Freigabe keine Netzwerkanfrage, auch nicht nach Ansichtwechsel. Für freigegebene Abrufe ausschließlich lokale Testserver einsetzen."
+  },
+  "M12": {
+    "source": "![Serverbild](http://127.0.0.1:PORT/redirect)\n",
+    "expected": "PORT wird im Test durch einen kontrollierten Server ersetzt. Abbruch, Inaktivität, Gesamtdauer, Grenzen und Weiterleitungen werden mit tatsächlichen Abrufen geprüft."
+  },
+  "M13": {
+    "source": "```svg\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 60\"><rect width=\"100\" height=\"60\" fill=\"red\"/></svg>\n```\n",
+    "expected": "Statische SVG-Vorschau wird ausdrücklich umgeschaltet. Varianten mit Skript, DTD, Fremdressource oder zyklischer Referenz werden sichtbar abgewiesen."
+  },
+  "M14": {
+    "source": "```svg\n<svg xmlns=\"http://www.w3.org/2000/svg\"><script>nicht ausführen</script></svg>\n```\n",
+    "expected": "Blockierte Vorschau verändert weder Markdown noch Originaldatei; der unveränderte Code bleibt kopierbar."
+  },
+  "M15": {
+    "source": "| Vorschau | Inhalt |\n|:---|---:|\n|![A](bilder/a.png)|**Fett** [Link][r] `A \\| B`<br>Neu|\n\n[r]: andere.md\n",
+    "expected": "Ausrichtungen, Inline-Inhalte und Bilder werden in Zellen dargestellt; maskiertes Pipe bleibt Zellinhalt."
+  },
+  "M16": {
+    "source": "| A |\n|---|\n|Eins|ZUSÄTZLICH|\n",
+    "expected": "Prüfbedürftige Tabelle mit vollständiger Quelltextansicht; kein Wert verschwindet."
+  },
+  "M17": {
+    "source": "| Kopf | Wert |\n|:---|---:|\n|Text|1|\n",
+    "expected": "Zellen und Struktur bearbeiten, Ausrichtung ändern, Inhalt vor Entfernen bestätigen; alle Schritte sind rückgängig und speicherbar."
+  },
+  "M18": {
+    "source": "| A | B |\n|---|---|\n|001|1.0|\n|2026-09-29|=1+1|\n",
+    "expected": "Alle vier Werte bleiben exakt Text; keine Formeln, Typumwandlung oder Sortierung."
+  },
+  "M19": {
+    "source": "# 🧩\r\n\r\nText\r\n",
+    "expected": "MD/Code teilen Quelle, Entwurf und Undo. Änderungen erhalten CRLF; Auswahl wird soweit darstellbar übernommen."
+  },
+  "M20": {
+    "source": "Vorher\n\nNachher\n",
+    "expected": "Abgebrochene Einfüge-, Übernahme- und Freigabedialoge lassen Text und Anhänge unverändert; temporäre Vorschauen werden entfernt."
+  },
+  "M21": {
+    "source": "![Ä](../bilder/Bild%20%C3%84.png) ![Grenze](../../a.png)\n",
+    "expected": "Einmalige URL-Dekodierung, logische Dokumentbasis und Projektgrenze gelten; Symlinks und geänderte Einzelfreigaben werden geprüft."
+  },
+  "M22": {
+    "source": "![Langsam](bilder/verzoegert.png)\n",
+    "expected": "Ein verspätetes Ladeergebnis des vorherigen Dokuments erscheint nach Wechsel nicht im neuen Dokument."
+  },
+  "M23": {
+    "source": "| A |\n|---|\n|Mein Wert|\n\n- [ ] Aufgabe\n",
+    "expected": "Generierter Inhalt bleibt geschützt. Neue fremde Revision wird nicht überschrieben; lokaler Tabellen-/Checkboxentwurf bleibt erhalten."
+  },
+  "M24": {
+    "source": "![A](bilder/a.gif) ![B](bilder/b.gif)\n\n| A | B |\n|---|---|\n|Lang|Text|\n",
+    "expected": "Wiederholtes Öffnen/Schließen beendet Arbeit und gibt Bild-/Framespeicher frei. GUI-Ereignisse bleiben bedienbar."
+  },
+  "M25": {
+    "source": "# Nur Dokumentation\n\n[Interner Link](andere.md)\n\n```python\nprint(\"nicht ausführen\")\n```\n",
+    "expected": "Anzeige und Navigation erzeugen keine Jobs, Pipeline- oder Canvasänderungen und verändern keine fremden Dokumente."
+  }
+}

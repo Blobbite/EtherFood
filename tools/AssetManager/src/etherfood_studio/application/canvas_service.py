@@ -25,8 +25,7 @@ class CanvasService:
     def kinds(self, source: str) -> list[str]:
         owner = self.owner(source)
         return ["note", "document", "task", "issue"] + [
-            kind for kind in ("asset", "package", "chapter", "act", "pipeline")
-            if owner.kind in PARENTS[kind]
+            kind for kind in ("asset", "package", "chapter", "act") if owner.kind in PARENTS[kind]
         ]
 
     def create(self, source: str, expected_revision: int, kind: str, title: str,
@@ -60,9 +59,6 @@ class CanvasService:
             elif kind == "asset":
                 record = AssetService(self.project).create(
                     title, owner.id, default_definition().to_data())
-            elif kind == "pipeline":
-                from .pipeline_service import PipelineService
-                record = PipelineService(self.project).create(title)
             else:
                 record = self.project.create_card(kind, title, owner.id)
             catalog.save_layout(record.id, {"x": x, "y": y})

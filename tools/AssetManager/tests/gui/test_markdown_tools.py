@@ -6,7 +6,7 @@ pytest.importorskip("PySide6.QtWidgets")
 
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QMessageBox, QPlainTextEdit
 
 from etherfood_studio.ui.documents.live_markdown import LiveMarkdownEditor
 from etherfood_studio.ui.documents.markdown_source import MarkdownTable
@@ -18,7 +18,8 @@ SOURCE = ("# Titel\n\nUnverändert 🧩\n\n| Name | Wert |\n| :--- | ---: |\n"
 
 
 @pytest.fixture
-def editor(qt_app):
+def editor(qt_app, monkeypatch):
+    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Yes)
     widget = LiveMarkdownEditor()
     widget.resize(1200, 950)
     widget.setPlainText(SOURCE)
@@ -41,7 +42,7 @@ def test_native_cell_edit_and_structural_operations_share_source_history(editor,
     original_start, original_end = block.start, block.end
     table.setCurrentCell(1, 1)
     table.editItem(table.item(1, 1))
-    field = table.findChild(QLineEdit)
+    field = table.findChild(QPlainTextEdit)
     assert field is not None
     field.selectAll()
     QTest.keyClicks(field, "20|30")
@@ -188,7 +189,7 @@ def test_heading_to_table_focus_does_not_destroy_new_cell_editor(editor, qt_app)
     table.editItem(table.item(1, 1))
     qt_app.processEvents()
     assert table_block(editor) is block
-    field = table.findChild(QLineEdit)
+    field = table.findChild(QPlainTextEdit)
     assert field is not None and field.isVisible()
     field.selectAll()
     QTest.keyClicks(field, "24")

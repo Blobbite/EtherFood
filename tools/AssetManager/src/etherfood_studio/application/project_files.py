@@ -12,7 +12,6 @@ from ..storage.blob_store import BlobStore, file_hash
 from ..storage.file_changes import FileChanges
 from ..storage.paths import RESERVED, safe_target
 from ..storage.sqlite_repository import canonical
-from .pipeline_outputs import image_directory
 
 
 def component(title):
@@ -94,6 +93,11 @@ class ProjectFiles:
 
     def sync(self, change):
         cards = self.project.cards(include_archived=True)
+        cards += [
+            r
+            for r in self.catalog.records(include_archived=True)
+            if r.kind == "pipeline_definition" and r.data.get("legacy_documents")
+        ]
         if not cards:
             return
         old = {row["id"]: row["path"]
@@ -116,6 +120,9 @@ class ProjectFiles:
                     name += "--" + card.id[:8]
                 parent = self.folder_parent(card, targets, by_id)
                 relative = str(Path(parent) / name)
+                if card.kind == "pipeline_definition":
+                    # Existing documentation keeps its owner ID and stable relative media base.
+                    relative = old.get(card.id, ".tools/piplins/" + card.id + "/Dokumente")
                 target = safe_target(self.root, relative)
                 previous = old.get(card.id)
                 fallback = relative + "--" + card.id[:8]
@@ -127,6 +134,7 @@ class ProjectFiles:
                     source = safe_target(self.root, previous)
                     require(source.is_dir(), "Bisherige Kartenablage fehlt: " + previous)
                     change.move(source, target)
+                    self.move_result_references(previous, relative)
                     # An ancestor move carries every owned descendant with it.
                     old = {key: relative + value[len(previous):]
                            if value == previous or value.startswith(previous + "/") else value
@@ -179,12 +187,6 @@ class ProjectFiles:
                 for pose in card.data.get("asset_definition", {}).get("poses", []):
                     for name in ("source", "spritesheets", "masks/source", "masks/spritesheets"):
                         change.mkdir(self.path(card.id) / name / pose["export_name"])
-                if not card.archived and card.data.get("asset_definition", {}).get(
-                    "schema_version"
-                ) in {1, 2}:
-                    from .asset_pipelines import AssetPipelines
-                    for name in AssetPipelines(self.project).directories(card.id):
-                        change.mkdir(self.path(card.id) / name)
         for source in self.catalog.records(include_archived=True):
             if source.kind not in {"source_revision", "mask_revision"} or \
                     source.owner_id not in by_id:
@@ -208,18 +210,34 @@ class ProjectFiles:
             self.copy(change, source.owner_id, name + ".png", blob, data["sha256"])
             self.json(change, source.owner_id, name + ".json",
                       {"source_id": source.id, **data})
-        runs = [r for r in self.catalog.records() if r.kind == "build" and
-                r.data.get("contract") == "studio-build-run-v1" and
-                r.data.get("published") and r.data.get("status") == "succeeded"]
-        latest = {}
-        for run in sorted(runs, key=lambda r: (r.created_at, r.id)):
-            latest[run.owner_id] = run
-        for run in latest.values():
-            self.publish(change, run)
         if self.catalog.db.execute(
                 "SELECT 1 FROM sqlite_master WHERE name='document_files'").fetchone():
             from .project_documents import ProjectDocuments
             ProjectDocuments(self).sync(change, cards)
+
+    def move_result_references(self, previous, relative):
+        """The journal moves bytes; update their catalog paths in the same transaction."""
+
+        def moved(path):
+            return relative + path[len(previous) :] if path.startswith(previous + "/") else path
+
+        for row in self.catalog.db.execute("SELECT * FROM current_files").fetchall():
+            target = moved(row["path"])
+            if target != row["path"]:
+                self.catalog.db.execute(
+                    "UPDATE current_files SET path=? WHERE owner_id=? AND path=?",
+                    (target, row["owner_id"], row["path"]),
+                )
+        for row in self.catalog.db.execute("SELECT id,outputs FROM pipeline_results").fetchall():
+            outputs = json.loads(row["outputs"])
+            for values in outputs.values():
+                for item in values:
+                    item["path"] = moved(item["path"])
+            encoded = canonical(outputs)
+            if encoded != row["outputs"]:
+                self.catalog.db.execute(
+                    "UPDATE pipeline_results SET outputs=? WHERE id=?", (encoded, row["id"])
+                )
 
     def json(self, change, owner, name, data):
         content = (canonical(data) + "\n").encode("utf-8")
@@ -243,86 +261,3 @@ class ProjectFiles:
             "INSERT INTO managed_files VALUES (?,?,?) ON CONFLICT(owner_id,path) "
             "DO UPDATE SET sha256=excluded.sha256", (owner, name, digest))
         self.files[(owner, name)] = digest
-
-    def publish(self, change, run):
-        from .recipe_results import RecipeResultService
-
-        report = run.data
-        snapshot = json.loads(report["plan"]["snapshot"])
-        if "publications" in snapshot:
-            from .tool_results import ToolResultService
-
-            ToolResultService(self.project).publish(self, change, run)
-            return
-        actual = {row["node"]: row for row in report["actual"]}
-        prepared = {}
-        # Verify every final file before copying any of a historical run's outputs.
-        # A corrupt historical cache remains inspectable instead of blocking project open.
-        try:
-            for variant in report["plan"]["variants"]:
-                if not variant["required"]:
-                    continue
-                build = self.catalog.get(actual[variant["node"]]["build_id"])
-                existing = self.catalog.db.execute(
-                    "SELECT 1 FROM asset_publications WHERE build_id=?", (build.id,)).fetchone()
-                if not existing or run.id in self.catalog.projection_builds or any(
-                        item["path"] == "preview.gif" for item in build.data["outputs"]):
-                    prepared[build.id] = RecipeResultService(self.project).metadata(
-                        build, published=bool(existing))
-        except (StudioError, OSError, ValueError, KeyError, TypeError):
-            if run.id in self.catalog.projection_builds:
-                raise
-            return
-        artifacts = []
-        for variant in report["plan"]["variants"]:
-            if not variant["required"]:
-                continue
-            result = actual[variant["node"]]
-            require(result["actual"] in {"built", "reused"}, "Unvollständige Bildveröffentlichung.")
-            build = self.catalog.get(result["build_id"])
-            require(build.owner_id == run.owner_id, "Bild gehört zu einem anderen Asset.")
-            existing = self.catalog.db.execute(
-                "SELECT path FROM asset_publications WHERE build_id=?", (build.id,)).fetchone()
-            if existing:
-                relative = existing["path"]
-            else:
-                artifact = prepared[build.id]
-                meta = artifact["metadata"]
-                source = self.catalog.get(meta["source_revision"])
-                name = component(Path(source.data["original_name"]).stem)
-                name += "--" + build.data["input_fingerprint"][:12]
-                card = self.catalog.get(run.owner_id)
-                folder = image_directory(meta["kind"], self.pose_folder(card, meta["slot"]),
-                                         component(meta["profile"]))
-                relative = str(Path(folder) / (name + ".png"))
-                directory = safe_target(self.root, artifact["image_path"]).parent
-                require(self.files.get((run.owner_id, relative)) in {None, meta["image_sha256"]},
-                        "Buildkennung kollidiert mit einer bestehenden Bildausgabe.")
-                self.copy(change, run.owner_id, relative, directory / "image.png",
-                          meta["image_sha256"])
-                metadata_path = str(Path(relative).with_suffix(".json"))
-                require(self.files.get((run.owner_id, metadata_path)) in {
-                    None, file_hash(directory / "metadata.json")},
-                    "Buildkennung kollidiert mit bestehenden Ausgabemetadaten.")
-                self.copy(change, run.owner_id, metadata_path, directory / "metadata.json",
-                          file_hash(directory / "metadata.json"))
-                self.catalog.db.execute("INSERT INTO asset_publications VALUES (?,?,?)",
-                                        (build.id, run.owner_id, relative))
-            artifacts.append({"variant": variant["key"], "build_id": build.id,
-                              "image_path": relative,
-                              "metadata_path": str(Path(relative).with_suffix(".json"))})
-            output_names = {item["path"] for item in build.data["outputs"]}
-            if "preview.gif" in output_names:
-                from .recipe_results import RecipeResultService
-                preview = RecipeResultService(self.project).preview(build)
-                name = Path(relative).stem + ".gif"
-                preview_path = preview["directory"] + "/" + name
-                self.copy(change, run.owner_id, preview_path,
-                          safe_target(self.root, preview["path"]), preview["sha256"])
-                self.json(change, run.owner_id, str(Path(preview_path).with_suffix(".json")),
-                          {k: v for k, v in preview.items() if k != "path"})
-                artifacts[-1]["preview_path"] = preview_path
-        self.json(change, run.owner_id, "Ergebnisse/aktuell.json", {
-            "contract": "studio-asset-results-v1", "asset_id": run.owner_id,
-            "run_id": run.id, "recipe_id": snapshot.get("recipe_id"),
-            "recipe_revision": snapshot.get("recipe_revision"), "artifacts": artifacts})

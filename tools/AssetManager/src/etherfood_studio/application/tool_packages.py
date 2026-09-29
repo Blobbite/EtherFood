@@ -347,26 +347,6 @@ class ToolPackageService:
             {"project_id": service.project_id, "recipe": recipe},
         )
 
-    def test(
-        self, digest, entry_id, asset_id, *, cancelled=lambda: False, on_event=lambda event: None
-    ):
-        from types import SimpleNamespace
-        from .build_planner import BuildPlanner
-        from .tool_builds import ToolBuildService
-
-        name, recipe = self.recipe_data(digest, entry_id)
-        record = SimpleNamespace(id=new_id(), title=name, revision_no=1)
-        binding = {
-            "recipe": record,
-            "data": recipe,
-            "assignment": SimpleNamespace(id=new_id()),
-            "origin": "Paketentwurf-Testlauf",
-        }
-        plan = ToolBuildService(self.project).plan(asset_id, binding)
-        return BuildPlanner(self.project).execute(
-            plan, cancelled=cancelled, on_event=on_event, publish=False
-        )
-
     def draft(self, digest):
         package = self.details(digest)
         identifier = new_id()

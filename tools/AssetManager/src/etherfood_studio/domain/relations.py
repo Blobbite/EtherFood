@@ -2,11 +2,25 @@
 
 from .models import Record, StudioError
 
-CARD_KINDS = frozenset({"project", "global", "act", "chapter", "asset", "package", "note",
-                        "pipeline"})
+CARD_KINDS = frozenset(
+    {
+        "project",
+        "global",
+        "act",
+        "chapter",
+        "asset",
+        "package",
+        "note",
+        "pipeline",
+        "pipeline_usage",
+    }
+)
 PARENTS = {
     "pipeline": {"project"},
-    "global": {"project"}, "act": {"project"}, "chapter": {"act"},
+    "pipeline_usage": {"project"},
+    "global": {"project"},
+    "act": {"project"},
+    "chapter": {"act"},
     "asset": {"global", "act", "chapter", "package"},
     "package": {"global", "act", "chapter", "package"},
     "note": {"global", "act", "chapter", "package", "asset"},

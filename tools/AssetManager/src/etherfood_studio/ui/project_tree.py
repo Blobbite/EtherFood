@@ -51,7 +51,7 @@ class ProjectTree(QTreeWidget):
         if not item or not self.window.project:
             return
         identifier, edge_id = item.data(0, ID_ROLE), item.data(0, EDGE_ROLE)
-        if not self.window.prepare_content_change():
+        if not identifier or not self.window.prepare_content_change():
             return
         try:
             self.dragged = TreeService(self.window.commands).capture(identifier, edge_id)
@@ -152,3 +152,113 @@ class ProjectTree(QTreeWidget):
         except StudioError as error:
             event.ignore()
             self.window.statusBar().showMessage(str(error), 7000)
+
+
+def populate_project_tree(window):
+    """One ownership tree plus explicit references; inactive roots occur only once."""
+    from datetime import datetime
+    from PySide6.QtWidgets import QTreeWidgetItem
+    from ..application.lifecycle_service import LifecycleService
+    from ..application.search_service import SearchService
+    from ..domain.relations import CARD_KINDS
+    from .presentation import KIND_NAMES, record_icon
+
+    tree, project = window.tree, window.project
+    tree.clear()
+    states = SearchService(project)
+    life = LifecycleService(project)
+    records = {r.id: r for r in project.catalog.records(include_archived=True)}
+    originals = QTreeWidgetItem(tree, ["Projektinhalte"])
+    references = QTreeWidgetItem(tree, ["Verwendungen"])
+    storage = QTreeWidgetItem(
+        tree,
+        [
+            (
+                "Archiv"
+                if window.project_archive_view.currentData() == "archived"
+                else "Papierkorb · 30 Tage"
+            )
+        ],
+    )
+    items = {}
+
+    def item(parent, record, *, edge=None):
+        node = QTreeWidgetItem(parent, [record.title])
+        node.setData(0, ID_ROLE, record.id)
+        node.setData(0, KIND_ROLE, record.kind)
+        node.setData(0, EDGE_ROLE, edge)
+        node.setIcon(0, record_icon(record))
+        node.setToolTip(0, KIND_NAMES.get(record.kind, record.kind))
+        if edge:
+            relation = next(
+                e for e in project.catalog.relations(include_inactive=True) if e["id"] == edge
+            )
+            node.setText(0, record.title + " · " + records[relation["source_id"]].title)
+        return node
+
+    def add(identifier):
+        if identifier in items:
+            return items[identifier]
+        record = records[identifier]
+        if states.state(record) != "active":
+            return None
+        if record.kind == "pipeline_usage":
+            parent = references
+        elif record.owner_id in records and records[record.owner_id].kind in CARD_KINDS:
+            parent = add(record.owner_id)
+        else:
+            parent = originals
+        if parent is None:
+            return None
+        node = item(parent, record)
+        items[identifier] = node
+        node.setExpanded(not project.catalog.layout(identifier).get("collapsed", False))
+        return node
+
+    for record in records.values():
+        if record.kind in CARD_KINDS | {"document", "task", "issue"}:
+            # Migrated definition documents remain available in the documentation view.
+            if (
+                record.owner_id in records
+                and records[record.owner_id].kind == "pipeline_definition"
+            ):
+                continue
+            add(record.id)
+    for edge in project.catalog.relations():
+        if edge["kind"] == "uses" and all(
+            states.state(records[edge[key]]) == "active" for key in ("source_id", "target_id")
+        ):
+            item(references, records[edge["target_id"]], edge=edge["id"])
+    original_storage = QTreeWidgetItem(storage, ["Projektinhalte"])
+    reference_storage = QTreeWidgetItem(storage, ["Verwendungen"])
+    state = window.project_archive_view.currentData()
+    for entry in life.entries(state):
+        key = entry["id"]
+        if entry["entity_kind"] == "reference":
+            edge = life._edge(key)
+            node = item(reference_storage, records[edge["target_id"]], edge=key)
+        elif key in records and records[key].kind not in {"script", "pipeline_definition"}:
+            row = records[key]
+            ancestor = row.owner_id
+            while ancestor and ancestor in records and not life.state(ancestor):
+                ancestor = records[ancestor].owner_id
+            if ancestor and life.state(ancestor):
+                continue
+            node = item(
+                reference_storage if row.kind == "pipeline_usage" else original_storage, row
+            )
+        else:
+            continue
+        if entry["purge_at"]:
+            deadline = (
+                datetime.fromisoformat(entry["purge_at"]).astimezone().strftime("%d.%m.%Y %H:%M %Z")
+            )
+            node.setToolTip(0, "Endgültige Bereinigung ab " + deadline)
+    originals.setExpanded(True)
+    references.setExpanded(True)
+    storage.setExpanded(True)
+    original_storage.setExpanded(True)
+    reference_storage.setExpanded(True)
+    for key, node in items.items():
+        if key == (window.selected_content_id or window.selected_id):
+            tree.setCurrentItem(node)

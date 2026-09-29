@@ -1,150 +1,60 @@
-"""Qt entry points create project-owned pipelines independently of asset selection."""
+"""Project actions reference existing definitions; creation stays in the tool editor."""
 
 import pytest
-
-pytest.importorskip("PySide6.QtWidgets")
-
-from PySide6.QtCore import QPoint, QSettings, Qt, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QInputDialog, QMenu
+from PySide6.QtWidgets import QFileDialog, QPushButton
 
-from etherfood_studio.application.pipeline_service import PipelineService
-from etherfood_studio.ui.main_window import MainWindow
-
-
-@pytest.fixture
-def window(tmp_path, qt_app):
-    value = MainWindow(QSettings(str(tmp_path / "prefs.ini"), QSettings.IniFormat))
-    assert not value.pipeline_action.isEnabled()
-    root = tmp_path / "project"
-    root.mkdir()
-    value.new_project(root, "Projekt-Pipelines")
-    value.show()
-    qt_app.processEvents()
-    yield value
-    value.close()
-    qt_app.processEvents()
+from etherfood_studio.application.workspace_files import WorkspaceFiles
+from test_two_editors import window
 
 
-def choose_menu(action_name, seen):
-    def choose():
-        menu = QApplication.activePopupWidget()
-        if not isinstance(menu, QMenu):
-            return
-        actions = {action.objectName() or action.text(): action for action in menu.actions()}
-        seen.update({name: action.text() for name, action in actions.items()})
-        if action_name not in actions:
-            menu.close()
-            return
-        menu.setActiveAction(actions[action_name])
-        QTest.keyClick(menu, Qt.Key_Return)
-    return choose
-
-
-@pytest.mark.parametrize("entry", ["tree", "canvas_card", "toolbar"])
-def test_visible_project_entries_create_pipeline_sibling_of_global(window, qt_app, monkeypatch,
-                                                                  entry):
-    opened, seen = [], {}
-    monkeypatch.setattr(window, "open_pipeline", opened.append)
-    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Projekt-Rezept", True))
-    monkeypatch.setattr(QInputDialog, "getItem", lambda *a, **k: ("Grafik-Assets", True))
+@pytest.mark.parametrize("scope", ["project", "global", "act", "chapter", "asset"])
+def test_context_use_keeps_definition_shared_and_uses_clicked_scope(window, qt_app, scope):
     project = window.project
-    root = project.project().id
-    scope = next(r.id for r in project.cards() if r.kind == "global")
-    # A folded global scope cannot conceal project-owned pipeline cards.
-    window.commands.layout(scope, {"collapsed": True})
+    root = project.project()
+    global_scope = next(r for r in project.cards() if r.kind == "global")
+    act = project.create_card("act", "Akt", root.id)
+    chapter = project.create_card("chapter", "Kapitel", act.id)
+    asset = project.create_card("asset", "Asset", global_scope.id)
+    selected = dict(project=root, global_=global_scope, act=act, chapter=chapter, asset=asset)
+    target = global_scope if scope == "global" else selected[scope]
+    definition = WorkspaceFiles(project).create_definition("Vorhanden")
     window.refresh()
-    window.select_card(scope)
-    qt_app.processEvents()
-    if entry != "toolbar":
-        QTimer.singleShot(0, choose_menu("context_pipeline_new", seen))
-    if entry == "toolbar":
-        assert window.pipeline_action.isEnabled()
-        QTest.mouseClick(window.project_toolbar.widgetForAction(window.pipeline_action),
-                         Qt.LeftButton)
-        assert window.tabs.currentWidget() is window.processing
-        menu = window.navigation.menu(root)
-        seen.update({a.objectName(): a.text() for a in menu.actions()})
-        menu.deleteLater()
-        window.create_pipeline()
-    elif entry == "tree":
-        item = window.tree.topLevelItem(0)
-        point = window.tree.visualItemRect(item).center()
-        window.tree.customContextMenuRequested.emit(point)
-    else:
-        card = window.canvas.items_by_id[root]
-        window.canvas.centerOn(card)
-        point = window.canvas.mapFromScene(card.sceneBoundingRect().center())
-        window.canvas.customContextMenuRequested.emit(point)
-    qt_app.processEvents()
-    assert {
-        "context_pipeline_new",
-        "context_workflow_open",
-        "context_pipeline_import",
-    } <= seen.keys()
-    assert len(opened) == 1
-    recipe = PipelineService(project).recipe(opened[0])
-    assert recipe.owner_id == root
-    assert recipe.data["recipe"]["contract"] == "studio-pipeline-v2"
-    assert recipe.id in window.canvas.items_by_id
-    positions = window.canvas.default_positions(project)
-    assert positions[recipe.id]["x"] == positions[scope]["x"]
-    assert positions[recipe.id]["y"] < positions[scope]["y"]
-    item = window.tree.currentItem()
-    assert item.data(0, Qt.UserRole) == recipe.id
-    assert item.parent().data(0, Qt.UserRole) == root
-    assert item.parent().child(0) == item
-    window.undo(False)
-    assert project.catalog.get(recipe.id).archived
-    window.undo(True)
-    assert PipelineService(project).recipe(recipe.id).owner_id == root
-
-
-@pytest.mark.parametrize("selection", ["none", "project", "global", "act", "multiple"])
-def test_blank_canvas_pipeline_creation_uses_project_regardless_of_selection(
-        window, qt_app, monkeypatch, selection):
-    project = window.project
-    root = project.project().id
-    scope = next(r.id for r in project.cards() if r.kind == "global")
-    act = project.create_card("act", "Akt", root)
-    window.refresh()
-    if selection == "none":
-        window.canvas.select_many(set())
-        window.selected_id = None
-    elif selection == "multiple":
-        window.canvas.select_many({scope, act.id})
-    else:
-        window.select_card({"project": root, "global": scope, "act": act.id}[selection])
-    opened, seen = [], {}
-    monkeypatch.setattr(window, "open_pipeline", opened.append)
-    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Leere Pipeline", True))
-    qt_app.processEvents()
-    viewport = window.canvas.viewport()
-    point = next(QPoint(x, y) for x in range(10, viewport.width(), 30)
-                 for y in range(10, viewport.height(), 30)
-                 if window.canvas.card_at(window.canvas.mapToScene(QPoint(x, y))) is None)
-    QTimer.singleShot(0, choose_menu("context_pipeline_new", seen))
-    window.canvas.customContextMenuRequested.emit(point)
-    qt_app.processEvents()
-    assert {
-        "context_pipeline_new",
-        "context_workflow_open",
-        "context_pipeline_import",
-    } <= seen.keys()
-    assert len(opened) == 1
-    assert project.catalog.get(opened[0]).owner_id == root
-    if selection == "multiple":
-        assert "Auswahl anordnen" in seen.values()
-
-
-def test_toolbar_opens_unified_import_workspace(window, monkeypatch):
-    from PySide6.QtWidgets import QFileDialog, QPushButton
-
-    calls = []
-    monkeypatch.setattr(
-        QFileDialog, "getOpenFileName", lambda *args: (calls.append(args) or ("", ""))
+    window.select_card(global_scope.id)
+    menu = window.navigation.menu(target.id)
+    names = {a.objectName() for a in menu.actions()}
+    assert not names & {"context_pipeline_new", "context_workflow_open", "context_pipeline_import"}
+    next(a for a in menu.actions() if a.objectName() == "context_pipeline_use").trigger()
+    menu.deleteLater()
+    assert window.main_navigation.currentRow() == 0
+    QTest.mouseClick(
+        window.usage_editor.findChild(QPushButton, "create_pipeline_usage"), Qt.LeftButton
     )
-    window.pipeline_action.trigger()
-    assert window.tabs.currentWidget() is window.processing
-    window.processing.findChild(QPushButton, "workflow_import").click()
-    assert calls and "*.py" in calls[0][-1]
+    service = window.processing.service
+    (usage,) = service.usages()
+    assert usage.data["definition_id"] == definition.id
+    assert usage.data["targets"] == [target.id]
+    assert len(service.definitions()) == 1 and service.scripts() == []
+    window.undo(False)
+    assert project.catalog.get(usage.id).archived
+    assert not project.catalog.get(definition.id).archived
+    window.undo(True)
+    assert service.usages()[0].id == usage.id
+
+
+def test_new_pipeline_button_needs_no_asset_and_import_is_explicit(window, qt_app, monkeypatch):
+    window.set_main_editor(1)
+    workspace = window.processing
+    workspace.name.setText("Ohne Asset")
+    QTest.mouseClick(workspace.findChild(QPushButton, "pipeline_create"), Qt.LeftButton)
+    (definition,) = workspace.service.definitions()
+    assert workspace.editor.current.id == definition.id
+    assert not any(r.kind == "asset" for r in window.project.cards())
+    assert workspace.editor.save()
+    paths = []
+    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a: (paths.append(a) or ("", "")))
+    workspace.import_files()
+    assert paths and "*.py" in paths[0][-1]
+    assert len(workspace.service.definitions()) == 1
+    assert workspace.service.scripts() == []

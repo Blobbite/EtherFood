@@ -1,23 +1,18 @@
 # EtherFood Asset Studio
 
-Lokales Verwaltungswerkzeug neben PyGameTools. Unter **Verarbeitung → Ablaufeditor**
-werden kleine Python-Bausteine, Werkzeugpakete und verschachtelte Abläufe
-zusammengesetzt. Paketdateien, Python-Entwürfe, Diagnose und getrennte
-Bibliotheksumgebungen sind dort integriert. Grafikziele und Verarbeitung
-werden ausschließlich im Ablauf eingestellt.
+Die native Python-/PySide6-Anwendung besitzt zwei Haupteditoren: **Projekt**
+und **Skripte & Pipelines**. Definitionen, Projektverwendungen und aktuelle
+Dateien sind getrennt. Eine geprüfte, ausdrücklich freigegebene Pipeline
+verarbeitet passende registrierte Quellen im geöffneten Projekt.
 
-- [Ablaufeditor: Einstieg, Bildbausteine und Migration](PIPELINES.md)
-- [Vollständiger Umbau: Arbeitsplan und Prüfergebnisse](../plans/asset-studio-ablaufeditor.md)
+- [Bedienung: Navigation, Verwendungen, Folder, Automatik und Ablagen](PIPELINES.md)
+- [Pythoneditor, `.tools`-Dateien, Hilfsdateien und Import/Export](SKRIPTPAKETE.md)
+- [Aktueller Umbau: Arbeitsplan und tatsächliche Prüfergebnisse](../plans/asset-studio-zwei-editoren-und-automatik.md)
+- [Bericht zum gesicherten Zwischenstand und offenen Punkten](ABSCHLUSSBERICHT_2026-09-29.md)
 
-- [Aktuelle Architekturkorrektur: skriptbasierte Canvas-Plattform](../plans/asset-studio-skriptplattform-korrektur.md)
-- [Skriptpakete importieren und Ergebnisse beim Asset ablegen](SKRIPTPAKETE.md)
-- [Stillgelegte Aufgabenplanung: PIPELINE-ALIGNMENT-V1](../plans/asset-studio-github-issues.md)
-
-Die alte Studio-/Szeneneditor-Planung wurde am 28.09.2026 auf Benutzerwunsch
-stillgelegt. Die folgenden Bedienbeschreibungen dokumentieren den vorhandenen
-Code. Ihre früheren Folgeaufgaben sind keine aktuelle Umsetzungsreihenfolge.
-Der aktuelle Ablaufeditor ersetzt die früheren Bedienwege für Verarbeitung;
-ältere Sichtprüfungsbriefings dokumentieren ihren jeweiligen historischen Stand.
+Ältere Arbeitspläne und Sichtprüfungen dokumentieren ihren historischen Stand.
+Widersprechende frühere Verarbeitungseinstiege und Auftragskonzepte sind durch
+die aktuelle Bedienung ersetzt. Entwicklungsaufgaben und Kanban bleiben erhalten.
 
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)
@@ -26,6 +21,7 @@ Der aktuelle Ablaufeditor ersetzt die früheren Bedienwege für Verarbeitung;
 - [Aufgaben-Kanban und getrennte Suche](KANBAN.md)
 - [Projektbaum, Inhaltssymbole und Notiz-Dashboard](NOTIZEN_UND_ZUORDNUNG.md)
 - [Markdown-Dokumentation direkt bearbeiten](DOKUMENTATION.md)
+- [Markdown-Erweiterung: Umsetzung, M01–M25 und Prüfergebnisse](../plans/asset-studio-markdown-bearbeitung.md)
 - [Aktuelles Bedienbriefing: Darstellung, To-dos und Markdown-Werkzeuge](DARSTELLUNG.md)
 - [Arbeitsplan: Darstellung und Markdown-Werkzeuge](../plans/asset-studio-darstellung-und-markdown.md)
 - [Aktueller Feinschliff: Icons und Markdown](../plans/asset-studio-markdown-feinschliff.md)
@@ -36,9 +32,7 @@ Der aktuelle Ablaufeditor ersetzt die früheren Bedienwege für Verarbeitung;
 - [Projektweite Canvas-Bildpipelines: Bedienung und Sichtprüfung](PIPELINES.md)
 - [Freie Masterreferenzen und Materialmasken: Paket 8](REFERENZEN_UND_MASKEN.md)
 - [Arbeitsplan und tatsächliche Prüfergebnisse](../plans/asset-studio-projektpipelines.md)
-- [Aufträge und sichere Werkzeugprüfung](JOBS.md)
-- [Buildplan, Cache und Änderungsfolgen](BUILDPLAN.md)
-- [Briefing Paket 7: Aufträge und Buildplan](SICHTPRUEFUNG_7.md)
+- [Historisches Briefing Paket 7](SICHTPRUEFUNG_7.md)
 - [Arbeitsplan Paket 7: Notizen, Aufträge und Buildplan](../plans/asset-studio-paket-7.md)
 - [Erste Sichtprüfung nach Paket 4](SICHTPRUEFUNG.md)
 - [Briefing und Nachprüfung von Zwischenpaket 4a](SICHTPRUEFUNG_4A.md)

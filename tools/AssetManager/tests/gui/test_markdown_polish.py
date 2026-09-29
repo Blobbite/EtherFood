@@ -6,7 +6,7 @@ pytest.importorskip("PySide6.QtWidgets")
 
 from PySide6.QtCore import QPoint, QSettings, Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QAbstractButton
+from PySide6.QtWidgets import QMessageBox, QAbstractButton
 
 from etherfood_studio.ui.appearance import appearance
 from etherfood_studio.ui.documents.live_markdown import LiveMarkdownEditor
@@ -18,7 +18,8 @@ SOURCE = ("# Titel\n\nText unverändert.\n\n| Name | Beschreibung |\n|:---|---:|
 
 
 @pytest.fixture
-def editor(qt_app, tmp_path):
+def editor(qt_app, tmp_path, monkeypatch):
+    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.Yes)
     manager = appearance()
     previous = manager.settings
     manager.configure(QSettings(str(tmp_path / "preferences.ini"), QSettings.IniFormat))

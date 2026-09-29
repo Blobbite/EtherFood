@@ -18,7 +18,9 @@ def identity(pid: int) -> str:
 
 def require_supported() -> None:
     if os.name != "posix" or not identity(os.getpid()):
-        raise StudioError("unavailable", "Sichere Auftragsverwaltung benötigt derzeit Linux /proc.")
+        raise StudioError(
+            "unavailable", "Kontrollierte Prozesssteuerung benötigt derzeit Linux /proc."
+        )
 
 
 def group_members(group: int) -> list[int]:

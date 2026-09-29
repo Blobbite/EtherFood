@@ -125,6 +125,40 @@ MIGRATIONS = {
         "artifact TEXT NOT NULL, path TEXT NOT NULL, sha256 TEXT NOT NULL, "
         "PRIMARY KEY(build_id,artifact))",
     ),
+    11: (
+        "CREATE TABLE workspace_migrations (name TEXT PRIMARY KEY, state TEXT NOT NULL, "
+        "detail TEXT NOT NULL CHECK(json_valid(detail)))",
+        "CREATE TABLE pipeline_states (definition_id TEXT PRIMARY KEY REFERENCES objects(id), "
+        "checked_hash TEXT, approved_hash TEXT, error TEXT NOT NULL DEFAULT '', "
+        "paused INTEGER NOT NULL DEFAULT 0, checked_at TEXT)",
+        "CREATE TABLE pipeline_results (id TEXT PRIMARY KEY, usage_id TEXT NOT NULL, "
+        "asset_id TEXT NOT NULL, source_key TEXT NOT NULL, fingerprint TEXT NOT NULL, "
+        "definition_hash TEXT NOT NULL, outputs TEXT NOT NULL CHECK(json_valid(outputs)), "
+        "created_at TEXT NOT NULL, current INTEGER NOT NULL DEFAULT 1)",
+        "CREATE INDEX pipeline_result_lookup ON "
+        "pipeline_results(usage_id,asset_id,source_key,fingerprint)",
+        "CREATE TABLE pipeline_attempts (usage_id TEXT NOT NULL, fingerprint TEXT NOT NULL, "
+        "state TEXT NOT NULL, detail TEXT NOT NULL, updated_at TEXT NOT NULL, "
+        "PRIMARY KEY(usage_id,fingerprint))",
+        "CREATE TABLE lifecycle (id TEXT PRIMARY KEY, entity_kind TEXT NOT NULL, "
+        "state TEXT NOT NULL CHECK(state IN ('archived','trash')), "
+        "removed_at TEXT, purge_at TEXT, previous TEXT NOT NULL CHECK(json_valid(previous)))",
+        "CREATE TABLE current_files (owner_id TEXT NOT NULL, path TEXT NOT NULL UNIQUE, "
+        "sha256 TEXT NOT NULL, PRIMARY KEY(owner_id,path))",
+        "CREATE TABLE pipeline_step_cache (fingerprint TEXT PRIMARY KEY, usage_id TEXT NOT NULL, "
+        "outputs TEXT NOT NULL CHECK(json_valid(outputs)))",
+    ),
+    12: (
+        "CREATE TABLE pipeline_result_evidence (id TEXT PRIMARY KEY, detail TEXT NOT NULL "
+        "CHECK(json_valid(detail)))",
+        "CREATE TABLE pipeline_run_files (path TEXT PRIMARY KEY, sha256 TEXT NOT NULL, "
+        "usage_id TEXT, asset_id TEXT)",
+        "ALTER TABLE current_files RENAME TO current_files_v11",
+        "CREATE TABLE current_files (owner_id TEXT NOT NULL, path TEXT NOT NULL, "
+        "sha256 TEXT NOT NULL, PRIMARY KEY(owner_id,path))",
+        "INSERT INTO current_files SELECT * FROM current_files_v11",
+        "DROP TABLE current_files_v11",
+    ),
 }
 
 CURRENT_VERSION = max(MIGRATIONS)

@@ -105,7 +105,7 @@ def test_select_generate_import_inspect_confirm_and_reopen(qt_app, tmp_path, mon
         assert "1: Neues Material" in dialog.mask_legend.text()
         assert not dialog.mask_image.pixmap().isNull()
         assert not errors
-        assert project.catalog.db.execute("SELECT count(*) FROM jobs").fetchone()[0] == 0
+        assert not project.catalog.db.execute("SELECT 1 FROM pipeline_results").fetchone()
         dialog.reject()
         assert not dialog.isVisible()
         reopened = ReferenceMaterialsDialog(project, asset)

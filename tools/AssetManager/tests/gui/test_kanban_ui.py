@@ -105,12 +105,14 @@ def drag_task(board, record, target, qt_app, monkeypatch):
 def test_tabs_search_shortcut_and_filters_are_independent(window, qt_app):
     ids, rows = seed(window)
     doc = DocumentService(window.project).create(ids["two"], "Suchnotiz", "Dokumentinhalt")
-    assert [window.tabs.tabText(i) for i in range(window.tabs.count())] == [
-        "Projekt-Canvas", "Aufgaben-Kanban", "Notizen", "Dokumentation && Anhänge", "Suche",
-        "Verarbeitung"]
-    assert window.splitter.widget(2).isHidden()
-    window.tabs.setCurrentIndex(0)
-    assert not window.splitter.widget(2).isHidden()
+    assert [window.section_navigation.item(i).text() for i in range(5)] == [
+        "Projekt-Canvas",
+        "Aufgaben-Kanban",
+        "Notizen",
+        "Dokumentation & Anhänge",
+        "Suche",
+    ]
+    assert window.splitter.count() == 2
     window.tabs.setCurrentWidget(window.tasks)
     window.tasks.kind.setCurrentIndex(window.tasks.kind.findData("issue"))
     assert set(window.tasks.records) == {rows["hero"].id}
@@ -121,10 +123,9 @@ def test_tabs_search_shortcut_and_filters_are_independent(window, qt_app):
     assert window.tabs.currentWidget() == window.search
     assert window.search.query.hasFocus()
     QTest.keyClicks(window.search.query, "Suchnotiz")
-    assert window.search.results.count() == 1
+    assert window.search.table.rowCount() == 1
     assert set(window.tasks.records) == {rows["hero"].id}
-    window.search.show_record(doc.id)
-    window.search.edit_current()
+    window.search.activate(0)
     assert window.notes.editor.current.id == doc.id
     assert window.tabs.currentWidget() == window.notes
 
@@ -278,8 +279,10 @@ def test_creation_uses_selected_scope_and_existing_search_sees_same_record(
         window.tasks.new_item(issue)
         task = window.tasks.selected_record
         assert task.owner_id == ids["two"] and task.kind == ("issue" if issue else "task")
-        window.search.show_record(task.id)
-        assert window.search.selected_record == task
+        window.search.refresh()
+        row = next(i for i, hit in enumerate(window.search.hits) if hit.id == task.id)
+        window.search.activate(row)
+        assert window.tasks.selected_record.id == task.id
     window.tasks.query.setText("Keine passenden Aufgaben")
     assert not window.tasks.records and not window.tasks.edit_button.isEnabled()
     assert not window.tasks.status_button.isEnabled() and not window.tasks.owner_button.isEnabled()

@@ -19,9 +19,11 @@ def project(tmp_path):
     project.catalog.close()
 
 
-@pytest.mark.parametrize("kind,source", [(kind, "one") for kind in
-                                      ("asset", "package", "note", "document", "task", "issue")]
-                         + [("chapter", "act"), ("act", "root"), ("pipeline", "root")])
+@pytest.mark.parametrize(
+    "kind,source",
+    [(kind, "one") for kind in ("asset", "package", "note", "document", "task", "issue")]
+    + [("chapter", "act"), ("act", "root")],
+)
 def test_create_link_layout_undo_redo_and_reopen(project, kind, source):
     commands = Commands(project)
     source = project.catalog.get(project.ids[source]) if source != "root" else project.project()
@@ -92,3 +94,7 @@ def test_postit_word_cap_preserves_long_legacy_text_and_attachments(project, tmp
     assert updated.data["body"] == legacy.data["body"]
     assert updated.data["attachments"] == legacy.data["attachments"]
     assert service.attachment_text(legacy.id, 0) == "Alter Anhang"
+
+
+def test_project_canvas_creation_does_not_offer_definition_creation(project):
+    assert "pipeline" not in CanvasService(Commands(project)).kinds(project.project().id)

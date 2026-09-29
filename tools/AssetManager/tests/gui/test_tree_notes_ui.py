@@ -39,9 +39,11 @@ def window(qt_app, tmp_path):
 
 
 def tree_item(window, identifier, *, reference=False):
-    return next(item for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
-                if item.data(0, ID_ROLE) == identifier
-                and (item.data(0, KIND_ROLE) == "reference") == reference)
+    return next(
+        item
+        for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
+        if item.data(0, ID_ROLE) == identifier and bool(item.data(0, EDGE_ROLE)) == reference
+    )
 
 
 def send_tree_drop(window, target, qt_app, *, control=False, mime=None):

@@ -44,9 +44,12 @@ def projects(tmp_path):
 
 
 def document(project, template_id="graphics"):
-    return {"contract": "studio-pipeline-export-v1", "name": "Importierte Pipeline",
-            "recipe": template(template_id),
-            "profiles": list(ProfileService(project).profiles().values())}
+    return {
+        "contract": "studio-pipeline-export-v1",
+        "name": "Importierte Pipeline",
+        "recipe": template(template_id),
+        "profiles": list(ProfileService(project).profiles().values()),
+    }
 
 
 def write_document(path, data):
@@ -57,19 +60,34 @@ def write_document(path, data):
 def add_resources(project, recipe, tmp_path, *, absolute=False):
     palette = tmp_path / "palette.json"
     provenance = str(tmp_path / "private" / "stand.png") if absolute else "stand.png"
-    colors = {"format": "pyimg-fixed-palette", "version": 1, "color_space": "sRGB",
-              "colors": [[0, 0, 0], [255, 255, 255]],
-              "references": [{"path": provenance, "sha256": "a" * 64, "size": [2, 2],
-                              "grid": [1, 1], "frames": 1, "direction": d}
-                             for d in ("N", "NO", "O", "SO", "S", "SW", "W", "NW")]}
+    colors = {
+        "format": "pyimg-fixed-palette",
+        "version": 1,
+        "color_space": "sRGB",
+        "colors": [[0, 0, 0], [255, 255, 255]],
+        "references": [
+            {
+                "path": provenance,
+                "sha256": "a" * 64,
+                "size": [2, 2],
+                "grid": [1, 1],
+                "frames": 1,
+                "direction": d,
+            }
+            for d in ("N", "NO", "O", "SO", "S", "SW", "W", "NW")
+        ],
+    }
     palette.write_text(json.dumps(colors, indent=2), encoding="utf-8")
     mask = tmp_path / "mask.png"
     Image.new("L", (2, 2), 1).save(mask)
     store = BlobStore(project.catalog, project.catalog.path.parent)
     for key, path in (("palette", palette), ("mask", mask)):
         copied = store.import_file(path)
-        recipe["resources"][key] = {"name": path.name, "sha256": copied["sha256"],
-                                    "length": copied["length"]}
+        recipe["resources"][key] = {
+            "name": path.name,
+            "sha256": copied["sha256"],
+            "length": copied["length"],
+        }
     return palette, mask
 
 
@@ -85,8 +103,10 @@ def test_package_roundtrip_copies_recipe_ids_layout_and_resources(projects, tmp_
     files = add_resources(source, recipe, tmp_path)
     original_bytes = {p.name: p.read_bytes() for p in files}
     pipelines.save(record.id, recipe, record.revision_no)
-    source.catalog.save_layout(record.id, {"x": 99, "y": 55, "pipeline_nodes": {
-        node["id"]: {"x": 36, "y": -18, "w": 280, "h": 120}}})
+    source.catalog.save_layout(
+        record.id,
+        {"x": 99, "y": 55, "pipeline_nodes": {node["id"]: {"x": 36, "y": -18, "w": 280, "h": 120}}},
+    )
     package = tmp_path / "recipe.zip"
     PipelineExchange(source).export(record.id, package, package=True)
     before = destination.catalog.export_snapshot()
@@ -104,7 +124,11 @@ def test_package_roundtrip_copies_recipe_ids_layout_and_resources(projects, tmp_
     layout = destination.catalog.layout(imported.id)
     assert set(layout) == {"pipeline_nodes"}
     assert layout["pipeline_nodes"][copied["steps"][1]["id"]] == {
-        "x": 36, "y": -18, "w": 280, "h": 120}
+        "x": 36,
+        "y": -18,
+        "w": 280,
+        "h": 120,
+    }
     store = BlobStore(destination.catalog, destination.catalog.path.parent)
     for resource in copied["resources"].values():
         assert store.path_for(resource["sha256"]).read_bytes() == original_bytes[resource["name"]]
@@ -177,14 +201,18 @@ def test_missing_resources_json_and_missing_plugin_are_blocked_drafts(projects, 
     data = document(project, "color")
     data["recipe"]["steps"][1]["parameters"].update(mode="fixed", palette="palette")
     data["recipe"]["resources"]["palette"] = {
-        "name": "palette.json", "sha256": "a" * 64, "length": 20}
+        "name": "palette.json",
+        "sha256": "a" * 64,
+        "length": 20,
+    }
     exchange = PipelineExchange(project)
     plan = exchange.preview(write_document(tmp_path / "recipe.json", data))
     assert any("Ressource fehlt" in v for v in plan.warnings)
     imported = exchange.accept(plan, "Fehlende Ressourcen")
     assert imported.data["recipe"]["resources"] == data["recipe"]["resources"]
-    assert any("Ressource fehlt" in v
-               for v in exchange.dependency_blockers(imported.data["recipe"]))
+    assert any(
+        "Ressource fehlt" in v for v in exchange.dependency_blockers(imported.data["recipe"])
+    )
     assert PipelineService(project).summary(imported.id)["status"] == "blockiert"
     foreign = deepcopy(data)
     node = foreign["recipe"]["steps"][1]
@@ -193,8 +221,9 @@ def test_missing_resources_json_and_missing_plugin_are_blocked_drafts(projects, 
     plan = exchange.preview(write_document(tmp_path / "plugin.json", foreign))
     assert any("Werkzeug fehlt" in v for v in plan.warnings)
     record = exchange.accept(plan, "Fehlender Schritt")
-    assert any("Werkzeug fehlt" in v
-               for v in PipelineService(project).summary(record.id)["blockers"])
+    assert any(
+        "Werkzeug fehlt" in v for v in PipelineService(project).summary(record.id)["blockers"]
+    )
     copied = record.data["recipe"]
     assert copied["overridable"] == [copied["steps"][1]["id"] + ".strength"]
     reopened = ProjectService.open(project.catalog.path.parent, read_only=True)
@@ -214,8 +243,9 @@ def test_export_does_not_include_registered_python_or_trust(projects, tmp_path):
     recipe = deepcopy(record.data["recipe"])
     node = step(registered["identifier"], registered["manifest"])
     recipe["steps"].append(node)
-    recipe["connections"].append({"from": recipe["steps"][0]["id"], "out": "image",
-                                  "to": node["id"], "in": "image"})
+    recipe["connections"].append(
+        {"from": recipe["steps"][0]["id"], "out": "image", "to": node["id"], "in": "image"}
+    )
     service.save(record.id, recipe, record.revision_no)
     package = tmp_path / "plugin.zip"
     PipelineExchange(project).export(record.id, package, package=True)
@@ -230,21 +260,24 @@ def test_export_does_not_include_registered_python_or_trust(projects, tmp_path):
     assert PipelineService(target).summary(copied.id)["status"] == "blockiert"
 
 
-@pytest.mark.parametrize("mutation", [
-    lambda d: d.update(contract="future-version"),
-    lambda d: d.update(name=[]),
-    lambda d: d.update(recipe=[]),
-    lambda d: d.update(profiles={}),
-    lambda d: d["profiles"][0].update(method=[]),
-    lambda d: d["profiles"][0].update(parent={}),
-    lambda d: d["profiles"][0].update(value=float("nan")),
-    lambda d: d["recipe"].update(capabilities=[{}]),
-    lambda d: d["recipe"]["steps"][0].update(operation="../script.py"),
-    lambda d: d["recipe"]["steps"][0].update(parameters=[]),
-    lambda d: d["recipe"]["connections"][0].update(to="unknown"),
-    lambda d: d["recipe"].update(profiles=["unexported"]),
-    lambda d: d.update(layout={"pipeline_nodes": {"unknown": {"x": 1}}}),
-])
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda d: d.update(contract="future-version"),
+        lambda d: d.update(name=[]),
+        lambda d: d.update(recipe=[]),
+        lambda d: d.update(profiles={}),
+        lambda d: d["profiles"][0].update(method=[]),
+        lambda d: d["profiles"][0].update(parent={}),
+        lambda d: d["profiles"][0].update(value=float("nan")),
+        lambda d: d["recipe"].update(capabilities=[{}]),
+        lambda d: d["recipe"]["steps"][0].update(operation="../script.py"),
+        lambda d: d["recipe"]["steps"][0].update(parameters=[]),
+        lambda d: d["recipe"]["connections"][0].update(to="unknown"),
+        lambda d: d["recipe"].update(profiles=["unexported"]),
+        lambda d: d.update(layout={"pipeline_nodes": {"unknown": {"x": 1}}}),
+    ],
+)
 def test_malformed_export_is_a_studio_error_with_no_writes(projects, tmp_path, mutation):
     project = projects("project")
     data = document(project)
@@ -255,16 +288,29 @@ def test_malformed_export_is_a_studio_error_with_no_writes(projects, tmp_path, m
     assert project.catalog.export_snapshot() == before
 
 
-@pytest.mark.parametrize("raw", [b"{", b' {"name":"one","name":"two"}', b"\xff",
-                                b'{"x":1e9999}', b"[" * 80 + b"0" + b"]" * 80])
+@pytest.mark.parametrize(
+    "raw",
+    [b"{", b' {"name":"one","name":"two"}', b"\xff", b'{"x":1e9999}', b"[" * 80 + b"0" + b"]" * 80],
+)
 def test_json_parser_rejects_duplicates_overflow_depth_and_bad_utf8(raw):
     with pytest.raises(StudioError):
         read_json(raw)
 
 
-@pytest.mark.parametrize("bad_name", ["../escape", "/recipe.json", "resources/../evil.dat",
-    "C:/evil", "resources\\evil.dat", "resources//" + "a" * 64 + ".dat",
-    "./recipe.json", "script.py", "resources/" + "a" * 63 + ".dat"])
+@pytest.mark.parametrize(
+    "bad_name",
+    [
+        "../escape",
+        "/recipe.json",
+        "resources/../evil.dat",
+        "C:/evil",
+        "resources\\evil.dat",
+        "resources//" + "a" * 64 + ".dat",
+        "./recipe.json",
+        "script.py",
+        "resources/" + "a" * 63 + ".dat",
+    ],
+)
 def test_archive_rejects_unsafe_names(projects, tmp_path, bad_name):
     project = projects("project")
     path = tmp_path / "bad.zip"
@@ -324,8 +370,9 @@ def test_archive_uncompressed_limit_and_resource_hash_checked(projects, tmp_path
 def test_code_resources_and_hidden_private_paths_not_exported(projects, tmp_path):
     project = projects("project")
     data = document(project)
-    data["recipe"]["steps"][1].update(operation="python:missing",
-                                    parameters={"path": "/home/private"})
+    data["recipe"]["steps"][1].update(
+        operation="python:missing", parameters={"path": "/home/private"}
+    )
     with pytest.raises(StudioError, match="Private absolute Pfade"):
         PipelineExchange(project).preview(write_document(tmp_path / "private.json", data))
     data["recipe"]["steps"][1]["parameters"] = {"access_token": "secret"}
@@ -347,9 +394,11 @@ def test_accept_revalidates_forged_plan_and_name_conflicts_transactionally(proje
     project = projects("project")
     exchange = PipelineExchange(project)
     plan = exchange.preview(write_document(tmp_path / "recipe.json", document(project)))
-    for changed in (replace(plan, document='{"contract":"wrong"}'),
-                    replace(plan, resources=(("../../file", b"bad"),)),
-                    replace(plan, layout='{"pipeline_nodes":{}}')):
+    for changed in (
+        replace(plan, document='{"contract":"wrong"}'),
+        replace(plan, resources=(("../../file", b"bad"),)),
+        replace(plan, layout='{"pipeline_nodes":{}}'),
+    ):
         before = project.catalog.export_snapshot()
         with pytest.raises(StudioError):
             exchange.accept(changed, "Kopie")
@@ -368,16 +417,45 @@ def test_accept_revalidates_forged_plan_and_name_conflicts_transactionally(proje
 
 def test_legacy_layout_aliases_groups_and_visual_edges_remain_non_executable(projects, tmp_path):
     project = projects("project")
-    old_path = "tools/AssetManager/PyGameTools/Pipline/SpritesheetFram16-Pipline/" + \
-        "PyPiplineStart-SpritesheetFram16.py"
-    data = {"nodes": [
-        {"id": "group", "type": "group", "label": "Aufbereitung", "x": 20, "y": 40,
-         "width": 600, "height": 300},
-        {"id": "tool", "type": "file", "file": old_path, "label": "16 Frames",
-         "x": 50, "y": 80, "group": "group", "width": 280, "height": 120},
-        {"id": "unknown", "type": "text", "text": "Nicht ausführen", "x": 340, "y": 80}],
-        "edges": [{"id": "visual", "fromNode": "tool", "toNode": "unknown",
-                   "label": "Nur Organisation", "fromSide": "right", "toSide": "left"}]}
+    old_path = (
+        "tools/AssetManager/PyGameTools/Pipline/SpritesheetFram16-Pipline/"
+        + "PyPiplineStart-SpritesheetFram16.py"
+    )
+    data = {
+        "nodes": [
+            {
+                "id": "group",
+                "type": "group",
+                "label": "Aufbereitung",
+                "x": 20,
+                "y": 40,
+                "width": 600,
+                "height": 300,
+            },
+            {
+                "id": "tool",
+                "type": "file",
+                "file": old_path,
+                "label": "16 Frames",
+                "x": 50,
+                "y": 80,
+                "group": "group",
+                "width": 280,
+                "height": 120,
+            },
+            {"id": "unknown", "type": "text", "text": "Nicht ausführen", "x": 340, "y": 80},
+        ],
+        "edges": [
+            {
+                "id": "visual",
+                "fromNode": "tool",
+                "toNode": "unknown",
+                "label": "Nur Organisation",
+                "fromSide": "right",
+                "toSide": "left",
+            }
+        ],
+    }
     exchange = PipelineExchange(project)
     plan = exchange.preview(write_document(tmp_path / "old.canvas", data))
     assert any("0-SpritesheetFram16-Pipline" in warning for warning in plan.warnings)
@@ -405,8 +483,15 @@ def test_legacy_layout_aliases_groups_and_visual_edges_remain_non_executable(pro
     assert copy.data["recipe"]["connections"] == []
 
 
-@pytest.mark.parametrize("node", [None, {"id": "a", "x": "not a number"},
-                                {"id": "a", "x": float("inf")}, {"id": "a", "width": -1}])
+@pytest.mark.parametrize(
+    "node",
+    [
+        None,
+        {"id": "a", "x": "not a number"},
+        {"id": "a", "x": float("inf")},
+        {"id": "a", "width": -1},
+    ],
+)
 def test_malformed_legacy_layout_is_rejected(projects, node):
     project = projects("project")
     with pytest.raises(StudioError):
@@ -417,15 +502,18 @@ def schema_validator(filename):
     jsonschema = pytest.importorskip("jsonschema")
     from referencing import Registry, Resource
 
-    schemas = [json.loads(p.read_text()) for p in
-               (ROOT / "schemas/asset-studio").glob("pipeline-*-v1.json")]
+    schemas = [
+        json.loads(p.read_text())
+        for p in (ROOT / "schemas/asset-studio").glob("pipeline-*-v1.json")
+    ]
     registry = Registry().with_resources((s["$id"], Resource.from_contents(s)) for s in schemas)
     schema = next(s for s in schemas if s["$id"].endswith(filename))
     return jsonschema.Draft202012Validator(schema, registry=registry)
 
 
-@pytest.mark.parametrize("filename", ["pipeline-recipe-v1.json", "pipeline-export-v1.json",
-                                     "pipeline-manifest-v1.json"])
+@pytest.mark.parametrize(
+    "filename", ["pipeline-recipe-v1.json", "pipeline-export-v1.json", "pipeline-manifest-v1.json"]
+)
 def test_versioned_schemas_are_valid(filename):
     validator = schema_validator(filename)
     validator.check_schema(validator.schema)
@@ -439,56 +527,11 @@ def test_all_templates_examples_and_export_validate_against_offline_schemas(proj
         schema_validator("pipeline-recipe-v1.json").validate(template(name))
         schema_validator("pipeline-export-v1.json").validate(document(project, name))
     schema_validator("pipeline-manifest-v1.json").validate(
-        json.loads((EXAMPLE / "manifest.json").read_text()))
+        json.loads((EXAMPLE / "manifest.json").read_text())
+    )
     invalid = document(project)
     invalid["recipe"]["steps"][0]["enabled"] = "yes"
     assert list(schema_validator("pipeline-export-v1.json").iter_errors(invalid))
     invalid = document(project)
     invalid["profiles"][0]["value"] = -1
     assert list(schema_validator("pipeline-export-v1.json").iter_errors(invalid))
-
-
-@pytest.fixture
-def exchange_qt():
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    widgets = pytest.importorskip("PySide6.QtWidgets")
-    app = widgets.QApplication.instance() or widgets.QApplication([])
-    yield app
-    from PySide6.QtCore import QCoreApplication, QEvent
-    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
-    app.processEvents()
-
-
-def test_actual_import_dialog_previews_before_accept_and_cancel_writes_nothing(
-        projects, tmp_path, exchange_qt, monkeypatch):
-    from PySide6.QtCore import QTimer
-    from PySide6.QtWidgets import QApplication, QFileDialog, QPlainTextEdit
-    from etherfood_studio.ui.pipeline_exchange_dialogs import import_pipeline
-
-    project = projects("project")
-    path = write_document(tmp_path / "recipe.json", document(project))
-    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a, **k: (str(path), ""))
-    before = project.catalog.export_snapshot()
-    captured = []
-
-    def inspect_and_reject():
-        dialog = QApplication.activeModalWidget()
-        captured.append(dialog.objectName())
-        assert dialog.findChild(QPlainTextEdit, "pipeline_import_summary").toPlainText()
-        assert project.catalog.export_snapshot() == before
-        dialog.reject()
-
-    QTimer.singleShot(0, inspect_and_reject)
-    assert import_pipeline(project) is None
-    assert captured == ["pipeline_import_preview"]
-    assert project.catalog.export_snapshot() == before
-
-    def accept_copy():
-        dialog = QApplication.activeModalWidget()
-        dialog.title.setText("Vom Dialog importiert")
-        dialog.import_copy()
-
-    QTimer.singleShot(0, accept_copy)
-    record = import_pipeline(project)
-    assert record.title == "Vom Dialog importiert"
-    assert project.catalog.db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 0

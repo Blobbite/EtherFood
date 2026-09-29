@@ -5,12 +5,37 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-KINDS = frozenset({
-    "project", "global", "act", "chapter", "asset", "package", "note", "document",
-    "task", "issue", "pipeline", "pipeline_assignment", "pose", "source_revision",
-    "profile_revision", "mask_revision",
-    "build", "check", "review", "approval", "deployment", "candidate", "export", "test_run",
-})
+KINDS = frozenset(
+    {
+        "project",
+        "global",
+        "act",
+        "chapter",
+        "asset",
+        "package",
+        "note",
+        "document",
+        "task",
+        "issue",
+        "pipeline",
+        "pipeline_assignment",
+        "pose",
+        "source_revision",
+        "script",
+        "pipeline_definition",
+        "pipeline_usage",
+        "profile_revision",
+        "mask_revision",
+        "build",
+        "check",
+        "review",
+        "approval",
+        "deployment",
+        "candidate",
+        "export",
+        "test_run",
+    }
+)
 IMMUTABLE = frozenset({
     "source_revision", "profile_revision", "mask_revision", "build", "check", "review",
     "approval", "deployment", "candidate", "export", "test_run",

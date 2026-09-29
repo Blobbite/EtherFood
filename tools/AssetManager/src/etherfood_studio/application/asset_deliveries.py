@@ -5,8 +5,6 @@ import json
 from ..domain.models import StudioError
 from .asset_service import AssetService
 from .mask_service import MaskService
-from .recipe_builds import RecipeBuildService
-from .recipe_results import RecipeResultService
 from .source_import import SourceImportService
 
 
@@ -48,50 +46,14 @@ class AssetDeliveries:
                 for identifier, name in names.items()]
 
     def previews(self, asset_id):
-        """Count checked publications whose inputs still match the current pipeline."""
-        result = set()
-        current = {}
-        catalog = self.project.catalog
-        for run in catalog.records():
-            if run.kind != "build" or run.owner_id != asset_id or \
-                    run.data.get("contract") != "studio-build-run-v1" or \
-                    not run.data.get("published") or run.data.get("status") != "succeeded":
-                continue
-            snapshot = json.loads(run.data["plan"]["snapshot"])
-            if not snapshot.get("recipe_id"):
-                continue
-            recipe_id = snapshot["recipe_id"]
-            if recipe_id not in current:
-                try:
-                    plan = RecipeBuildService(self.project).plan(asset_id, recipe_id)
-                    targets = {v.node for v in plan.variants if v.required}
-                    current[recipe_id] = {row.node.key: row.fingerprint for row in plan.nodes
-                                          if row.node.key in targets}
-                except (StudioError, OSError, ValueError, KeyError, TypeError):
-                    current[recipe_id] = {}
-            stored = {row["node"]["key"]: row["fingerprint"]
-                      for row in run.data["plan"]["nodes"]}
-            nodes = {v["node"] for v in run.data["plan"]["variants"] if v["required"]}
-            for item in run.data["actual"]:
-                if item["node"] not in nodes or not item.get("build_id"):
-                    continue
-                if current[recipe_id].get(item["node"]) != stored.get(item["node"]):
-                    continue
-                build = catalog.get(item["build_id"])
-                if any(o["path"] == "artifacts.zip" for o in build.data["outputs"]):
-                    try:
-                        from .tool_results import ToolResultService
-                        for artifact in ToolResultService(self.project).artifacts(build):
-                            if artifact["type"] == "gif" and artifact["metadata"].get("source_revision"):
-                                result.add(artifact["metadata"]["source_revision"])
-                    except (StudioError, OSError, ValueError, KeyError):
-                        pass
-                    continue
-                if not any(o["path"] == "preview.gif" for o in build.data["outputs"]):
-                    continue
-                try:
-                    artifact = RecipeResultService(self.project).metadata(build)
-                    result.add(artifact["preview"]["source_revision"])
-                except (StudioError, OSError, ValueError, KeyError):
-                    continue
-        return result
+        """Only verified, current usage results count as prepared animations."""
+
+        from .pipeline_results import PipelineResults
+
+        active = self.project.catalog.get(asset_id).data.get("active_sources", {})
+        result = PipelineResults(self.project).latest(asset_id)
+        return {
+            active[item["source_key"]]
+            for item in result["artifacts"]
+            if item["state"] == "ready" and item["type"] == "gif" and item["source_key"] in active
+        }

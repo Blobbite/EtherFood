@@ -11,7 +11,12 @@ from PySide6.QtCore import QPoint, QSettings, Qt, QTimer, QUrl
 from PySide6.QtGui import QAction
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import (
-    QApplication, QDialogButtonBox, QLineEdit, QMessageBox, QPushButton,
+    QApplication,
+    QDialogButtonBox,
+    QInputDialog,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
 )
 
 from etherfood_studio.application.issue_service import IssueService
@@ -88,7 +93,7 @@ def test_unsaved_cancel_discard_and_conflict(window, tmp_path, monkeypatch):
     assert window.selected_id == ids["two"]
 
 
-def test_canvas_collapse_move_links_undo_and_reload(window, tmp_path, qt_app):
+def test_canvas_collapse_move_links_undo_and_reload(window, tmp_path, qt_app, monkeypatch):
     root = create_project(window, tmp_path)
     ids = window.project.demo()
     window.refresh()
@@ -105,8 +110,8 @@ def test_canvas_collapse_move_links_undo_and_reload(window, tmp_path, qt_app):
     assert window.project.catalog.layout(ids["hero"]) == {}
     window.undo(True)
     window.select_card(ids["temple"])
-    window.relation_target.setCurrentIndex(window.relation_target.findData(ids["hero"]))
-    QTest.mouseClick(window.findChild(QPushButton, "add_relation"), Qt.MouseButton.LeftButton)
+    monkeypatch.setattr(QInputDialog, "getItem", lambda *a, **k: ("Benötigt Voraussetzung", True))
+    window.connect_cards(ids["temple"], ids["hero"])
     qt_app.processEvents()
     edge_count = len(window.project.catalog.relations())
     window.undo(False)
@@ -147,17 +152,24 @@ def test_search_filters_focus_and_preserve_ids(window, tmp_path, qt_app):
     window.tabs.setCurrentWidget(window.search)
     QTest.keyClicks(window.search.query, "Suchen")
     qt_app.processEvents()
-    assert window.search.results.count() == 1
-    item = window.search.results.item(0)
-    QTest.mouseClick(window.search.results.viewport(), Qt.MouseButton.LeftButton,
-                     pos=window.search.results.visualItemRect(item).center())
+    assert window.search.table.rowCount() == 1
+    QTest.mouseClick(
+        window.search.table.viewport(),
+        Qt.MouseButton.LeftButton,
+        pos=window.search.table.visualItemRect(window.search.table.item(0, 1)).center(),
+    )
+    QTest.mouseDClick(
+        window.search.table.viewport(),
+        Qt.MouseButton.LeftButton,
+        pos=window.search.table.visualItemRect(window.search.table.item(0, 1)).center(),
+    )
     assert window.selected_id == ids["one"]
     window.project.rename(ids["one"], "Umbenannt",
                           window.project.catalog.get(ids["one"]).revision_no)
     window.search.refresh_scopes()
     assert window.project.catalog.get(task.id).owner_id == ids["one"]
-    window.search.state.setCurrentIndex(window.search.state.findData("done"))
-    assert window.search.results.count() == 0
+    window.search.state.setCurrentIndex(window.search.state.findData("archived"))
+    assert window.search.table.rowCount() == 0
 
 
 def test_corrupt_project_missing_drive_and_broken_preview(window, tmp_path, monkeypatch):
@@ -181,12 +193,12 @@ def test_corrupt_project_missing_drive_and_broken_preview(window, tmp_path, monk
         window.open_project(other)
     assert window.project.project().id == identifier
 
-    def fail(self, text):
+    def fail(self, text, **kwargs):
         raise ValueError("broken preview")
 
     monkeypatch.setattr(SafePreview, "preview", fail)
     window.documents.create_document("Vorschaufehler")
-    assert window.tree.topLevelItemCount() == 1
+    assert window.tree.topLevelItemCount() == 3
     assert "nicht verfügbar" in window.documents.preview.toPlainText()
 
 
@@ -199,10 +211,9 @@ def test_controls_and_manual_layout_are_real(window, tmp_path):
     window.restore_layout()
     assert window.project.catalog.layout(ids["hero"])["x"] == 72
     assert window.findChild(QAction, "undo").isEnabled()
-    disabled = [a for a in window.findChildren(QAction) if "später" in a.text()]
-    assert [a.objectName() for a in disabled] == ["godot_export"]
-    assert not disabled[0].isEnabled()
-    assert window.findChild(QAction, "image_pipeline").isEnabled()
+    assert not window.godot_button.isEnabled()
+    assert window.godot_button.objectName() == "godot_export"
+    assert window.findChild(QAction, "image_pipeline") is None
     assert window.findChild(QPushButton, "add_act") is not None
 
 
@@ -233,9 +244,13 @@ def test_two_tree_references_open_same_asset(window, tmp_path, qt_app):
     create_project(window, tmp_path)
     ids = window.project.demo()
     window.refresh()
-    refs = [item for item in window.tree.findItems(
-        "↪", Qt.MatchFlag.MatchStartsWith | Qt.MatchFlag.MatchRecursive,
-    ) if item.data(0, Qt.ItemDataRole.UserRole) == ids["hero"]]
+    from etherfood_studio.ui.project_tree import EDGE_ROLE
+
+    refs = [
+        item
+        for item in window.tree.findItems("", Qt.MatchContains | Qt.MatchRecursive)
+        if item.data(0, Qt.UserRole) == ids["hero"] and item.data(0, EDGE_ROLE)
+    ]
     assert len(refs) == 2
     for item in refs:
         window.tree.scrollToItem(item)
@@ -244,7 +259,7 @@ def test_two_tree_references_open_same_asset(window, tmp_path, qt_app):
                          pos=window.tree.visualItemRect(item).center())
         assert window.selected_id == ids["hero"]
         assert window.documents.owner_id == ids["hero"]
-        assert ids["hero"] in window.details.toPlainText()
+        assert window.selected_id == ids["hero"]
 
 
 def test_actual_drag_and_view_size_do_not_change_asset(window, tmp_path, qt_app):
@@ -264,9 +279,7 @@ def test_actual_drag_and_view_size_do_not_change_asset(window, tmp_path, qt_app)
     qt_app.processEvents()
     layout = window.project.catalog.layout(ids["hero"])
     assert (layout["x"], layout["y"]) != (original.x(), original.y())
-    window.card_width.setValue(420)
-    window.card_height.setValue(130)
-    QTest.mouseClick(window.findChild(QPushButton, "resize_card"), Qt.MouseButton.LeftButton)
+    window.resize_canvas_card(ids["hero"], 420, 130)
     assert window.project.catalog.layout(ids["hero"])["w"] == 420
     assert window.project.catalog.get(ids["hero"]) == before
 

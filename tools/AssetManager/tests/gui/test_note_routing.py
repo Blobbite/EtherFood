@@ -45,8 +45,10 @@ def test_all_note_entry_points_open_inline_dashboard(window, qt_app, entry):
                          pos=window.canvas.mapFromScene(item.mapToScene(item.rect().center())))
         QTest.qWait(20)
     elif entry == "search":
-        window.search.show_record(identifier)
-        window.search.edit_current()
+        window.search.refresh()
+        window.search.activate(
+            next(i for i, hit in enumerate(window.search.hits) if hit.id == identifier)
+        )
     else:
         menu = window.navigation.menu(identifier)
         next(a for a in menu.actions() if a.objectName() == "context_edit").trigger()

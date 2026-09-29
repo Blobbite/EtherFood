@@ -14,7 +14,6 @@ from PySide6.QtWidgets import (
 )
 
 from ..application.mask_service import MaskService
-from ..application.pipeline_service import PipelineService
 from ..application.project_service import ProjectService
 from ..application.reference_service import ReferenceService
 from ..domain.materials import MASK_CONTRACT, MATERIAL_CONTRACT, REFERENCE_CONTRACT
@@ -75,9 +74,11 @@ def mask_preview(project, identifier, frame):
 
 
 class ReferenceMaterialsDialog(QDialog):
-    def __init__(self, project, asset_id, parent=None):
+
+    def __init__(self, project, asset_id, parent=None, *, embedded=False):
         super().__init__(parent)
         self.project, self.asset_id = project, asset_id
+        self.embedded = embedded
         self.refs, self.masks = ReferenceService(project), MaskService(project)
         self.worker = None
         self.changed = self.pending_close = self.loading = False
@@ -96,7 +97,8 @@ class ReferenceMaterialsDialog(QDialog):
         self.build_masks()
         self.status = label("", "color_status")
         layout.addWidget(self.status)
-        layout.addWidget(button("Schließen", "color_close", self.reject))
+        if not embedded:
+            layout.addWidget(button("Schließen", "color_close", self.reject))
         self.refresh()
 
     def page(self, title):
@@ -147,13 +149,12 @@ class ReferenceMaterialsDialog(QDialog):
             self.export_profile))
         self.profile_info = label("", "color_profile_info")
         layout.addWidget(self.profile_info)
-        self.pipeline_step = QComboBox()
-        self.pipeline_step.setObjectName("color_pipeline_step")
-        layout.addWidget(self.pipeline_step)
-        layout.addWidget(button("Gewählten Rezeptschritt auf Asset-Farbprofil umstellen",
-            "color_bind", self.bind_step))
-        layout.addWidget(label("Das Projekt-Rezept gilt auch für weitere zugewiesene Assets. "
-            "Jedes davon benötigt eigene Referenzen/Profile. Umstellen startet keinen Bildlauf."))
+        layout.addWidget(
+            label(
+                "Farbprofile und Masken werden als ausdrücklich deklarierte "
+                "Ressourcen im Pipelineeditor verwendet. Jedes Asset behält seine eigenen Profile."
+            )
+        )
 
     def build_materials(self):
         layout = self.page("Materialdefinitionen")
@@ -288,12 +289,6 @@ class ReferenceMaterialsDialog(QDialog):
         if old_mask:
             self.mask_history.setCurrentIndex(self.mask_history.findData(old_mask))
         self.mask_selected()
-        self.pipeline_step.clear()
-        for recipe in PipelineService(self.project).recipes():
-            for node in recipe.data["recipe"]["steps"]:
-                if node["operation"] in {"color", "source_color"}:
-                    self.pipeline_step.addItem(recipe.title + " · " + node["operation"],
-                        (recipe.id, node["id"], recipe.revision_no))
         profiles = self.record.data.get("color_profiles", {})
         self.profile_info.setText("Gespeicherte Farbprofile: " + (", ".join(profiles) or "keine") +
             ". Aktuelle Quell-/Maskenbindung wird vor Nutzung geprüft.")
@@ -389,14 +384,6 @@ class ReferenceMaterialsDialog(QDialog):
         if self.require_saved():
             mode, expected = self.mode.currentData(), self.record.revision_no
             self.start(lambda p: ReferenceService(p).generate(self.asset_id, mode, expected))
-
-    def bind_step(self):
-        target = self.pipeline_step.currentData()
-        if target and self.require_saved():
-            recipe, step, revision = target
-            mode = self.mode.currentData()
-            self.start(lambda p: ReferenceService(p).configure_step(self.asset_id, recipe, step,
-                mode, revision))
 
     def export_profile(self):
         if self.require_saved():
@@ -540,14 +527,20 @@ class ReferenceMaterialsDialog(QDialog):
             self.pending_close = True
             self.status.setText("Vorgang läuft; Fenster schließt nach seinem Abschluss.")
             return
+        if self.confirm_close():
+            super().reject()
+
+    def confirm_close(self):
+        if self.worker:
+            return False
         if self.references_dirty or self.materials_dirty:
             answer = QMessageBox.question(self, "Ungespeicherte Auswahl/Definitionen",
                 "Ungespeicherte Änderungen verwerfen?",
                 QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel,
                 QMessageBox.StandardButton.Cancel)
             if answer != QMessageBox.StandardButton.Discard:
-                return
-        super().reject()
+                return False
+        return True
 
     def closeEvent(self, event):
         event.ignore()

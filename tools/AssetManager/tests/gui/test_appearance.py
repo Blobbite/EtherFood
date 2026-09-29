@@ -11,7 +11,8 @@ from PySide6.QtWidgets import QApplication, QDialogButtonBox
 
 from etherfood_studio.application.asset_service import AssetService
 from etherfood_studio.domain.assets import default_definition
-from etherfood_studio.ui.appearance import AppearanceDialog, appearance
+from etherfood_studio.ui.appearance import appearance
+from etherfood_studio.ui.settings import SettingsDialog
 from etherfood_studio.ui.asset_workspace import AssetWorkspace
 from etherfood_studio.ui.main_window import MainWindow
 from etherfood_studio.ui.presentation import kind_icon
@@ -50,22 +51,26 @@ def test_settings_button_stays_right_and_dialog_updates_all_button_modes(window,
 
     def configure():
         dialog = QApplication.activeModalWidget()
-        assert isinstance(dialog, AppearanceDialog)
+        assert isinstance(dialog, SettingsDialog)
+        settings = dialog
+        dialog = settings.appearance
         dialog.theme.setCurrentIndex(dialog.theme.findData("dark"))
         for mode in ("icons", "text", "text_icons"):
             dialog.buttons.setCurrentIndex(dialog.buttons.findData(mode))
             assert bool(button.text()) == (mode != "icons")
             assert button.icon().isNull() == (mode == "text")
             assert button.toolTip() == "Einstellungen"
-            close = dialog.findChild(QDialogButtonBox).buttons()[0]
+            close = settings.findChild(QDialogButtonBox).buttons()[0]
             assert bool(close.text()) == (mode != "icons")
             assert close.icon().isNull() == (mode == "text")
-            for index in range(window.tabs.count()):
-                assert bool(window.tabs.tabText(index)) == (mode != "icons")
-                assert window.tabs.tabIcon(index).isNull() == (mode == "text")
-                assert window.tabs.tabToolTip(index)
+            assert [window.main_navigation.item(i).text() for i in range(2)] == [
+                "Projekt",
+                "Skripte & Pipelines",
+            ]
+            assert settings.categories.count() == 2
+            assert all(not settings.categories.item(i).icon().isNull() for i in range(2))
         seen.append(appearance().theme)
-        dialog.accept()
+        settings.accept()
 
     QTimer.singleShot(20, configure)
     QTest.mouseClick(button, Qt.LeftButton)
@@ -163,11 +168,14 @@ def test_theme_refreshes_existing_document_and_filter_icons_without_reloading_dr
         expected = kind_icon("document").pixmap(16, 16).toImage()
         assert window.documents.documents.currentData() == document.id
         assert window.documents.documents.itemIcon(0).pixmap(16, 16).toImage() == expected
-        results = window.search.results
-        found = next(results.item(index) for index in range(results.count())
-                     if results.item(index).data(Qt.UserRole) == document.id)
+        results = window.search.table
+        found = next(
+            results.item(index, 0)
+            for index in range(results.rowCount())
+            if results.item(index, 0).data(Qt.UserRole) == document.id
+        )
         assert found.icon().pixmap(16, 16).toImage() == expected
-        for panel in (window.tasks, window.search):
+        for panel in (window.tasks,):
             for index in range(panel.kind.count()):
                 if kind := panel.kind.itemData(index):
                     assert panel.kind.itemIcon(index).pixmap(16, 16).toImage() \

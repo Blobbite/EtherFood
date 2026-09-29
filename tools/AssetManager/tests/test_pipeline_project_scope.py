@@ -52,20 +52,33 @@ def legacy(tmp_path):
 
 
 def assert_migrated(project, legacy):
+    from etherfood_studio.application.pipeline_workspace import PipelineWorkspace
+
     catalog = project.catalog
-    for key in ("recipe", "archived", "rule"):
+    workspace = PipelineWorkspace(project)
+    for key in ("recipe", "archived"):
         before = legacy[key]
         current = catalog.get(before.id)
         assert current.owner_id == legacy["project"].id
-        assert current.data == before.data and current.archived == before.archived
-        assert current.revision_no == before.revision_no + 1
+        assert current.kind == "pipeline_definition" and current.archived == before.archived
+        assert current.revision_no > before.revision_no
+        assert workspace.files.path(current).is_file()
         assert catalog.history(before.id)[-1] == asdict(current)
-    for key in ("scope", "asset", "explicit", "build"):
-        assert catalog.get(legacy[key].id) == legacy[key]
+    assert catalog.get(legacy["scope"].id) == legacy["scope"]
+    asset = catalog.get(legacy["asset"].id)
+    assert asset.id == legacy["asset"].id and asset.owner_id == legacy["asset"].owner_id
+    assert asset.data["asset_definition"]["schema_version"] == 2
+    assert not catalog.db.execute(
+        "SELECT 1 FROM objects WHERE id=?", (legacy["build"].id,)
+    ).fetchone()
     assert catalog.layout(legacy["recipe"].id) == legacy["layout"]
-    edge = next(e for e in catalog.relations() if e["id"] == legacy["edge"])
-    assert edge["target_id"] == legacy["project"].id
-    assert PipelineService(project).resolve(legacy["asset"].id)["recipe"].id == legacy["recipe"].id
+    explicit = catalog.get(legacy["explicit"].id)
+    rule = catalog.get(legacy["rule"].id)
+    assert explicit.kind == rule.kind == "pipeline_usage"
+    assert explicit.data["targets"] == [asset.id]
+    assert rule.data["targets"] == []
+    assert explicit.data["definition_id"] == legacy["recipe"].id
+    assert not catalog.db.execute("SELECT 1 FROM sqlite_master WHERE name='jobs'").fetchone()
     project.validate_structure()
 
 

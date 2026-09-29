@@ -1,5 +1,8 @@
 # Briefing Paket 7 – Notizen, Aufträge und Buildplan
 
+Historisches Briefing. Aufträge und Buildplan sind inzwischen abgelöst;
+für aktuelle Bedienung gilt [Pipelineverarbeitung](PIPELINES.md).
+
 ## Historischer Status: durch den Projektpipeline-Auftrag abgelöst
 
 Der inzwischen ausdrücklich freigegebene Auftrag für projektweite
