@@ -6,8 +6,10 @@ pytest.importorskip("PySide6.QtWidgets")
 
 from PySide6.QtCore import QMimeData, QPointF, QSettings, Qt, QTimer
 from PySide6.QtGui import QDrag, QDragEnterEvent, QDragMoveEvent, QDropEvent
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QDialogButtonBox, QMessageBox, QPushButton
+from PySide6.QtTest import QSignalSpy, QTest
+from PySide6.QtWidgets import (
+    QAbstractItemView, QApplication, QDialogButtonBox, QMessageBox, QPushButton,
+)
 
 from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.issue_service import IssueService
@@ -130,18 +132,28 @@ def test_drag_hover_opens_collapsed_target_without_saving_layout(window, qt_app)
     window.refresh()
     item = tree_item(window, window.ids["act"])
     item.setExpanded(False)
+    # Finish queued layout work and keep this hover target away from autoscroll edges.
+    window.tree.scrollToItem(item, QAbstractItemView.ScrollHint.PositionAtCenter)
+    qt_app.processEvents()
     before = window.project.catalog.export_snapshot()
     window.tree.dragged = TreeService(window.commands).capture(task.id)
     point = window.tree.visualItemRect(item).center()
+    assert window.tree.itemAt(point) is item
+    expanded = QSignalSpy(window.tree.expanded)
     mime = window.tree.drag_mime()
     enter = QDragEnterEvent(point, Qt.MoveAction, mime, Qt.LeftButton, Qt.NoModifier)
     move = QDragMoveEvent(point, Qt.MoveAction, mime, Qt.LeftButton, Qt.NoModifier)
-    QApplication.sendEvent(window.tree.viewport(), enter)
-    QApplication.sendEvent(window.tree.viewport(), move)
-    QTest.qWait(850)
-    assert item.isExpanded()
-    assert window.project.catalog.export_snapshot() == before
-    window.tree.dragged = None
+    try:
+        QApplication.sendEvent(window.tree.viewport(), enter)
+        QApplication.sendEvent(window.tree.viewport(), move)
+        assert enter.isAccepted() and move.isAccepted()
+        # Wait for the real expansion instead of assuming every suite finishes in 850 ms.
+        assert expanded.count() or expanded.wait(2000)
+        assert item.isExpanded()
+        assert window.project.catalog.export_snapshot() == before
+    finally:
+        window.tree.clear_hover()
+        window.tree.dragged = None
 
 
 def test_drag_autoscroll_reaches_large_tree_without_reparenting(window, qt_app):

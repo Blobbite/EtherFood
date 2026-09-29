@@ -85,10 +85,15 @@ und meldet fehlende Pakete oder Qt-Systembibliotheken. `import` bereitet wie
 
 Für den ersten Start „Neues Projekt“ mit einem leeren Testordner außerhalb
 des Repositorys wählen, danach „Demo anlegen“.
-Projektlokale [Canvas-Bildpipelines](docs/system/development/asset-studio/PIPELINES.md)
-sind angebunden; Godot-Bereitstellung und persönliche Pipeline-Abnahme bleiben
-getrennt offen. Aktuelle Aufgaben folgen
-[PIPELINE-ALIGNMENT-V1](docs/system/development/plans/asset-studio-github-issues.md).
+Unter **Verarbeitung → Ablaufeditor** lassen sich Python-Bausteine und
+Werkzeugpakete zu Abläufen verbinden, bearbeiten, ausführen und vollständig
+importieren/exportieren. Bibliotheken liegen in getrennten Projektumgebungen.
+Die [Bedienung](docs/system/development/asset-studio/PIPELINES.md),
+[Python-Schnittstelle und Ablage](docs/system/development/asset-studio/SKRIPTPAKETE.md)
+sowie [Umbau und Prüfungen](docs/system/development/plans/asset-studio-ablaufeditor.md)
+beschreiben den aktuellen Stand.
+Godot-Bereitstellung und persönliche Desktop-Abnahme bleiben getrennt offen;
+die bisherigen Studio-Roadmaps sind historische Nachweise.
 Befehle und Voraussetzungen (einschließlich Qt-Systembibliotheken) stehen unter
 [Entwicklung und Start](docs/system/development/asset-studio/DEVELOPMENT.md),
 die Klickfolge unter [Erste Sichtprüfung](docs/system/development/asset-studio/SICHTPRUEFUNG.md).

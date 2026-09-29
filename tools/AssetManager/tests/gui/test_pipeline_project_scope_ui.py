@@ -56,11 +56,17 @@ def test_visible_project_entries_create_pipeline_sibling_of_global(window, qt_ap
     window.refresh()
     window.select_card(scope)
     qt_app.processEvents()
-    QTimer.singleShot(0, choose_menu("context_pipeline_template", seen))
+    if entry != "toolbar":
+        QTimer.singleShot(0, choose_menu("context_pipeline_new", seen))
     if entry == "toolbar":
         assert window.pipeline_action.isEnabled()
         QTest.mouseClick(window.project_toolbar.widgetForAction(window.pipeline_action),
                          Qt.LeftButton)
+        assert window.tabs.currentWidget() is window.processing
+        menu = window.navigation.menu(root)
+        seen.update({a.objectName(): a.text() for a in menu.actions()})
+        menu.deleteLater()
+        window.create_pipeline()
     elif entry == "tree":
         item = window.tree.topLevelItem(0)
         point = window.tree.visualItemRect(item).center()
@@ -71,12 +77,15 @@ def test_visible_project_entries_create_pipeline_sibling_of_global(window, qt_ap
         point = window.canvas.mapFromScene(card.sceneBoundingRect().center())
         window.canvas.customContextMenuRequested.emit(point)
     qt_app.processEvents()
-    assert {"context_pipeline_new", "context_pipeline_template",
-            "context_pipeline_import"} <= seen.keys()
+    assert {
+        "context_pipeline_new",
+        "context_workflow_open",
+        "context_pipeline_import",
+    } <= seen.keys()
     assert len(opened) == 1
     recipe = PipelineService(project).recipe(opened[0])
     assert recipe.owner_id == root
-    assert recipe.data["recipe"]["steps"][1]["operation"] == "graphics"
+    assert recipe.data["recipe"]["contract"] == "studio-pipeline-v2"
     assert recipe.id in window.canvas.items_by_id
     positions = window.canvas.default_positions(project)
     assert positions[recipe.id]["x"] == positions[scope]["x"]
@@ -117,18 +126,25 @@ def test_blank_canvas_pipeline_creation_uses_project_regardless_of_selection(
     QTimer.singleShot(0, choose_menu("context_pipeline_new", seen))
     window.canvas.customContextMenuRequested.emit(point)
     qt_app.processEvents()
-    assert {"context_pipeline_new", "context_pipeline_template",
-            "context_pipeline_import"} <= seen.keys()
+    assert {
+        "context_pipeline_new",
+        "context_workflow_open",
+        "context_pipeline_import",
+    } <= seen.keys()
     assert len(opened) == 1
     assert project.catalog.get(opened[0]).owner_id == root
     if selection == "multiple":
         assert "Auswahl anordnen" in seen.values()
 
 
-def test_toolbar_import_reuses_existing_project_import_dialog(window, monkeypatch):
-    calls, seen = [], {}
-    monkeypatch.setattr(window, "import_pipeline",
-                        lambda: calls.append(window.project.project().id))
-    QTimer.singleShot(0, choose_menu("context_pipeline_import", seen))
+def test_toolbar_opens_unified_import_workspace(window, monkeypatch):
+    from PySide6.QtWidgets import QFileDialog, QPushButton
+
+    calls = []
+    monkeypatch.setattr(
+        QFileDialog, "getOpenFileName", lambda *args: (calls.append(args) or ("", ""))
+    )
     window.pipeline_action.trigger()
-    assert calls == [window.project.project().id]
+    assert window.tabs.currentWidget() is window.processing
+    window.processing.findChild(QPushButton, "workflow_import").click()
+    assert calls and "*.py" in calls[0][-1]

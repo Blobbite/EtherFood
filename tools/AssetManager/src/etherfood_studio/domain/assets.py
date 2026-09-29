@@ -109,12 +109,15 @@ class AssetDefinition:
     poses: tuple[Pose, ...]
     active_graphics: tuple[str, ...] | None = None
     profile_keys: tuple[str, ...] = GRAPHICS
+    schema_version: int = 1
 
     @classmethod
     def from_data(cls, data: dict, *, profiles: dict | None = None) -> "AssetDefinition":
         fields(data, {"schema_version", "type", "directions", "graphics", "frames", "poses"})
-        require(type(data["schema_version"]) is int and data["schema_version"] == 1,
-                "Unbekannte Asset-Modellversion.")
+        require(
+            type(data["schema_version"]) is int and data["schema_version"] in {1, 2},
+            "Unbekannte Asset-Modellversion.",
+        )
         asset_type = data["type"]
         fields(asset_type, {"id", "label", "capabilities"})
         slug(asset_type["id"])
@@ -128,8 +131,13 @@ class AssetDefinition:
         require(bool(data["directions"]) == ("directional" in caps),
                 "Richtungen passen nicht zur Fähigkeit directional.")
         keys = tuple(profiles) if profiles is not None else GRAPHICS
-        choices(data["graphics"], keys)
-        choices(data["frames"], tuple(range(1, 65)), empty="animated" not in caps)
+        modern = data["schema_version"] == 2
+        choices(data["graphics"], keys, empty=modern)
+        choices(data["frames"], tuple(range(1, 65)), empty=modern or "animated" not in caps)
+        require(
+            not modern or not data["graphics"] and not data["frames"],
+            "Ausgabeprofile und Frameziele gehören ausschließlich in den Ablauf.",
+        )
         require(isinstance(data["poses"], list) and len(data["poses"]) <= 64,
                 "Höchstens 64 Posen sind erlaubt.")
         poses = tuple(Pose.from_data(p) for p in data["poses"])
@@ -142,11 +150,22 @@ class AssetDefinition:
                     "Pose-IDs und Exportnamen müssen eindeutig sein.")
         require("directional" in caps or not any(p.directions for p in poses),
                 "Nicht gerichtete Assets haben keine Posenrichtungen.")
-        definition = cls(asset_type["id"], asset_type["label"], tuple(caps),
-                         tuple(data["directions"]), tuple(data["graphics"]),
-                         tuple(data["frames"]), poses,
-                         tuple(k for k in data["graphics"] if profiles[k]["enabled"])
-                         if profiles is not None else None, keys)
+        definition = cls(
+            asset_type["id"],
+            asset_type["label"],
+            tuple(caps),
+            tuple(data["directions"]),
+            tuple(data["graphics"]),
+            tuple(data["frames"]),
+            poses,
+            (
+                tuple(k for k in data["graphics"] if profiles[k]["enabled"])
+                if profiles is not None
+                else None
+            ),
+            keys,
+            data["schema_version"],
+        )
         require(len(definition.expected()) <= 20000, "Variantenmatrix ist zu groß (max. 20000).")
         return definition
 
@@ -155,10 +174,18 @@ class AssetDefinition:
         return "animated" if "animated" in self.capabilities else "static"
 
     def to_data(self) -> dict:
-        return {"schema_version": 1, "type": {"id": self.type_id, "label": self.type_label,
-                "capabilities": list(self.capabilities)}, "directions": list(self.directions),
-                "graphics": list(self.graphics), "frames": list(self.frames),
-                "poses": [p.to_data() for p in self.poses]}
+        return {
+            "schema_version": self.schema_version,
+            "type": {
+                "id": self.type_id,
+                "label": self.type_label,
+                "capabilities": list(self.capabilities),
+            },
+            "directions": list(self.directions),
+            "graphics": list(self.graphics),
+            "frames": list(self.frames),
+            "poses": [p.to_data() for p in self.poses],
+        }
 
     def expected(self, *, include_disabled: bool = False) -> tuple[VariantKey, ...]:
         graphics = self.graphics if include_disabled or self.active_graphics is None \

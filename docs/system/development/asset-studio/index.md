@@ -1,10 +1,13 @@
 # EtherFood Asset Studio
 
-Lokales Verwaltungswerkzeug neben PyGameTools. Der neue, ausdrücklich
-freigegebene Auftrag ergänzt projektweite Canvas-Pipelines mit echter
-Bildverarbeitung. Die frühere Diagnose-Prüfrunde bleibt historische Referenz;
-die neue Bedienung und Abnahme stehen unter [Projektpipelines](PIPELINES.md).
-Godot-Bereitstellung und persönliche Sichtabnahmen bleiben getrennt.
+Lokales Verwaltungswerkzeug neben PyGameTools. Unter **Verarbeitung → Ablaufeditor**
+werden kleine Python-Bausteine, Werkzeugpakete und verschachtelte Abläufe
+zusammengesetzt. Paketdateien, Python-Entwürfe, Diagnose und getrennte
+Bibliotheksumgebungen sind dort integriert. Grafikziele und Verarbeitung
+werden ausschließlich im Ablauf eingestellt.
+
+- [Ablaufeditor: Einstieg, Bildbausteine und Migration](PIPELINES.md)
+- [Vollständiger Umbau: Arbeitsplan und Prüfergebnisse](../plans/asset-studio-ablaufeditor.md)
 
 - [Aktuelle Architekturkorrektur: skriptbasierte Canvas-Plattform](../plans/asset-studio-skriptplattform-korrektur.md)
 - [Skriptpakete importieren und Ergebnisse beim Asset ablegen](SKRIPTPAKETE.md)
@@ -13,7 +16,8 @@ Godot-Bereitstellung und persönliche Sichtabnahmen bleiben getrennt.
 Die alte Studio-/Szeneneditor-Planung wurde am 28.09.2026 auf Benutzerwunsch
 stillgelegt. Die folgenden Bedienbeschreibungen dokumentieren den vorhandenen
 Code. Ihre früheren Folgeaufgaben sind keine aktuelle Umsetzungsreihenfolge.
-Für weitere Arbeit zuerst die Architekturkorrektur und die Benutzerentscheidung lesen.
+Der aktuelle Ablaufeditor ersetzt die früheren Bedienwege für Verarbeitung;
+ältere Sichtprüfungsbriefings dokumentieren ihren jeweiligen historischen Stand.
 
 - [Bestandsaufnahme](BASELINE.md)
 - [Architektur und Verträge](ARCHITECTURE.md)

@@ -11,6 +11,7 @@ from ..domain.assets import require
 from ..domain.graphics import proportional_size
 from ..domain.models import StudioError
 from ..domain.pipeline_recipes import BUILTINS, validate_parameters
+from ..packages import artifacts, process_artifacts
 from ..storage.blob_store import file_hash
 from ..storage.sqlite_repository import canonical
 from .base import CommandPlan, verify_files
@@ -30,7 +31,7 @@ class ImageAdapter:
             "Ungültiger Bildauftrag.")
         operation = parameters["operation"]
         require(isinstance(operation, str) and operation in {
-            "prepare8", "prepare16", "frames", "scale", "color", "source_color", "plugin"},
+            "prepare8", "prepare16", "frames", "scale", "color", "source_color", "plugin", "gif"},
             "Unbekannter Bildschritt.")
         require(isinstance(parameters["resources"], dict), "Ungültige Bildressourcen.")
         for name in [parameters["source"], *parameters["resources"].values()]:
@@ -41,11 +42,14 @@ class ImageAdapter:
         require(isinstance(settings, dict), "Ungültige Bildparameter.")
         resources = set(parameters["resources"])
         allowed = set()
-        if operation in {"prepare8", "prepare16", "frames"}:
+        if operation in {"prepare8", "prepare16", "frames", "gif"}:
             definitions = BUILTINS[operation]["parameters"]
             if operation == "frames" and settings.get("timing") == "keep_duration":
                 definitions = {k: v for k, v in definitions.items() if k != "fps"}
             validate_parameters(settings, definitions)
+            if operation == "gif":
+                from ..packages.previews.process import validate_directory
+                validate_directory(settings["directory"])
         elif operation == "scale":
             require(settings == {} and isinstance(profile, dict) and set(profile) == {
                 "key", "method", "mode", "value", "colors", "parent"}, "Ungültiges Grafikprofil.")
@@ -139,7 +143,8 @@ class ImageAdapter:
         sources += [Path(Image.__file__), Path(Image.core.__file__), Path(sys.executable)]
         hashes = tuple((str(p), file_hash(p)) for p in sorted(set(sources)))
         return CommandPlan((sys.executable, "-I", "-B", str(script), str(workspace)),
-                           ("image.png", "metadata.json"), hashes)
+                           ("image.png", "metadata.json", *artifacts(parameters["operation"])),
+                           hashes)
 
     def execute(self, request, workspace):
         plan = self.plan(workspace, json.loads(request.parameters))
@@ -183,6 +188,8 @@ class ImageAdapter:
             validate_metadata(meta, image.size)
             image.load()
             verify_pixels(image, source, incoming, meta, parameters, resources)
+            process_artifacts("verify", parameters["operation"], image, meta,
+                              parameters["settings"], output)
         return files
 
 
@@ -209,6 +216,8 @@ def verify_pixels(image, source, incoming, meta, parameters, resources):
     operation, settings, profile = (parameters[key] for key in ("operation", "settings", "profile"))
     frames = split_frames(source, incoming["grid"])
     expected = None
+    if operation == "gif":
+        expected = source
     if operation.startswith("prepare"):
         box = grid.get_common_content_box(frames)
         expected = grid.pack_frames([f.crop(box) for f in frames], tuple(meta["grid"]),

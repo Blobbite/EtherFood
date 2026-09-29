@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-BUNDLES = ("source", "graphics", "animation", "colors")
+BUNDLES = ("source", "graphics", "animation", "colors", "previews")
 
 
 def manifests():
@@ -38,3 +38,13 @@ def action(operation, identifier, context, parameters, parent):
     spec = next(a for a in manifests()[operation]["actions"] if a["id"] == identifier)
     module = importlib.import_module(__name__ + "." + bundle_for(operation) + ".services")
     return getattr(module, spec["entry_point"])(context, deepcopy(parameters), parent)
+
+
+def artifacts(operation):
+    return tuple(manifests().get(operation, {}).get("artifacts", ()))
+
+
+def process_artifacts(action, operation, image, metadata, parameters, output):
+    if artifacts(operation):
+        module = importlib.import_module(__name__ + "." + bundle_for(operation) + ".process")
+        getattr(module, action + "_artifacts")(image, metadata, parameters, output)

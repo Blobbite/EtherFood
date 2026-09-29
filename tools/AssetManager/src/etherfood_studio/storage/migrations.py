@@ -115,6 +115,16 @@ MIGRATIONS = {
         "CREATE TABLE document_files (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, "
         "path TEXT NOT NULL, sha256 TEXT NOT NULL, body TEXT NOT NULL)",
     ),
+    10: (
+        "CREATE TABLE tool_packages (digest TEXT PRIMARY KEY, manifest TEXT NOT NULL "
+        "CHECK(json_valid(manifest)), files TEXT NOT NULL CHECK(json_valid(files)), "
+        "archive_hash TEXT NOT NULL, approved INTEGER NOT NULL DEFAULT 0)",
+        "CREATE TABLE tool_drafts (id TEXT PRIMARY KEY, base_digest TEXT, manifest TEXT NOT NULL, "
+        "files TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1)",
+        "CREATE TABLE workflow_publications (build_id TEXT NOT NULL, asset_id TEXT NOT NULL, "
+        "artifact TEXT NOT NULL, path TEXT NOT NULL, sha256 TEXT NOT NULL, "
+        "PRIMARY KEY(build_id,artifact))",
+    ),
 }
 
 CURRENT_VERSION = max(MIGRATIONS)

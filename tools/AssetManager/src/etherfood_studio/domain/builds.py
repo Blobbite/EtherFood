@@ -31,6 +31,7 @@ class Dependency:
     node: str
     output: str
     kind: str
+    name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -111,6 +112,10 @@ class BuildGraph:
             if item.kind not in ARTIFACT_KINDS or not re.fullmatch(r"[a-f0-9]{64}", item.sha256):
                 raise StudioError("validation", "Ungültiger Inhaltstyp/Digest.")
         for dependency in node.dependencies:
+            if dependency.name is not None and not re.fullmatch(
+                r"[a-zA-Z0-9_.-]{1,160}", dependency.name
+            ):
+                raise StudioError("validation", "Ungültiger Eingabename einer Abhängigkeit.")
             parent = by_key.get(dependency.node)
             if (parent is None or OutputSpec(dependency.output, dependency.kind)
                     not in parent.outputs or node.required and not parent.required):

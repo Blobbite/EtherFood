@@ -1,0 +1,16 @@
+{
+  "contract": "studio-bundled-package-v1", "id": "studio:previews", "version": "1",
+  "steps": [{
+    "id": "gif", "package": "studio:previews", "version": "1.0.0",
+    "name": "PyImgGif · GIF-Vorschau", "template": "GIF-Vorschau aus Spritesheets",
+    "description": "Animiert die Frames des Eingangs mit PyImgGif. Das Spritesheet bleibt für weitere Skripte verfügbar. Das Ausgabeziel liegt beim jeweiligen Asset.",
+    "inputs": {"image": "image"}, "outputs": {"image": "image"},
+    "capabilities": ["animated"], "actions": [],
+    "artifacts": ["preview.gif", "preview.json"],
+    "parameters": {
+      "timing": {"type": "choice", "default": "pose", "choices": ["pose", "custom"], "label": "Wiedergabe", "choice_labels": {"pose": "FPS des Eingangs übernehmen", "custom": "Eigene Vorschau-FPS"}},
+      "fps": {"type": "number", "default": 8, "minimum": 1, "maximum": 100, "label": "Vorschau-FPS", "visible_if": {"timing": "custom"}},
+      "directory": {"type": "string", "default": "previews/gif", "label": "Ausgabeordner beim Asset", "description": "Relativer Ordner unter previews, beispielsweise previews/gif. Jedes Asset erhält seine eigenen GIFs."}
+    }
+  }]
+}

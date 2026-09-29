@@ -8,10 +8,13 @@
 ## Inhalt
 
 ### Seiten
+- [Asset Studio: vollständiger Ablaufeditor und Werkzeugpakete](asset-studio-ablaufeditor.md)
+- [Asset Studio: Pipeline-Board im Asset-Menü](asset-studio-asset-pipeline-board.md)
 - [Arbeitsplan: Asset Manager über Control steuern](asset-manager-control.md)
 - [Asset Studio: zusammenhängende GitHub-Issues](asset-studio-github-issues.md)
 - [Asset Studio: Korrektur zur skriptbasierten Canvas-Plattform](asset-studio-skriptplattform-korrektur.md)
 - [Asset Studio: Pakete 1 bis 4](asset-studio-pakete-1-bis-4.md)
+- [Asset Studio: Pipeline-Dashboard und Posenlieferstand](asset-studio-pipeline-dashboard.md)
 - [Paket 8: freie Farbreferenzen und Materialmasken](asset-studio-paket-8.md)
 - [Arbeitsplan: <Meilenstein>](_execplan-template.md)
 - [Arbeitsplan: Begehbarer Heldenraum](begehbarer-heldenraum.md)
@@ -54,11 +57,19 @@ Vorlage `_execplan-template.md` und beachte den
 Der technische Zielzustand für den aktuellen Importplan ist unter
 [Godot-Ressourcenimporte](../tooling/godot-resource-imports.md) dokumentiert.
 
+Der vollständige Studio-Umbau vom 28.09.2026 wird im
+[Ablaufeditor-Plan](asset-studio-ablaufeditor.md) gepflegt.
+Der [Pipeline-Dashboard-Plan](asset-studio-pipeline-dashboard.md) beschreibt den Vorläufer.
+Die anschließende Erweiterung um das Asset-Menü und Profilordner steht im
+[Asset-Board-Plan](asset-studio-asset-pipeline-board.md).
+
 ## Planarchiv
 
 Die bisherigen Studio- und Szeneneditor-Roadmaps sind seit 28.09.2026 auf
 Benutzerwunsch stillgelegt. Die [Skriptplattform-Korrektur](asset-studio-skriptplattform-korrektur.md)
-beschreibt das aktuelle Ziel und den begrenzten nächsten Umsetzungsvorschlag.
+beschreibt den umgesetzten Studio-Umbau einschließlich technischer Abnahme,
+Bedienung und Wiederherstellung. Weitergehende Wünsche brauchen einen eigenen
+Auftrag; sie sind kein offener Rest dieses Umbaus.
 [PIPELINE-ALIGNMENT-V1](asset-studio-github-issues.md), Paketpläne und der
 hashgeschützte Originalaufgabenplan bleiben historische Nachweise; aus ihnen
 keine alten Issues erneut veröffentlichen oder deren Umsetzung automatisch fortsetzen.

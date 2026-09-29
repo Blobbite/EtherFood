@@ -1,5 +1,12 @@
 # EtherFood Studio: zurück zur skriptbasierten Canvas-Plattform
 
+Abschlussstand 28.09.2026: Der beauftragte Umbau einschließlich der Fortsetzung
+ist technisch abgeschlossen; alle sieben Schritte dieser Fortsetzung sind
+erledigt. Die folgenden Bestandsangaben beschreiben die jeweilige frühere
+Arbeitsphase. Aktuelle Prüfergebnisse und Wiederherstellung stehen am Ende.
+Persönliche Desktop-Abnahme, produktive Bildfreigaben, Godot-Bereitstellung und
+die dort aufgeführten projektweiten Bestandsfehler bleiben getrennt davon.
+
 ## Entscheidung und Zweck
 
 28.09.2026: Der Benutzer hat die bisherige Ausbauplanung gestoppt. Skalierung,
@@ -212,11 +219,14 @@ reine Entscheidungs-/Dokumentationsänderung nicht erneut ausgeführt.
 
 ## Umsetzung nach Benutzerfreigabe
 
-28.09.2026: Der erste Umbau ist beauftragt. Arbeitsbranch:
-`refactor/studio-script-platform`. Der lokale Sicherungsbranch
-`backup/studio-before-script-platform-20260928` enthält mit Commit `1be69ab`
-alle 59 zuvor geänderten/neuen Dateien sowie den bisherigen HEAD. Main und
-der bisherige Index wurden dabei nicht verändert; es wurde nichts gepusht.
+28.09.2026, damaliger Sitzungsstand: Der erste Umbau ist beauftragt. Arbeitsbranch:
+`refactor/studio-script-platform`. In dieser Sitzung wurde der lokale Sicherungsbranch
+`backup/studio-before-script-platform-20260928` mit Commit `1be69ab` angelegt,
+der alle 59 zuvor geänderten/neuen Dateien sowie den bisherigen HEAD enthielt.
+Main und der bisherige Index wurden dabei nicht verändert; zu diesem Zeitpunkt
+wurde nichts gepusht. Diese lokale Sicherung ist im aktuellen Clone nicht
+vorhanden; verfügbare Git-Stände sind unten unter **Abschluss und Wiederherstellung**
+aufgeführt.
 
 - [x] Bestand geprüft und vollständigen lokalen Git-Wiederherstellungsstand angelegt.
 - [x] Versionierten Skriptvertrag für Geometrie und Metadaten ergänzen.
@@ -311,10 +321,11 @@ automatisch zurückimportiert. Historische Ausgaben und interne Jobs bleiben
 erhalten; eine Bereinigung wurde nicht implementiert. Das äußere Projektverzeichnis
 wird durch Umbenennen der Projektkarte nicht verschoben.
 
-Für eine Wiederherstellung liegt der vorherige vollständige Arbeitsstand im
-genannten lokalen Sicherungsbranch. Zusätzlich erzeugt die Katalogmigration
-ihre reguläre SQLite-Sicherung. Keine pauschale Rücksetzung, kein Löschen alter
-Projektdaten und keine Änderung an produktiven Spielassets erfolgte.
+Der genannte lokale Sicherungsbranch war die Wiederherstellungsmöglichkeit
+dieser damaligen Sitzung; seine Verfügbarkeit in anderen Clones ist nicht gegeben.
+Zusätzlich erzeugt die Katalogmigration ihre reguläre SQLite-Sicherung.
+Keine pauschale Rücksetzung, kein Löschen alter Projektdaten und keine Änderung
+an produktiven Spielassets erfolgte.
 
 ## Fortsetzung: vollständiger Bedienweg und automatische Dokumentation
 
@@ -336,7 +347,8 @@ zweite konkurrierende Projektstruktur. Alte Planungs-Issues bleiben stillgelegt.
 ### Schritte und Abnahme dieser Fortsetzung
 
 - [x] Bestand und Entwurf abgleichen, vorherigen Umsetzungsschritt im lokalen
-  Branch `backup/studio-before-documentation-20260928` sichern.
+  Branch `backup/studio-before-documentation-20260928` in der damaligen Sitzung
+  sichern; Verfügbarkeit im aktuellen Clone siehe Abschluss und Wiederherstellung.
 - [x] Typbezogene Asset-Ablage und `.pipelines` mit sicherer Bestandsübernahme,
   Umbenennen, Umordnen und Undo integrieren.
 - [x] Grunddokumente, Startseite, Typ-/Asset-Indizes und Bildtabellen automatisch
@@ -345,9 +357,9 @@ zweite konkurrierende Projektstruktur. Alte Planungs-Issues bleiben stillgelegt.
   gemeinsamen UI-Einstieg bereitstellen; Skripte bleiben im gemeinsamen Runner.
 - [x] Dokumentations-/Planungszugänge im Canvas verständlich verbinden;
   bestehende Guards, Revisionen und Projektgrenzen erhalten.
-- [ ] Synthetische Integrations- und UI-Tests einschließlich Wiederöffnung,
+- [x] Synthetische Integrations- und UI-Tests einschließlich Wiederöffnung,
   Strukturänderung, echter Bildausgabe, Konflikten und manuellen Texten ausführen.
-- [ ] Bedienung, Kompatibilität, tatsächliche Testergebnisse und Grenzen dieser
+- [x] Bedienung, Kompatibilität, tatsächliche Testergebnisse und Grenzen dieser
   Fortsetzung dokumentieren.
 
 Maßgebliche Nachweise: zwei Akte mit Kapiteln, Typen und Assets; dieselbe Pipeline
@@ -395,7 +407,106 @@ Befehle bleiben benutzbar. Keine Produktionsassets neu berechnen.
   Automatikmarkierungen sind in der gerenderten Vorschau unsichtbar; im
   Markdown-Quelltext bleiben sie erhalten.
 
-Zwischenstand der Prüfung: 11 neue Service-/Migrationstests und 86 gezielte
-Prüfungen der betroffenen Bedienwege erfolgreich; die 171 PyGameTools-Tests
-bestehen. Der vollständige Studio-Lauf wird nach den Korrekturen erneut geprüft.
-Diese Zahlen ersetzen keine abschließende Abnahme.
+Zwischenstand vor dem Sitzungsabbruch: 11 neue Service-/Migrationstests und
+86 gezielte Prüfungen der betroffenen Bedienwege erfolgreich; die
+171 PyGameTools-Tests bestanden. Der vollständige Studio-Lauf nach den
+Korrekturen und der abschließende Bericht standen damals noch aus.
+
+### Abschlussprüfung vom 28.09.2026
+
+Ausgangsstand der Wiederaufnahme ist `4c075c8` auf `main`: PR #77 enthält mit
+`04330f1` den vollständigen bisherigen Umbau. Bei Beginn war der Arbeitsbaum
+sauber. In der Bestandsprüfung bestanden bereits alle **670 Studio-Tests**
+und **171 PyGameTools-Tests**. Die letzte offene Prüflücke ist durch
+`tools/AssetManager/tests/gui/test_studio_completion.py` geschlossen.
+
+Der neue zusammenhängende Qt-Test ist einzeln erfolgreich ausgeführt
+(**1 bestanden**, 9,45 s). Er belegt:
+
+- Zwei gleichrangige Akte mit gleichnamigen Kapiteln, zwei Asset-Typen und einem
+  Asset-Paket. Ein über das Canvas importiertes und bewusst freigegebenes
+  Skalierungsskript verarbeitet beide Assets im gemeinsamen Sammellauf.
+- Zwei echte 512×256-Quellen ergeben jeweils 256×128-PNGs. Geprüfte Ausgaben,
+  Metadaten und Galerien liegen ausschließlich beim jeweiligen Asset;
+  die ursprünglichen Dateien bleiben anhand ihrer Hashes unverändert.
+- Jeder Bereich besitzt genau ein stabiles Grunddokument. Eine zusätzliche
+  Anleitung und eigener Markdowntext bleiben erhalten. Ein neuer Akt erscheint
+  auch auf der bereits geöffneten Startseite; relative Dokument- und PNG-Links
+  sowie die tatsächlich geladenen Qt-Bildvorschauen funktionieren.
+- Verschieben eines ganzen Pakets in den anderen Akt, Undo/Redo und Umbenennen
+  eines Kapitels aktualisieren Ablage und Links. Build-IDs, Bildhashes, Metadaten
+  und Jobdatensätze bleiben unverändert; keine zusätzliche Asset-Karte entsteht.
+- Fremde Dateien und eigene Galerieabsätze bleiben erhalten. Gleichzeitige
+  externe und interne Dokumentänderungen führen zu einem sichtbaren Konflikt;
+  beide Texte bleiben verfügbar und lassen sich anschließend bewusst zusammenführen.
+- Nach vollständigem Schließen und Öffnen in einer neuen Studio-Fensterinstanz
+  bleiben Katalog, Grunddokument-IDs, lesbare Dateien, Zuordnungen und Ergebnisse
+  identisch. Die Startseite öffnet das verschobene Dokument mit allen eigenen Texten.
+
+Der erste vollständige Lauf mit dem neuen Test meldete 670 bestandene Tests
+und einen sporadischen Fehler in der vorhandenen Drag-Hover-Prüfung des
+Projektbaums: Der erwartete Ast war nach der festen Pause von 850 ms noch
+nicht geöffnet. Im direkten Nachbarschaftslauf bestanden alle 18 Tests;
+15 zusätzliche Wiederholungen des bisherigen Hover-Ablaufs waren ebenfalls
+erfolgreich. Die Prüfung scrollt das Ziel nun bewusst sichtbar, verarbeitet
+das ausstehende Layout, prüft die angenommenen Drag-Ereignisse und wartet
+begrenzt auf das tatsächliche Qt-Aufklappsignal. Timer und Drag-Zustand
+werden auch bei einem Fehler aufgeräumt. Der Produktcode bleibt unverändert.
+Nach dieser Anpassung bestehen die 18 zusammen ausgeführten End-to-End- und
+Baumansichtstests erneut (39,31 s). Die gezielten Control-, Community- und
+Repository-Metadatenprüfungen bestehen ebenfalls: 98 Tests in 3,09 s.
+
+Der abschließende vollständige Lauf
+`python3 tools/control.py asset-manager check` ist nach dieser
+Teststabilisierung erfolgreich (Exitcode 0), einschließlich echter
+Qt-Offscreen-Prüfungen und synthetischer Bildjobs:
+
+- **671 Studio-Tests bestanden**, 483,93 s; keine übersprungenen Tests.
+- **171 PyGameTools-Tests bestanden**, 45,40 s.
+
+Die sieben Schritte dieser Fortsetzung sind damit abgeschlossen. Die
+Einstiegspunkte in README und Planübersicht verweisen auf diesen aktuellen
+Stand statt auf die stillgelegte Ausbauplanung. Geänderte Markdown-Verweise,
+beide Testdateien und der abschließende Diff sind separat geprüft.
+
+Der unabhängig davon erneut ausgeführte Standardlauf
+`python3 tools/control.py check` meldet **284 bestanden, 37 übersprungen,
+3 Fehler**. Die verbleibenden Bestandsbefunde sind:
+
+- `test_display_uses_reviewed_16_9_reference_contract`: In `game/project.godot`
+  fehlt der erwartete ausdrückliche Eintrag `window/size/resizable=true`.
+- Zwei Dokumentationsprüfungen: `docs/game/decisions/index.md` und
+  `docs/game/decisions/ADR-0008-achtteiliger-spielablauf.md` fehlen;
+  13 bestehende Verweise betreffen diese Dateien.
+- Der globale Stilcheck meldet 1903 Bestandsbefunde. Beide in dieser
+  Abschlussprüfung ergänzten beziehungsweise angepassten Testdateien haben
+  keine Stilbefunde. Die historische Planprüfung ist erfolgreich:
+  48 Aufgaben, 36 Anforderungen, 955 Links, 81 unveränderte geschützte Hashes.
+- Godot 4 ist in dieser Umgebung nicht installiert; Ressourcenimport und
+  Engine-Integration konnten daher nicht ausgeführt werden.
+
+Die früher zusätzlich gemeldeten fehlenden Greenhero-Unterordner wurden im
+aktuellen Standardlauf nicht mehr beanstandet. Die Studio-Abschlussprüfung
+umfasst synthetische Daten und Qt-Offscreen-Bedienung. Persönliche Desktop-
+Abnahme, produktive Bildfreigaben und Godot-Bereitstellung bleiben separate
+Schritte; die bekannten Spiel-/Dokumentationsbefunde sind kein Teil dieses Umbaus.
+
+### Abschluss und Wiederherstellung
+
+Die Bedienung, Migrationen, Kompatibilität und Produktgrenzen stehen unter
+[Skriptpakete und Asset-Ablage](../asset-studio/SKRIPTPAKETE.md). Es bleiben
+ein Python-Modul sowie ein Bildein-/ausgang je importiertem Paket, bewusste
+Codefreigabe, verwaltete Katalogablage und gesonderter Import externer Dateien.
+Mehrfachausgaben, frei andockbare Erweiterungsfenster, automatisches Übernehmen
+externer Ordneränderungen und Bereinigung alter Ausgaben sind keine
+Abschlusskriterien dieser Fortsetzung.
+
+Im aktuellen Clone existieren die beiden oben genannten lokalen
+`backup/studio-before-*`-Branches und das Objekt `1be69ab` nicht. Sie dürfen
+deshalb nicht als hier verfügbarer Wiederherstellungspunkt angegeben werden.
+Verfügbar sind der ausgelieferte Umbau `04330f1`, sein Merge `4c075c8` sowie
+der Vorgänger `fefe137`. Der Vorgänger bildet den Stand vor PR #77 ab, nicht
+die fehlenden lokalen Zwischensicherungen. Zum Vergleichen einen getrennten
+Checkout des gewünschten vorhandenen Commits verwenden. Benutzerprojekte
+liegen außerhalb dieses Git-Codestands und benötigen ihre eigenen Sicherungen;
+Katalogmigrationen erzeugen weiterhin die dokumentierten SQLite-Sicherungen.

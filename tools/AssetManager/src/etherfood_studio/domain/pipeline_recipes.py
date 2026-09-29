@@ -62,9 +62,16 @@ def validate_parameters(values: dict, definitions: dict) -> None:
 def validate_recipe(data: dict, manifests=None) -> list[dict]:
     """Validate structure; missing tools/references remain visibly blocked drafts."""
     manifests = BUILTINS if manifests is None else manifests
-    fields = set(template("empty"))
-    require(isinstance(data, dict) and set(data) == fields and data["contract"] == CONTRACT,
-            "Unbekanntes oder unvollständiges Pipeline-Schema.")
+    from .tool_contract import WORKFLOW_CONTRACT, compatible, is_workflow, validate_ports
+
+    modern = is_workflow(data)
+    fields = set(template("empty")) | ({"outputs"} if modern else set())
+    require(
+        isinstance(data, dict)
+        and set(data) == fields
+        and data["contract"] in {CONTRACT, WORKFLOW_CONTRACT},
+        "Unbekanntes oder unvollständiges Pipeline-Schema.",
+    )
     require(type(data["enabled"]) is bool and isinstance(data["category"], str) and
             0 < len(data["category"]) <= 128, "Ungültige Pipeline-Kategorie/Aktivierung.")
     for name in ("profiles", "capabilities", "overridable", "legacy_unresolved"):
@@ -87,12 +94,18 @@ def validate_recipe(data: dict, manifests=None) -> list[dict]:
             isinstance(edges, list) and len(edges) <= 256, "Ungültige Rezeptgröße.")
     by_id = {}
     for node in nodes:
-        require(isinstance(node, dict) and set(node) == {"id", "operation", "enabled",
-                "parameters"} and isinstance(node["id"], str) and
-                re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", node["id"]) is not None and
-                node["id"] not in by_id and type(node["enabled"]) is bool and
-                isinstance(node["operation"], str) and len(node["operation"]) <= 128 and
-                isinstance(node["parameters"], dict), "Ungültiger/doppelter Pipeline-Schritt.")
+        require(
+            isinstance(node, dict)
+            and set(node) == {"id", "operation", "enabled", "parameters"}
+            and isinstance(node["id"], str)
+            and re.fullmatch(r"[a-zA-Z0-9_-]{1,160}", node["id"]) is not None
+            and node["id"] not in by_id
+            and type(node["enabled"]) is bool
+            and isinstance(node["operation"], str)
+            and len(node["operation"]) <= 256
+            and isinstance(node["parameters"], dict),
+            "Ungültiger/doppelter Pipeline-Schritt.",
+        )
         by_id[node["id"]] = node
         if node["operation"] in manifests:
             validate_parameters(node["parameters"], manifests[node["operation"]]["parameters"])
@@ -102,17 +115,39 @@ def validate_recipe(data: dict, manifests=None) -> list[dict]:
                 all(isinstance(v, str) for v in edge.values()), "Ungültige Verbindung.")
         left, right = by_id.get(edge["from"]), by_id.get(edge["to"])
         identity = tuple(edge[k] for k in ("from", "out", "to", "in"))
-        require(left is not None and right is not None and identity not in seen and
-                (edge["to"], edge["in"]) not in incoming, "Fehlende/mehrfache Eingangsverbindung.")
+        spec = manifests.get(right["operation"], {}) if right else {}
+        multiple = spec.get("ports", {}).get("inputs", {}).get(edge["in"], {}).get("multiple")
+        require(
+            left is not None
+            and right is not None
+            and identity not in seen
+            and ((edge["to"], edge["in"]) not in incoming or modern and multiple),
+            "Fehlende/mehrfache Eingangsverbindung.",
+        )
         seen.add(identity)
         incoming[(edge["to"], edge["in"])] = edge["from"]
         children[edge["from"]].append(edge["to"])
         lm, rm = manifests.get(left["operation"]), manifests.get(right["operation"])
         if lm and rm:
-            require(edge["out"] in lm["outputs"] and edge["in"] in rm["inputs"] and
-                    lm["outputs"][edge["out"]] == rm["inputs"][edge["in"]],
-                    "Verbindung hat unpassende Ein-/Ausgabetypen.")
-    pending = {key: sum(v == key for v, _ in incoming) for key in by_id}
+            if modern:
+                many = (
+                    lm.get("ports", {})
+                    .get("outputs", {})
+                    .get(edge["out"], {})
+                    .get("multiple", False)
+                )
+                require(not many or multiple, "Eine Dateiliste benötigt einen Mehrfacheingang.")
+            require(
+                edge["out"] in lm["outputs"]
+                and edge["in"] in rm["inputs"]
+                and (
+                    compatible(lm["outputs"][edge["out"]], rm["inputs"][edge["in"]])
+                    if modern
+                    else lm["outputs"][edge["out"]] == rm["inputs"][edge["in"]]
+                ),
+                "Verbindung hat unpassende Ein-/Ausgabetypen.",
+            )
+    pending = {key: sum(e["to"] == key for e in edges) for key in by_id}
     ready = [key for key, count in pending.items() if not count]
     ordered = []
     while ready:
@@ -123,11 +158,58 @@ def validate_recipe(data: dict, manifests=None) -> list[dict]:
             if not pending[child]:
                 ready.append(child)
     require(len(ordered) == len(nodes), "Zyklus im technischen Pipeline-Canvas.")
-    allowed = {n["id"] + "." + p for n in nodes for p in n["parameters"]
-               if (n["operation"] not in manifests and n["operation"].startswith("python:")) or
-               manifests.get(n["operation"], {}).get("parameters", {}).get(p, {}).get(
-                   "type") in {"number", "integer", "boolean", "choice", "resource"}}
+    allowed = {
+        n["id"] + "." + p
+        for n in nodes
+        for p in n["parameters"]
+        if (n["operation"] not in manifests and n["operation"].startswith("python:"))
+        or manifests.get(n["operation"], {}).get("parameters", {}).get(p, {}).get("type")
+        in {"number", "integer", "boolean", "choice", "resource", "string"}
+    }
     require(set(data["overridable"]) <= allowed, "Nicht freigebbarer lokaler Parameter.")
+    if modern:
+        require(not data["profiles"], "Abläufe v2 verwenden Bausteine statt Projektprofilen.")
+        require(
+            isinstance(data["outputs"], dict) and len(data["outputs"]) <= 128,
+            "Ungültige Ablaufausgänge.",
+        )
+        exposed = set()
+        for name, port in data["outputs"].items():
+            require(
+                isinstance(name, str)
+                and re.fullmatch(r"[a-z][a-z0-9_-]{0,63}", name)
+                and isinstance(port, dict)
+                and {"node", "port", "type"}
+                <= set(port)
+                <= {"node", "port", "type", "directory", "publish", "multiple", "label"}
+                and port["node"] in by_id,
+                "Ungültiger oder fehlender Ablaufausgang.",
+            )
+            validate_ports(
+                {name: {key: value for key, value in port.items() if key not in {"node", "port"}}},
+                outputs=True,
+            )
+            require(
+                isinstance(port["port"], str) and (port["node"], port["port"]) not in exposed,
+                "Jeden Bausteinausgang nur einmal veröffentlichen.",
+            )
+            exposed.add((port["node"], port["port"]))
+            manifest = manifests.get(by_id[port["node"]]["operation"])
+            if manifest:
+                require(
+                    manifest["outputs"].get(port["port"]) == port["type"],
+                    "Ablaufausgang passt nicht zum Bausteinausgang.",
+                )
+                multiple = (
+                    manifest.get("ports", {})
+                    .get("outputs", {})
+                    .get(port["port"], {})
+                    .get("multiple", False)
+                )
+                require(
+                    port.get("multiple", False) == multiple,
+                    "Ablaufausgang muss die Dateiliste des Bausteins übernehmen.",
+                )
     return ordered
 
 
@@ -142,7 +224,12 @@ def blockers(data: dict, manifests: dict) -> list[str]:
             reasons.append("Werkzeug fehlt: " + node["operation"])
             continue
         connected = {e["in"] for e in data["connections"] if e["to"] == node["id"]}
-        if set(manifest["inputs"]) - connected:
+        required = {
+            key
+            for key in manifest["inputs"]
+            if manifest.get("ports", {}).get("inputs", {}).get(key, {}).get("required", True)
+        }
+        if required - connected:
             reasons.append("Eingang fehlt: " + manifest["name"])
         if not node["enabled"]:
             if manifest["inputs"] != manifest["outputs"]:

@@ -15,7 +15,7 @@ def test_discovery_does_not_import_processing_or_optional_ui():
         'import sys\n'
         'from etherfood_studio.domain.pipeline_recipes import BUILTINS\n'
         'assert set(BUILTINS) == {"source", "graphics", "frames", "prepare8", '
-        '"prepare16", "color", "source_color"}\n'
+        '"prepare16", "color", "source_color", "gif"}\n'
         'assert not any(n.endswith((".process", ".services")) and '
         'n.startswith("etherfood_studio.packages.") for n in sys.modules)\n'
         'assert "PySide6" not in sys.modules\n')

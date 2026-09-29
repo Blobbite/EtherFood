@@ -125,7 +125,7 @@ def test_german_status_reason_and_shared_ownership_are_truthful(project):
     usage = project.usage_description(ids["hero"])
     assert "Projektweite Inhalte" in usage and "2 Ort(en)" in usage
     assert "Kapitel 1" in usage and "Kapitel 2" in usage and "keine Kopien" in usage
-    assert "Quellenimport" in usage and "Varianten-Erzeugung folgt später" in usage
+    assert "Quellen im Asset-Menü" in usage and "Ausgabevarianten im Ablaufeditor" in usage
     doc = DocumentService(project).create(ids["one"], "Dokumentiert", "Notiert")
     assert doc.owner_id == ids["one"]
     assert "Sichtabnahme" in service.summary(ids["one"])

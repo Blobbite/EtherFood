@@ -13,6 +13,7 @@ from etherfood_studio.domain.assets import require  # noqa: E402
 from etherfood_studio.pipelines.image_adapter import ImageAdapter, load_input  # noqa: E402
 from etherfood_studio.pipelines.image_processing import transform  # noqa: E402
 from etherfood_studio.pipelines.python_contract import result_metadata  # noqa: E402
+from etherfood_studio.packages import process_artifacts  # noqa: E402
 from etherfood_studio.storage.blob_store import file_hash  # noqa: E402
 from etherfood_studio.storage.sqlite_repository import canonical  # noqa: E402
 
@@ -62,6 +63,8 @@ def run(workspace):
     image.save(output / "image.png", "PNG")
     meta.update(contract="studio-image-result-v1", image_sha256=file_hash(output / "image.png"))
     (output / "metadata.json").write_text(canonical(meta) + "\n", encoding="utf-8")
+    process_artifacts("write", parameters["operation"], image, meta,
+                      parameters["settings"], output)
     print("PNG und Frame-Metadaten erzeugt", flush=True)
 
 

@@ -50,10 +50,13 @@ class Navigation:
     def add_pipeline_actions(self, menu: QMenu) -> None:
         menu.addSection("Pipelines des Projekts")
         for title, name, call in (
-            ("Neue Pipeline …", "context_pipeline_new", lambda: self.window.create_pipeline()),
-            ("Pipeline aus Vorlage …", "context_pipeline_template",
-             lambda: self.window.create_pipeline(choose_template=True)),
-            ("Pipeline importieren …", "context_pipeline_import", self.window.import_pipeline),
+            ("Ablaufeditor öffnen …", "context_workflow_open", self.window.show_pipeline_menu),
+            ("Neuer Ablauf …", "context_pipeline_new", lambda: self.window.create_pipeline()),
+            (
+                "Werkzeugpaket / Ablauf importieren …",
+                "context_pipeline_import",
+                self.window.import_pipeline,
+            ),
         ):
             item = menu.addAction(kind_icon("pipeline"), title)
             item.setObjectName(name)

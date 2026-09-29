@@ -300,8 +300,9 @@ class AssignmentDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(label(
             "Priorität: einzelnes Asset vor Typ-/Fähigkeitsregel vor Projektstandard. "
-            "Gleichrangige Treffer sind Konflikte, keine Verkettung. Neue passende Assets "
-            "erben Regeln, werden aber nicht automatisch gebaut."
+            "Mehrere gleichrangige Regeln derselben Pipeline sind Konflikte. "
+            "Mehrere Pipelines laufen separat nach Auswahl. Neue passende Assets "
+            "erben Regeln und Ausgabeordner; Bilder werden ausdrücklich erzeugt."
         ))
         self.table = QTableWidget(0, 5)
         self.table.setObjectName("pipeline_assignments")
@@ -369,7 +370,7 @@ class AssignmentDialog(QDialog):
             if asset.kind != "asset" or "asset_definition" not in asset.data:
                 continue
             try:
-                binding = self.service.resolve(asset.id)
+                binding = self.service.resolve(asset.id, self.recipe_id)
                 if binding and binding["recipe"].id == self.recipe_id:
                     effective.append(asset.title)
             except StudioError as error:
@@ -386,7 +387,8 @@ class AssignmentDialog(QDialog):
             elif data["type_id"] or data["capabilities"]:
                 target = self.service.asset_types().get(data["type_id"], "Passende Fähigkeiten")
                 origin = "Typ-/Fähigkeitsregel"
-            duplicates = [r for r in self.service.assignments() if
+            duplicates = [r for r in self.service.assignments()
+                          if r.data["recipe_id"] == self.recipe_id and
                           all(r.data[key] == data[key] for key in
                               ("asset_id", "type_id", "capabilities"))]
             state = "Konflikt: gleichrangige Regel" if len(duplicates) > 1 else "Gespeichert"
@@ -479,12 +481,12 @@ class PipelineRunWorker(QThread):
                     asset = self.project.catalog.get(self.asset_id)
                     row = {"asset_id": asset.id, "title": asset.title}
                     try:
-                        binding = PipelineService(self.project).resolve(asset.id)
+                        binding = PipelineService(self.project).resolve(asset.id, self.recipe_id)
                         if self.recipe_id and (not binding or
                                                binding["recipe"].id != self.recipe_id):
                             row.update(state="excluded", reason="Andere/keine wirksame Pipeline")
                         else:
-                            plan = service.plan(asset.id)
+                            plan = service.plan(asset.id, self.recipe_id)
                             requested = any(v.required for v in plan.variants)
                             row.update(state="affected" if requested else "excluded",
                                        reason="Geprüfter Ausführungsplan" if requested else
@@ -552,6 +554,9 @@ class ResultPreviewWorker(QThread):
             data = record.data
             cache = BuildCache(self.project.catalog)
             cache.verify(record, tuple(o["path"] for o in data["outputs"]), data["dependencies"])
+            if any(item["path"] == "artifacts.zip" for item in data["outputs"]):
+                self.generic_preview(record)
+                return
             artifact = RecipeResultService(self.project).metadata(record)
             image_path = safe_target(cache.root, artifact["image_path"])
             metadata = artifact["metadata"]
@@ -578,6 +583,57 @@ class ResultPreviewWorker(QThread):
                               "path": str(image_path)})
         except Exception as error:
             self.failed.emit(str(error))
+
+    def generic_preview(self, record):
+        from io import BytesIO
+        from ..application.tool_results import ToolResultService
+
+        service = ToolResultService(self.project)
+        result, files = service.read(record)
+        items = [item for values in result["ports"].values() for item in values]
+        artifact = next(
+            (item for item in items if item["type"] in {"image", "spritesheet", "gif"}), None
+        )
+        metadata, frames = {}, []
+        if artifact:
+            metadata = artifact["metadata"]
+            with Image.open(BytesIO(files[artifact["path"]])) as image:
+                if artifact["type"] == "gif":
+                    from PIL import ImageSequence
+
+                    sources = [frame.convert("RGBA") for frame in ImageSequence.Iterator(image)]
+                    metadata = {**metadata, "kind": "spritesheet", "fps": metadata.get("fps", 8)}
+                else:
+                    from ..pipelines.image_processing import split_frames
+
+                    sources = split_frames(image.convert("RGBA"), metadata.get("grid", [1, 1]))
+                for frame in sources:
+                    if self.cancelled.is_set():
+                        return
+                    frame.thumbnail((384, 384), Image.Resampling.NEAREST)
+                    raw = frame.tobytes()
+                    frames.append(
+                        QImage(
+                            raw, frame.width, frame.height, frame.width * 4, QImage.Format_RGBA8888
+                        ).copy()
+                    )
+        published = service.artifacts(record)
+        text = json.dumps(result, ensure_ascii=False, indent=2)
+        text += "\n\nVeröffentlichte Dateien:\n" + "\n".join(
+            item["file_path"] for item in published
+        )
+        for item in items:
+            if item["type"] == "json":
+                text += "\n\n" + files[item["path"]][:65536].decode("utf-8")
+        self.result.emit(
+            {
+                "build_id": record.id,
+                "metadata": metadata,
+                "frames": frames,
+                "path": artifact["path"] if artifact else "Dateiergebnisse",
+                "details": text,
+            }
+        )
 
 
 class PipelineRunDialog(QDialog):
@@ -892,10 +948,20 @@ class PipelineRunDialog(QDialog):
         self.preview_frames, self.preview_metadata = value["frames"], value["metadata"]
         self.frame_index = 0
         metadata = value["metadata"]
-        self.details.setPlainText("Geprüftes Bild: " + value["path"] + "\n" +
-                                  json.dumps(metadata, ensure_ascii=False, indent=2))
-        self.image.setPixmap(QPixmap.fromImage(self.preview_frames[0]))
-        animated = metadata["kind"] == "spritesheet"
+        self.details.setPlainText(
+            value.get(
+                "details",
+                "Geprüftes Bild: "
+                + value["path"]
+                + "\n"
+                + json.dumps(metadata, ensure_ascii=False, indent=2),
+            )
+        )
+        if self.preview_frames:
+            self.image.setPixmap(QPixmap.fromImage(self.preview_frames[0]))
+        else:
+            self.image.setText("Dateiergebnisse geprüft. Pfade und Inhalt stehen links.")
+        animated = metadata.get("kind") == "spritesheet"
         self.preview_fps.setVisible(animated)
         self.play_button.setVisible(animated)
         self.preview_fps.setEnabled(animated)

@@ -344,10 +344,10 @@ def frame_durations(count: int, fps: int) -> list[int]:
     The cumulative timeline differs from the ideal by at most 5 ms. For very
     short loops an exactly matching average FPS is not always representable.
     """
-    if fps not in FPS_CHOICES or count < 1:
+    if type(fps) not in {int, float} or not math.isfinite(fps) or not 1 <= fps <= 100 or count < 1:
         raise ConversionError("Ungueltige Framezahl oder FPS.")
-    endpoints = [(100 * i + fps // 2) // fps for i in range(count + 1)]
-    return [(endpoints[i + 1] - endpoints[i]) * 10 for i in range(count)]
+    endpoints = [math.floor(100 * i / fps + 0.5) for i in range(count + 1)]
+    return [int(endpoints[i + 1] - endpoints[i]) * 10 for i in range(count)]
 
 
 def shared_palette(frames: Sequence[Image.Image]) -> tuple[Image.Image, list[int]]:
@@ -377,7 +377,8 @@ def shared_palette(frames: Sequence[Image.Image]) -> tuple[Image.Image, list[int
     return palette, colors
 
 
-def save_gif(frames: Sequence[Image.Image], output: Path, fps: int) -> GifResult:
+def save_gif(frames: Sequence[Image.Image], output: Path, fps: float, *,
+             loop: bool = True) -> GifResult:
     """Atomic write: an old result survives any conversion/validation error."""
     if not frames:
         raise ConversionError("Keine Frames vorhanden.")
@@ -410,7 +411,7 @@ def save_gif(frames: Sequence[Image.Image], output: Path, fps: int) -> GifResult
             temporary = Path(handle.name)
         indexed[0].save(temporary, format="GIF", save_all=True,
                         append_images=indexed[1:], duration=durations,
-                        loop=0, disposal=2, optimize=False,
+                        **({"loop": 0} if loop else {}), disposal=2, optimize=False,
                         transparency=255, background=255,
                         comment=json.dumps({"pyimagegif": 1, "source_frames": len(frames),
                                             "fps": fps}, separators=(",", ":")).encode("ascii"))
@@ -418,7 +419,7 @@ def save_gif(frames: Sequence[Image.Image], output: Path, fps: int) -> GifResult
         with Image.open(temporary) as check:
             stored_frames = getattr(check, "n_frames", 1)
             stored_duration = 0
-            if check.size != (width, height) or check.info.get("loop") != 0:
+            if check.size != (width, height) or check.info.get("loop") != (0 if loop else None):
                 raise ConversionError("GIF-Pruefung fehlgeschlagen: Bildgroesse oder Schleife.")
             for i in range(stored_frames):
                 check.seek(i)

@@ -15,7 +15,9 @@ class ProfileService:
     def ensure(self) -> None:
         with self.project.catalog.transaction():
             record = self.project.project()
-            if "graphics_profiles" not in record.data:
+            if "graphics_profiles" not in record.data and not record.data.get(
+                "workflow_editor_version"
+            ):
                 self.project.catalog.save(record, data={**record.data,
                                                          "graphics_profiles": default_profiles()})
 

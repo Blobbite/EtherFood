@@ -95,7 +95,7 @@ class AssetWizard(QDialog):
                 f"Typ: {definition.type_label}\nPosen: {poses}\n"
                 f"Richtungen: {', '.join(definition.directions) or 'Keine'}\n"
                 f"{len(expected_sources(definition))} benötigte Quellen\n"
-                f"{len(definition.expected())} geplante Varianten\n\n"
+                "Ausgabevarianten werden im Ablaufeditor festgelegt.\n\n"
                 "Es werden nur Metadaten angelegt, keine Variantenordner oder Animationen. "
                 "Vorlagen übertragen keine Quellbilder, Nachweise oder Freigaben. "
                 "Quellen können danach im Asset-Menü ergänzt werden."

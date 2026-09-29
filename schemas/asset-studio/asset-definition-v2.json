@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Asset-Quellanforderungen v2; Verarbeitungsziele stehen im Ablauf",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "directions",
+    "graphics",
+    "frames",
+    "poses"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "capabilities"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "animated",
+              "directional",
+              "supports_materials",
+              "static_image",
+              "package_member"
+            ]
+          }
+        }
+      }
+    },
+    "directions": {
+      "$ref": "#/$defs/directions"
+    },
+    "graphics": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "frames": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "poses": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/pose"
+      }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+    },
+    "directions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "N",
+          "NO",
+          "O",
+          "SO",
+          "S",
+          "SW",
+          "W",
+          "NW"
+        ]
+      }
+    },
+    "pose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "display_name",
+        "export_name",
+        "loop",
+        "source_kind",
+        "directions",
+        "fps",
+        "anchor"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "export_name": {
+          "$ref": "#/$defs/slug"
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "source_kind": {
+          "enum": [
+            "single_image",
+            "spritesheet"
+          ]
+        },
+        "directions": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/directions"
+                },
+                {
+                  "minItems": 1
+                }
+              ]
+            }
+          ]
+        },
+        "fps": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "exclusiveMinimum": 0,
+          "maximum": 240
+        },
+        "anchor": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "single_image"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "loop": {
+                "const": false
+              },
+              "fps": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "fps": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$id": "https://etherfood.local/schemas/asset-studio/asset-definition-v2.json"
+}

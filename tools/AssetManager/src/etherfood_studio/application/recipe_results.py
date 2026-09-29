@@ -70,6 +70,16 @@ class RecipeResultService:
             for variant in plan["variants"]:
                 if variant["required"]:
                     record = verified[variant["node"]]
+                    if "publications" in snapshot:
+                        from .tool_results import ToolResultService
+
+                        artifacts.extend(
+                            {"variant": variant["key"], **item}
+                            for item in ToolResultService(self.project).artifacts(
+                                record, port=snapshot["publications"][variant["key"]]["port"]
+                            )
+                        )
+                        continue
                     artifacts.append({"variant": variant["key"], "build_id": record.id,
                                       **self.metadata(record)})
             result.update(artifacts=artifacts, state="ready",
@@ -77,7 +87,7 @@ class RecipeResultService:
         except (StudioError, OSError, ValueError, KeyError, TypeError) as error:
             return {**result, "state": "invalid", "reason": str(error), "artifacts": []}
         try:
-            current = RecipeBuildService(self.project).plan(asset_id)
+            current = RecipeBuildService(self.project).plan(asset_id, snapshot["recipe_id"])
             old_targets = {(v["key"], v["node"]) for v in plan["variants"] if v["required"]}
             new_targets = {(v.key, v.node) for v in current.variants if v.required}
             identical = old_targets == new_targets and all(
@@ -94,7 +104,8 @@ class RecipeResultService:
     def metadata(self, record, *, published=True):
         require(record.kind == "build" and record.data.get("contract") == "studio-build-v1"
                 and not record.data.get("diagnostic", True), "Kein geprüftes Bildbuild.")
-        self.cache.verify(record, ("image.png", "metadata.json"), record.data["dependencies"])
+        self.cache.verify(record, tuple(item["path"] for item in record.data["outputs"]),
+                          record.data["dependencies"])
         relative = f".asset-studio/jobs/{record.data['job_id']}/output"
         image_path = safe_target(self.root, relative + "/image.png")
         meta_path = safe_target(self.root, relative + "/metadata.json")
@@ -119,4 +130,27 @@ class RecipeResultService:
             require(image.format == "PNG" and image.mode == "RGBA" and
                     getattr(image, "n_frames", 1) == 1, "Kein statisches RGBA-PNG-Ergebnis.")
             validate_metadata(meta, image.size)
-        return {"image_path": str(image_path.relative_to(self.root)), "metadata": meta}
+        result = {"image_path": str(image_path.relative_to(self.root)), "metadata": meta}
+        if any(item["path"] == "preview.gif" for item in record.data["outputs"]):
+            preview = self.preview(record)
+            if published:
+                path = self.project.files.path(record.owner_id) / preview["directory"] / \
+                    image_path.with_suffix(".gif").name
+                if row:
+                    require(file_hash(path) == preview["sha256"],
+                            "Veröffentlichte GIF-Vorschau fehlt oder wurde verändert.")
+                    preview["path"] = str(path.relative_to(self.root))
+            result["preview"] = preview
+        return result
+
+    def preview(self, record):
+        self.cache.verify(record, tuple(item["path"] for item in record.data["outputs"]),
+                          record.data["dependencies"])
+        directory = safe_target(self.root, f".asset-studio/jobs/{record.data['job_id']}/output")
+        require((directory / "preview.json").stat().st_size <= 65536, "Zu große GIF-Metadaten.")
+        preview = json.loads((directory / "preview.json").read_text(encoding="utf-8"))
+        from ..packages.previews.process import validate_directory
+        validate_directory(preview["directory"])
+        require(preview["sha256"] == file_hash(directory / "preview.gif"),
+                "GIF-Vorschau stimmt nicht mit ihren Metadaten überein.")
+        return {**preview, "path": str((directory / "preview.gif").relative_to(self.root))}

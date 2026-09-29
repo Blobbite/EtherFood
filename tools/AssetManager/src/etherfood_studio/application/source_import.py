@@ -210,6 +210,17 @@ class SourceImportService:
                  "missing" if key in required else "not_required",
                  "revision": active.get(key)} for key in keys]
 
+    def delivery_matrix(self, identifier: str) -> list[dict]:
+        """Full preparation requirements, independent of one recipe's processing inputs."""
+        definition = self.assets.definition(identifier)
+        active = self.active(identifier)
+        keys = dict.fromkeys(expected_sources(definition))
+        for key in tuple(keys):
+            keys[SourceKey(key.pose_id, key.direction, "single_image")] = None
+        return [{"key": key, "required": True,
+                 "state": self.availability(active[key]) if key in active else "missing",
+                 "revision": active.get(key)} for key in keys]
+
     def fingerprint(self, identifier: str) -> str | None:
         rows = self.matrix(identifier)
         if any(r["required"] and r["state"] != "imported" for r in rows):

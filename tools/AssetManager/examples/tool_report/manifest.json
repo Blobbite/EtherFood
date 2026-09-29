@@ -1,0 +1,37 @@
+{
+  "contract": "studio-tool-package-v1",
+  "id": "file-report",
+  "name": "Dateibericht",
+  "version": "1.0.0",
+  "description": "Erzeugt einen JSON-Bericht zur verbundenen Quelldatei.",
+  "python": "3.11",
+  "dependencies": [],
+  "files": [
+    "report.py",
+    "helper.py"
+  ],
+  "flows": [],
+  "steps": [
+    {
+      "id": "report",
+      "name": "Dateibericht erzeugen",
+      "description": "Eine kleine Aufgabe mit einem separat gelieferten Hilfsmodul.",
+      "source": "report.py",
+      "entry_point": "run",
+      "execution": "map",
+      "capabilities": [],
+      "parameters": {},
+      "inputs": {
+        "image": {
+          "type": "image"
+        }
+      },
+      "outputs": {
+        "report": {
+          "type": "json",
+          "directory": "Ergebnisse/Berichte"
+        }
+      }
+    }
+  ]
+}

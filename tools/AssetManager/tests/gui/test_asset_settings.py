@@ -22,7 +22,7 @@ def test_save_rename_and_static_template(qt_app, tmp_path):
         identifier = project.demo()["hero"]
         dialog = AssetSettingsDialog(service, identifier)
         dialog.show()
-        assert "200" in dialog.summary.text()
+        assert "8 benötigte Originalquellen" in dialog.summary.text()
         QTest.mouseClick(dialog.findChild(QPushButton, "asset_save"), Qt.MouseButton.LeftButton)
         pose_id = service.definition(identifier).poses[0].id
         dialog = AssetSettingsDialog(service, identifier)
@@ -36,8 +36,8 @@ def test_save_rename_and_static_template(qt_app, tmp_path):
         dialog.preset.setCurrentIndex(dialog.preset.findData("texture"))
         QTest.mouseClick(dialog.findChild(QPushButton, "asset_load_preset"),
                          Qt.MouseButton.LeftButton)
-        assert dialog.poses.rowCount() == 0 and dialog.frames.text() == ""
-        assert "5 erwartete" in dialog.summary.text()
+        assert dialog.poses.rowCount() == 0 and not hasattr(dialog, "frames")
+        assert "1 benötigte Originalquellen" in dialog.summary.text()
         QTest.mouseClick(dialog.findChild(QPushButton, "asset_save"), Qt.MouseButton.LeftButton)
         assert service.definition(identifier).workflow == "static"
     finally:

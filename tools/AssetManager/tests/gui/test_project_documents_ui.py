@@ -9,12 +9,13 @@ pytest.importorskip("PySide6.QtWidgets")
 
 from PySide6.QtCore import QSettings, QUrl
 from PySide6.QtGui import QImage, QTextDocument
-from PySide6.QtWidgets import QDoubleSpinBox, QMessageBox, QPushButton
+from PySide6.QtWidgets import QDoubleSpinBox, QInputDialog, QMessageBox, QPushButton
 
 from etherfood_studio.application.asset_service import AssetService
 from etherfood_studio.application.document_service import DocumentService
 from etherfood_studio.application.pipeline_service import PipelineService
 from etherfood_studio.application.plugin_service import PluginService
+from etherfood_studio.application.tool_packages import ToolPackageService
 from etherfood_studio.domain.assets import default_definition
 from etherfood_studio.domain.pipeline_recipes import template
 from etherfood_studio.ui.asset_workspace import AssetWorkspace
@@ -61,7 +62,8 @@ def test_start_page_and_canvas_change_link_to_editable_section(window, qt_app, m
     assert project.catalog.db.execute("SELECT count(*) FROM jobs").fetchone()[0] == 0
 
 
-def test_color_tools_are_supplied_only_by_active_assigned_package(window, qt_app, monkeypatch):
+def test_color_resources_open_from_workflow_and_leave_asset_controls_removed(
+        window, qt_app, monkeypatch):
     project = window.project
     owner = next(r for r in project.cards() if r.kind == "global")
     record = AssetService(project).create(
@@ -73,13 +75,25 @@ def test_color_tools_are_supplied_only_by_active_assigned_package(window, qt_app
         assert workspace.findChild(QPushButton, "asset_pipeline_action_references") is None
         pipelines.assign(recipe.id, asset_id=record.id)
         workspace.refresh()
-        action = workspace.findChild(QPushButton, "asset_pipeline_action_references")
+        assert workspace.findChild(QPushButton, "asset_pipeline_action_references") is None
+        editor = PipelineEditor(project, recipe.id)
+        action = editor.findChild(QPushButton, "workflow_asset_resources")
         assert action is not None
         calls = []
-        monkeypatch.setattr("etherfood_studio.packages.colors.services.references",
-            lambda context, parameters, parent: calls.append(context["asset_id"]) or parameters)
+        monkeypatch.setattr(QInputDialog, "getItem", lambda parent, title, label, items, *a:
+                            (items[0], True))
+        class References:
+            def __init__(self, project, asset_id, parent):
+                self.identifier = asset_id
+
+            def exec(self):
+                calls.append(self.identifier)
+        monkeypatch.setattr("etherfood_studio.ui.reference_materials.ReferenceMaterialsDialog",
+                            References)
         action.click()
         assert calls == [record.id]
+        editor.deleteLater()
+        recipe = pipelines.recipe(recipe.id)
         data = deepcopy(recipe.data["recipe"])
         data["steps"][1]["enabled"] = False
         pipelines.save(recipe.id, data, recipe.revision_no)
@@ -120,14 +134,20 @@ def test_imported_asset_service_and_conditional_parameters_need_explicit_trust(
         assert workspace.package_actions.count() == 0
         plugins.approve(manifest["id"], package["code_hash"])
         workspace.refresh()
-        workspace.findChild(QPushButton, "asset_pipeline_action_note").click()
-        assert any(r.title == "Vom Paket" for r in DocumentService(project).documents(record.id))
+        assert workspace.findChild(QPushButton, "asset_pipeline_action_note") is None
+        documents = DocumentService(project).documents(record.id)
+        assert not any(r.title == "Vom Paket" for r in documents)
         node = editor.state["recipe"]["steps"][1]
+        tools = ToolPackageService(project)
+        digest = node["operation"].split(":")[1]
+        assert not tools.details(digest)["approved"]
+        tools.approve(digest)
+        assert tools.details(digest)["approved"]
         editor.select_step(node["id"])
         assert editor.findChild(QDoubleSpinBox, "pipeline_parameter_factor") is not None
         editor.parameter_changed(node["id"], "size_mode", "max_edge")
         assert editor.findChild(QDoubleSpinBox, "pipeline_parameter_factor") is None
-        plugins.revoke(manifest["id"])
+        tools.revoke(digest)
         workspace.refresh()
         assert workspace.package_actions.count() == 0
     finally:

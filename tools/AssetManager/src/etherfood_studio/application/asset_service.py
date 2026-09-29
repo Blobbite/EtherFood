@@ -24,6 +24,8 @@ class AssetService:
         return AssetDefinition.from_data(data, profiles=ProfileService(self.project).profiles())
 
     def creation_data(self, data: dict) -> dict:
+        if self.project.project().data.get("workflow_editor_version"):
+            data = {**data, "schema_version": 2, "graphics": [], "frames": []}
         definition = self.parse_definition(data)
         return {"asset_definition": definition.to_data(), "workflow": definition.workflow}
 

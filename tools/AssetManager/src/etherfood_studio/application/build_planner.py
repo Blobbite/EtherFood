@@ -83,8 +83,9 @@ class BuildPlanner:
                                          cached.data["result_digest"] if cached else None)
         return BuildPlan(new_id(), owner_id, tuple(rows.values()), graph.variants, snapshot)
 
-    def execute(self, plan: BuildPlan, *, cancelled=lambda: False, on_event=lambda event: None
-                ) -> dict:
+    def execute(
+        self, plan: BuildPlan, *, cancelled=lambda: False, on_event=lambda event: None, publish=True
+    ) -> dict:
         # Revalidate the frozen graph. A changed tool or cache requires a new dry-run.
         BuildGraph(tuple(r.node for r in plan.nodes), plan.variants).ordered()
         if any(row.state == "blocked" for row in plan.nodes if row.node.required):
@@ -136,7 +137,9 @@ class BuildPlanner:
             actual.append(item)
             on_event({"kind": "node_finished", **item})
         success = all(r["actual"] in {"built", "reused", "not_required"} for r in actual)
-        diagnostic = all(row.node.adapter != "studio-image" for row in plan.nodes)
+        diagnostic = not publish or all(
+            row.node.adapter not in {"studio-image", "studio-tool"} for row in plan.nodes
+        )
         report = {"contract": "studio-build-run-v1", "plan": plan.to_data(), "actual": actual,
                   "status": "succeeded" if success else "incomplete",
                   "diagnostic": diagnostic, "published": success and not diagnostic}
@@ -153,7 +156,7 @@ class BuildPlanner:
         return {**report, "run_id": record.id}
 
     def bindings(self, node, results):
-        if node.adapter != "studio-image":
+        if node.adapter not in {"studio-image", "studio-tool"}:
             return ()
         from ..storage.blob_store import BlobStore
 
@@ -168,8 +171,14 @@ class BuildPlanner:
         for dependency in node.dependencies:
             data = results[dependency.node]
             item = next(v for v in data["outputs"] if v["path"] == dependency.output)
-            bindings.append(InputFile(data["build_id"],
-                f".asset-studio/jobs/{data['job_id']}/output/{dependency.output}",
-                "upstream.png" if dependency.kind == "image" else "upstream.json",
-                item["sha256"], item["length"]))
+            bindings.append(
+                InputFile(
+                    data["build_id"],
+                    f".asset-studio/jobs/{data['job_id']}/output/{dependency.output}",
+                    dependency.name
+                    or ("upstream.png" if dependency.kind == "image" else "upstream.json"),
+                    item["sha256"],
+                    item["length"],
+                )
+            )
         return tuple(bindings)

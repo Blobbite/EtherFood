@@ -1,0 +1,88 @@
+{
+  "title": "Vollständiger Ablauf- oder Werkzeugpaketexport",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "packages",
+        "resources",
+        "contract",
+        "recipe"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "packages": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "resources": {
+          "type": "object",
+          "maxProperties": 128,
+          "additionalProperties": {
+            "$ref": "pipeline-recipe-v2.json#/$defs/resource"
+          }
+        },
+        "contract": {
+          "const": "studio-workflow-bundle-v1"
+        },
+        "recipe": {
+          "$ref": "pipeline-recipe-v2.json"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "packages",
+        "resources",
+        "contract",
+        "root_package"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "packages": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "resources": {
+          "type": "object",
+          "maxProperties": 128,
+          "additionalProperties": {
+            "$ref": "pipeline-recipe-v2.json#/$defs/resource"
+          }
+        },
+        "contract": {
+          "const": "studio-tool-bundle-v1"
+        },
+        "root_package": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://etherfood.local/schemas/asset-studio/workflow-bundle-v1.json"
+}

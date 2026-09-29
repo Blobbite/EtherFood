@@ -32,7 +32,7 @@ def test_template_only_configuration_fresh_ids_and_atomic_creation(tmp_path):
         assert len(children) == 1 and children[0].data.get("automation") == "section"
         assert not (tmp_path / ".asset-studio/jobs").exists()
         assert not (tmp_path / ".asset-studio/objects").exists()
-        assert not list((project.files.path(new.id) / "Quellen").iterdir())
+        assert not list((project.files.path(new.id) / "source").rglob("*.png"))
         before = project.catalog.export_snapshot()
         with pytest.raises(StudioError):
             assets.create("Ungültiger Besitzer", new.id, template.to_data())

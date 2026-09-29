@@ -18,8 +18,13 @@ class PipelineService:
 
     def manifests(self) -> dict:
         from .plugin_service import PluginService
+        from .tool_packages import ToolPackageService
 
-        return {**BUILTINS, **PluginService(self.project).manifests()}
+        return {
+            **BUILTINS,
+            **PluginService(self.project).manifests(),
+            **ToolPackageService(self.project).manifests(),
+        }
 
     def recipes(self) -> list:
         return [r for r in self.catalog.records() if r.kind == "pipeline"]
@@ -102,7 +107,33 @@ class PipelineService:
         require(all(isinstance(key, str) for key in data["overrides"]),
                 "Ungültige lokale Parameterbezeichnungen.")
 
-    def resolve(self, asset_id):
+    def bound_assets(self, recipe_id):
+        return sorted({r.data["asset_id"] for r in self.assignments()
+                       if r.data["recipe_id"] == recipe_id and r.data["asset_id"]})
+
+    def set_bound_assets(self, recipe_id, expected, selected):
+        """Replace this dashboard's explicit links, preserving other recipes and overrides."""
+        with self.catalog.transaction():
+            require(self.bound_assets(recipe_id) == sorted(expected),
+                    "Asset-Verbindungen wurden inzwischen geändert; Dashboard erneut öffnen.")
+            rows = [r for r in self.catalog.records(include_archived=True)
+                    if r.kind == "pipeline_assignment" and r.data["recipe_id"] == recipe_id
+                    and r.data["asset_id"]]
+            for asset_id in set(expected) - set(selected):
+                for row in rows:
+                    if not row.archived and row.data["asset_id"] == asset_id:
+                        self.catalog.save(row, archived=True)
+            for asset_id in set(selected) - set(expected):
+                previous = next((r for r in reversed(rows) if r.archived and
+                                 r.data["asset_id"] == asset_id), None)
+                if previous:
+                    AssetService(self.project).asset(asset_id)
+                    self.catalog.save(previous, archived=False)
+                else:
+                    self.assign(recipe_id, asset_id=asset_id)
+
+    def matching_assignments(self, asset_id):
+        """Explain all matching rules, including those superseded by a stronger rule."""
         definition = AssetService(self.project).definition(asset_id)
         matches = []
         for record in self.assignments():
@@ -121,10 +152,19 @@ class PipelineService:
             else:
                 priority, origin = 1, "Projektstandard"
             matches.append((priority, record, origin))
+        return matches
+
+    def resolve(self, asset_id, recipe_id=None):
+        definition = AssetService(self.project).definition(asset_id)
+        matches = self.matching_assignments(asset_id)
         if not matches:
             return None
         highest = max(row[0] for row in matches)
         winners = [row for row in matches if row[0] == highest]
+        if recipe_id is not None:
+            winners = [row for row in winners if row[1].data["recipe_id"] == recipe_id]
+            if not winners:
+                return None
         require(len(winners) == 1, "Konflikt: mehrere Pipeline-Zuweisungen gleicher Priorität.")
         _, assignment, origin = winners[0]
         recipe = self.recipe(assignment.data["recipe_id"])
@@ -132,6 +172,19 @@ class PipelineService:
         require(set(data["capabilities"]) <= set(definition.capabilities),
                 "Pipeline passt nicht zu den Fähigkeiten dieses Assets.")
         return {"recipe": recipe, "assignment": assignment, "origin": origin, "data": data}
+
+    def inherited_assets(self, recipe_id):
+        result = {}
+        for asset in self.project.cards():
+            if asset.kind != "asset" or "asset_definition" not in asset.data:
+                continue
+            try:
+                binding = self.resolve(asset.id, recipe_id)
+                if binding and not binding["assignment"].data["asset_id"]:
+                    result[asset.id] = binding["origin"]
+            except StudioError:
+                continue
+        return result
 
     def _overrides(self, data, overrides):
         require(isinstance(overrides, dict) and set(overrides) <= set(data["overridable"]),
@@ -155,7 +208,7 @@ class PipelineService:
         for asset in self.catalog.records():
             if asset.kind == "asset" and "asset_definition" in asset.data:
                 try:
-                    effective = self.resolve(asset.id)
+                    effective = self.resolve(asset.id, identifier)
                     count += bool(effective and effective["recipe"].id == identifier)
                 except StudioError:
                     pass

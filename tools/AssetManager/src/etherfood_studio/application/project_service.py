@@ -215,7 +215,9 @@ class ProjectService:
                          for row in used_by)
             if not used_by:
                 lines.append("Noch keine zusätzlichen Verweise.")
-            lines.append("Quellenimport über das Asset-Menü; Varianten-Erzeugung folgt später.")
+            lines.append(
+                "Quellen im Asset-Menü verwalten; Ausgabevarianten im Ablaufeditor erzeugen."
+            )
             if record.kind == "asset" and record.data.get("asset_definition"):
                 count = len(record.data.get("inventory_sources", []))
                 lines.append(f"{count} externe Bestandsverweise · keine Freigabe. "

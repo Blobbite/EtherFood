@@ -84,13 +84,14 @@ class MainWindow(QMainWindow):
         self.redo_action = self._action(toolbar, "Wiederholen", lambda: self.undo(True),
                                         "Ctrl+Shift+Z", "redo")
         self._action(toolbar, "Aufträge …", self.show_jobs, "", "show_jobs")
-        self._action(toolbar, "Pipelines ausführen …", self.show_build_plan, "", "show_build_plan")
         self._action(toolbar, "Startseite", self.show_start_page, "", "project_start_page")
         diagnostics = self.menuBar().addMenu("Technische Werkzeuge")
         self._action(diagnostics, "Cache-Diagnose …", self.show_cache_diagnostics,
                      "", "cache_diagnostics")
-        self.pipeline_action = self._action(toolbar, "Pipelines …", self.show_pipeline_menu,
-                                            "", "image_pipeline")
+        self.processing = None
+        self.pipeline_action = self._action(
+            toolbar, "Verarbeitung", self.show_pipeline_menu, "", "image_pipeline"
+        )
         self.pipeline_action.setIcon(kind_icon("pipeline"))
         self.pipeline_action.setEnabled(False)
         self.pipeline_action.setToolTip(
@@ -210,7 +211,8 @@ class MainWindow(QMainWindow):
         self.card_height.setPrefix("H: ")
         size_row.addWidget(self.card_width)
         size_row.addWidget(self.card_height)
-        size_row.addWidget(button("Ansicht", "resize_card", self.resize_card))
+        self.card_resize = button("Ansicht", "resize_card", self.resize_card)
+        size_row.addWidget(self.card_resize)
         property_layout.addLayout(size_row)
         for text, name, call in (
             ("Umbenennen", "rename_card", self.rename_dialog),
@@ -242,8 +244,15 @@ class MainWindow(QMainWindow):
         self.splitter.setSizes([250, 880, 290])
         self.splitter.setStretchFactor(1, 1)
         # Canvas geometry/relations are not task controls; give the board their space.
-        self.tabs.currentChanged.connect(lambda index: property_scroll.setVisible(
-            self.tabs.widget(index) not in {self.tasks, self.notes, self.documents}))
+        self.tabs.currentChanged.connect(
+            lambda index: property_scroll.setVisible(
+                self.tabs.widget(index)
+                not in {self.tasks, self.notes, self.documents, self.processing}
+            )
+        )
+        self.tabs.currentChanged.connect(
+            lambda index: self.tree.setVisible(self.tabs.widget(index) is not self.processing)
+        )
         outer.addWidget(self.splitter, 1)
         self.jobs = label("Keine Aufträge. Diagnose über Aufträge …; keine Asset-Freigabe.",
                           "job_status")
@@ -377,66 +386,42 @@ class MainWindow(QMainWindow):
     def show_pipeline_menu(self) -> None:
         if not self.project:
             return
-        menu = QMenu(self)
-        self.navigation.add_pipeline_actions(menu)
-        point = self.project_toolbar.actionGeometry(self.pipeline_action).bottomLeft()
-        menu.exec(self.project_toolbar.mapToGlobal(point))
-        menu.deleteLater()
+        self.tabs.setCurrentWidget(self.processing)
+        self.processing.refresh()
 
     def open_pipeline(self, identifier: str) -> None:
         if not self.project or not self.prepare_content_change():
             return
         def edit():
-            from .pipeline_editor import PipelineEditor
-            dialog = PipelineEditor(self.project, identifier, self, commands=self.commands)
-            dialog.exec()
-            self.refresh()
-            dialog.deleteLater()
+            self.tabs.setCurrentWidget(self.processing)
+            self.processing.open("recipe", identifier)
         self.perform(edit)
 
-    def create_pipeline(self, *, choose_template=False) -> None:
+    def create_pipeline(self, *, choose_template=False, template_id="empty") -> None:
         if not self.project or not self.prepare_content_change():
             return
-        from ..application.pipeline_service import PipelineService
-        from ..domain.pipeline_recipes import TEMPLATES, template
+        from ..domain.tool_contract import empty_workflow
 
-        identifier = "empty"
-        if choose_template:
-            title, accepted = QInputDialog.getItem(self, "Pipeline-Vorlage", "Ausgangspunkt",
-                                                   list(TEMPLATES.values()), 0, False)
-            if not accepted:
-                return
-            identifier = next(key for key, value in TEMPLATES.items() if value == title)
-        title, accepted = QInputDialog.getText(self, "Neue projektweite Pipeline", "Name",
-                                               text=TEMPLATES[identifier])
+        title, accepted = QInputDialog.getText(self, "Neuer Ablauf", "Name")
         if not accepted:
             return
         def create():
-            service = PipelineService(self.project)
-            key = self.commands.create_card("pipeline", title, service.project_id,
-                {"project_id": service.project_id, "recipe": template(identifier)})
+            owner = self.project.project().id
+            identifier = self.commands.create_card(
+                "pipeline", title, owner, {"project_id": owner, "recipe": empty_workflow()}
+            )
             self.refresh()
-            self.select_card(key)
-            self.open_pipeline(key)
+            self.select_card(identifier)
+            self.processing.refresh()
+            self.open_pipeline(identifier)
         self.perform(create)
 
     def import_pipeline(self) -> None:
         if not self.project or not self.prepare_content_change():
             return
-        def load():
-            from .pipeline_exchange_dialogs import import_pipeline
-            record = import_pipeline(self.project, self)
-            if record:
-                def archived(value):
-                    current = self.project.catalog.get(record.id)
-                    if current.archived != value:
-                        self.project.archive(record.id, value, current.revision_no)
-                self.commands.execute(Command("Pipeline-Kopie importieren",
-                    lambda: archived(False), lambda: archived(True)))
-                self.refresh()
-                self.select_card(record.id)
-                self.open_pipeline(record.id)
-        self.perform(load)
+        self.tabs.setCurrentWidget(self.processing)
+        self.processing.import_package()
+        self.refresh()
 
     def perform(self, call: Callable) -> bool:
         try:
@@ -466,8 +451,16 @@ class MainWindow(QMainWindow):
         if self.project:
             self.project.catalog.close()
         self.project = project
-        self.pipeline_action.setEnabled(True)
         self.commands = Commands(project)
+        if self.processing:
+            self.tabs.removeTab(self.tabs.indexOf(self.processing))
+            self.processing.deleteLater()
+        from .processing import ProcessingWorkspace
+
+        self.processing = ProcessingWorkspace(project, self, commands=self.commands)
+        self.processing.changed.connect(self.refresh)
+        self.tabs.addTab(self.processing, "Verarbeitung")
+        self.pipeline_action.setEnabled(True)
         self.selected_id = None
         self.selected_content_id = None
         self.documents.bind(DocumentService(project))
@@ -672,6 +665,15 @@ class MainWindow(QMainWindow):
         record = self.project.catalog.get(self.selected_id)
         layout = self.canvas.default_positions(self.project).get(record.id, {})
         layout |= self.project.catalog.layout(record.id)
+        fixed = record.kind in {"project", "pipeline", "note"}
+        if fixed and record.id in self.canvas.items_by_id:
+            rect = self.canvas.items_by_id[record.id].rect()
+            layout |= {"w": int(rect.width()), "h": int(rect.height())}
+        self.card_width.setMinimum(1 if fixed else 200)
+        self.card_height.setMinimum(1 if fixed else 100)
+        for widget in (self.card_width, self.card_height, self.card_resize):
+            widget.setEnabled(not fixed)
+            widget.setToolTip("Feste Größe für Projekt und Symbole" if fixed else "")
         self.card_width.setValue(layout.get("w", 250))
         self.card_height.setValue(layout.get("h", 100))
         states = StatusService(self.project).status(record.id)
@@ -700,6 +702,8 @@ class MainWindow(QMainWindow):
 
     def resize_card(self) -> None:
         if self.project and self.selected_id:
+            if self.project.catalog.get(self.selected_id).kind in {"project", "pipeline", "note"}:
+                return
             layout = self.project.catalog.layout(self.selected_id)
             self.commands.layout(self.selected_id, layout | {
                 "w": self.card_width.value(), "h": self.card_height.value(),
@@ -708,6 +712,8 @@ class MainWindow(QMainWindow):
 
     def resize_canvas_card(self, identifier: str, width: float, height: float) -> None:
         if self.project:
+            if self.project.catalog.get(identifier).kind in {"project", "pipeline", "note"}:
+                return
             layout = self.project.catalog.layout(identifier)
             self.commands.layout(identifier, layout | {"w": width, "h": height})
             self.refresh()
@@ -858,6 +864,8 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def prepare_content_change(self) -> bool:
+        if self.processing and not self.processing.leave():
+            return False
         if not self.documents.confirm_discard() or not self.notes.confirm_discard():
             return False
         if self.documents.dirty:
@@ -990,6 +998,11 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def jobs_idle(self) -> bool:
+        if self.processing and self.processing.busy:
+            self.statusBar().showMessage(
+                "Zuerst den laufenden Skripttest abschließen oder abbrechen."
+            )
+            return False
         if self.build_dialog and (self.build_dialog.worker or
                                   getattr(self.build_dialog, "preview_worker", None)):
             self.statusBar().showMessage("Zuerst den laufenden Buildplan abschließen/abbrechen.")

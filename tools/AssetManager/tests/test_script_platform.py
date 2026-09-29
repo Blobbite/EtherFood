@@ -95,7 +95,7 @@ def test_import_scale_two_chapters_files_reload_and_cache(studio, tmp_path):
         assert artifact["metadata"]["display_scale"] == [2.0, 2.0]
         assert "fps" not in artifact["metadata"]
         assert file_hash(original) == digest
-        copies = list((studio.files.path(record.id) / "Quellen").glob("*.png"))
+        copies = list((studio.files.path(record.id) / "source").glob("*.png"))
         assert len(copies) == 1 and file_hash(copies[0]) == digest
         assert copies[0].stat().st_ino != original.stat().st_ino
         repeated, _ = run(studio, record)

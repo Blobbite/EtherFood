@@ -63,23 +63,14 @@ class AssetDefinitionEditor(QWidget):
                 lambda checked=False, n=count: self.directions.setText(
                     ",".join(DIRECTION_TEMPLATES[n]))))
         form.addRow("Richtungen (Reihenfolge)", direction_row)
-        profile_row = QGridLayout()
-        self.graphics = {}
-        for index, name in enumerate(profiles if profiles is not None else GRAPHICS):
-            check = QCheckBox(profiles[name]["name"] if profiles else name)
-            if profiles and not profiles[name]["enabled"]:
-                check.setToolTip("Projektweit deaktiviert: nicht als Pflichtausgabe angefordert.")
-            self.graphics[name] = check
-            profile_row.addWidget(check, index // 4, index % 4)
-        form.addRow("Grafikprofile", profile_row)
-        self.frames = QLineEdit()
-        form.addRow("Frames (z. B. 8,10,12,14,16)", self.frames)
         layout.addLayout(form)
-        layout.addWidget(label(
-            "Posen: Quellart spritesheet oder single_image; Loop ja/nein; leere Richtungen "
-            "erben die Asset-Auswahl. Einzelbilder: keine FPS, Loop nein. "
-            "Statische Assets: Posen, Frames und ggf. Richtungen leer lassen."
-        ))
+        layout.addWidget(
+            label(
+                "Posen: Quellart spritesheet oder single_image; Loop ja/nein; leere Richtungen "
+                "erben die Asset-Auswahl. Einzelbilder: keine FPS, Loop nein. "
+                "Verarbeitung und Ausgabevarianten werden im Ablaufeditor festgelegt."
+            )
+        )
         self.poses = QTableWidget(0, 9 if source_actions else 8)
         self.poses.setObjectName("asset_poses")
         self.poses.setHorizontalHeaderLabels([
@@ -105,9 +96,6 @@ class AssetDefinitionEditor(QWidget):
         for key, check in self.capabilities.items():
             check.setChecked(key in definition.capabilities)
         self.directions.setText(",".join(definition.directions))
-        for key, check in self.graphics.items():
-            check.setChecked(key in definition.graphics)
-        self.frames.setText(",".join(map(str, definition.frames)))
         self.poses.setRowCount(0)
         for pose in definition.poses:
             self.add_pose(pose)
@@ -135,6 +123,9 @@ class AssetDefinitionEditor(QWidget):
                               "Geänderte Anforderungen vorher bewusst speichern.")
             self.poses.setCellWidget(row, 8, action)
             self.update_source_button(row)
+
+    def update_profiles(self, profiles):
+        self.profile_definitions = profiles
 
     def set_source_counts(self, rows: list[dict]) -> None:
         self.source_counts = {}
@@ -178,12 +169,18 @@ class AssetDefinitionEditor(QWidget):
                               "loop": v[3] == "ja", "directions": self.split(v[4]) or None,
                               "fps": float(v[5]) if v[5] else None,
                               "anchor": [float(v[6]), float(v[7])]})
-            data = {"schema_version": 1, "type": {"id": self.type_id.text().strip(),
-                    "label": self.type_label.text().strip(), "capabilities": [
-                        k for k, c in self.capabilities.items() if c.isChecked()]},
-                    "directions": self.split(self.directions.text()), "graphics": [
-                        k for k, c in self.graphics.items() if c.isChecked()],
-                    "frames": [int(v) for v in self.split(self.frames.text())], "poses": poses}
+            data = {
+                "schema_version": 2,
+                "type": {
+                    "id": self.type_id.text().strip(),
+                    "label": self.type_label.text().strip(),
+                    "capabilities": [k for k, c in self.capabilities.items() if c.isChecked()],
+                },
+                "directions": self.split(self.directions.text()),
+                "graphics": [],
+                "frames": [],
+                "poses": poses,
+            }
         except ValueError as error:
             raise StudioError("validation", "Ungültige Zahl oder Loop-Angabe.") from error
         return AssetDefinition.from_data(data, profiles=self.profile_definitions)
@@ -191,14 +188,21 @@ class AssetDefinitionEditor(QWidget):
     def preview(self) -> None:
         try:
             definition = self.value()
-            self.summary.setText(f"{len(definition.expected())} erwartete Varianten · "
-                                 "Vorhandensein ist kein Prüfergebnis und keine Freigabe.")
+            from ..domain.sources import expected_sources
+
+            self.summary.setText(
+                f"{len(expected_sources(definition))} benötigte Originalquellen · "
+                "Vorhandensein ist kein Prüfergebnis und keine Freigabe."
+            )
         except StudioError as error:
             self.summary.setText(str(error))
 
 class AssetSettingsDialog(QDialog):
     def __init__(self, service: AssetService, identifier: str, parent=None) -> None:
         super().__init__(parent)
+        from ..application.workflow_migration import WorkflowMigration
+
+        WorkflowMigration(service.project).ensure()
         self.service, self.identifier = service, identifier
         self.record = service.asset(identifier)
         self.changed = False
@@ -208,11 +212,18 @@ class AssetSettingsDialog(QDialog):
         existing = self.record.data.get("asset_definition")
         self.editor = AssetDefinitionEditor(
             service.parse_definition(existing) if existing else default_definition(),
-            self, source_actions=True, profiles=ProfileService(service.project).profiles(),
+            self, profiles=ProfileService(service.project).profiles(),
         )
         # Keep the established dialog inspection API while sharing one form with the wizard.
-        for name in ("poses", "preset", "summary", "frames", "directions", "graphics",
-                     "capabilities", "type_id", "type_label"):
+        for name in (
+            "poses",
+            "preset",
+            "summary",
+            "directions",
+            "capabilities",
+            "type_id",
+            "type_label",
+        ):
             setattr(self, name, getattr(self.editor, name))
         self.editor.source_requested.connect(self.import_pose)
         if existing:

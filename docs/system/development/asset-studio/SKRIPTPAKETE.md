@@ -1,45 +1,169 @@
-# Skriptpakete im Canvas und Ergebnisse beim Asset
+# Werkzeugpakete, Python-Schnittstelle und Asset-Ablage
 
-Studio stellt Canvas, Projektstruktur, Dokumentation, Registrierung, generische
-Eigenschaften und geprüfte Bildjobs bereit. Grafik-, Frame- und Farbverarbeitung
-werden von mitgelieferten Python-Paketen angeboten. Eigene Pakete werden bewusst
-importiert und freigegeben. Fachliche Dialoge sind optionale Paketdienste;
-beispielsweise erscheinen Referenzen und Masken bei einer zugewiesenen aktiven
-Farbpipeline. Eine Skalierung benötigt dieses Werkzeug nicht.
+Die [Bedienung des Ablaufeditors](PIPELINES.md) beschreibt Bibliothek, Canvas,
+Posen und Migration. Dieses Dokument erklärt eigene Bausteine und den Austausch.
 
-## Skalierungspaket verwenden
+## Pipeline-Dashboard und GIF-Vorschauen
 
-1. Studio über `python tools/control.py asset-manager run` öffnen und ein Projekt
-   auswählen. Im Canvas **Pipeline importieren …** wählen.
-2. `tools/AssetManager/examples/pipeline_scale/manifest.json` auswählen. Die
-   danebenliegende `scale.py` gehört zu diesem Paket. Die Vorschau zeigt
-   Verarbeitung, Parameter, optionale Aktionen und den Codehash. Mit
-   **Als Pipeline importieren** eine Projektkopie anlegen.
-3. Die Pipeline-Karte öffnen. Unter **Python-Erweiterungen …** die registrierte
-   Version ansehen und bewusst freigeben. Der Import allein startet und
-   autorisiert keinen Python-Code.
-4. Im Pipeline-Canvas den Skalierungsschritt auswählen. Rechts **Größenmodus**
-   auf `factor` und **Faktor** beispielsweise auf `0.5` stellen. Alternativ
-   `max_edge` und eine maximale Frame-Kante wählen. Die Beschreibung jedes
-   Feldes erklärt, in welchem Modus es verwendet wird.
-5. Optional **Größenvorgabe wählen …** öffnen. Diese Oberfläche wird von
-   `scale.py` bereitgestellt; der Host kennt ihre Größenoptionen nicht.
-   Übernommene Werte erscheinen in denselben Eigenschaften und können
-   rückgängig gemacht werden. Danach speichern.
-6. Unter **Zuweisungen …** Assets, eine Typregel oder den Projektstandard
-   zuordnen. Benötigte Quellen vorher am Asset importieren.
-7. **Dry-run / Ausführen …** öffnen, betroffene Assets prüfen und starten.
-   Die bestehende Hintergrundausführung liefert echte PNGs. Das Ergebnis
-   enthält tatsächliche Maße, Raster und Darstellungsmetadaten.
-8. Die Asset-Karte rechtsklicken und **Ordner öffnen** wählen. Quellen und
-   Ergebnisse stehen im Ordner dieses Assets.
+Das frühere Pipeline-Dashboard heißt **Ablaufeditor** und liegt unter
+**Verarbeitung**. PyImgGif ist ein einzeln verwendbarer Baustein mit einem
+GIF-Ausgang und konfigurierbarem Zielordner. Auch mehrere GIF-Ausgänge und
+anschließende Vergleichsschritte lassen sich im selben Canvas verbinden.
 
-Bei 512×256 Pixeln ergibt Faktor 0,5 genau 256×128 Pixel. Bei Spritesheets
-gilt dies je Frame-Zelle. Das vorhandene Comic-Verfahren wird wiederverwendet;
-Raster, Reihenfolge, Alpha, Timing und logische Weltgröße bleiben erhalten.
-Die Maximal-Kante vergrößert kleine Bilder nicht. Positive Pixelmaße werden
-deterministisch half-up gerundet. Das Paket ist kein Ersatz für das besondere
-Pixel-Art-Verfahren bestehender Grafikrezepte.
+## Pipeline-Board im Asset-Menü
+
+Das Board am Asset zeigt wirksame Abläufe, Zuweisungen und deren deklarierte
+Ausgabeordner. Bearbeitung und Verarbeitung öffnen den zentralen Ablaufeditor.
+Grafikprofile, Zielframes, Farbparameter und separate Buildknöpfe werden dort
+nicht mehr parallel angeboten. Posen zeigen weiterhin Quellen, Richtungen,
+Quell-Timing, Maskenlieferstand und geprüfte Ergebnisse.
+
+## Eigenen Baustein erstellen oder importieren
+
+1. Unter **Verarbeitung → Neuer Python-Baustein** einen Namen eingeben. Das
+   Studio legt eine Kopiervorlage mit `run(context, inputs, parameters)` an.
+   Alternativ **Importieren** für `.py`, `manifest.json` oder ein Paket-ZIP wählen.
+2. Im Python-Editor die konkrete Aufgabe implementieren. **Neue Datei** ergänzt
+   Hilfsmodule; **+ Skriptbaustein** ergänzt einen weiteren Einstieg;
+   **+ Teilablauf** öffnet einen Canvas zur Zusammensetzung innerhalb des Pakets.
+3. Im `manifest.json` Ein-/Ausgänge, Parameter, Bibliotheken und Standardordner
+   beschreiben. **Prüfen** meldet fehlende Dateien, Syntaxfehler, falsche
+   Funktionssignaturen, Bibliotheksbestand und fehlende externe Python-Module.
+4. **Umgebung einrichten / reparieren** installiert die deklarierten Bibliotheken
+   in eine separate Projektumgebung. **Entwurf testen** verwendet eine ausgewählte
+   importierte Asset-Quelle und schreibt ausschließlich in den Job-Arbeitsbereich.
+5. **Neue Version übernehmen** veröffentlicht den Paketentwurf unter einer neuen
+   Versionsnummer. Danach diese Version im Ablauf auswählen und freigeben.
+   Bestehende Abläufe behalten ihren zuvor gebundenen Inhaltshash.
+
+Ein beliebiges CLI-Skript wird beim Import nicht automatisch umgeschrieben.
+Fehlt die `run`-Schnittstelle, erscheint dies als Diagnose im editierbaren Paket.
+Für PyImgGrid, PyImgGif, Comic-/Pixelverfahren und Vergleiche sind passende
+Wrapper bereits im mitgelieferten Bildpaket enthalten.
+
+Das direkt importierbare, mehrteilige Beispiel liegt unter
+[`examples/tool_report/manifest.json`](../../../../tools/AssetManager/examples/tool_report/manifest.json).
+Es erzeugt einen JSON-Dateibericht mit einem Hilfsmodul und benötigt nur die
+Python-Standardbibliothek. Die vorhandenen Beispiele `pipeline_scale`,
+`pipeline_frames` und `pipeline_grayscale` dokumentieren ältere Verträge;
+beim Import ihrer v2-Manifeste erfolgt die Übernahme in den neuen Ablauf.
+
+## Schnittstelle eines Skriptbausteins
+
+```python
+import json
+from helper import describe
+
+
+def run(context, inputs, parameters):
+    source = inputs["image"]
+    output = context.artifact("report.json", "json")
+    output.path.write_text(json.dumps(describe(source.path)), encoding="utf-8")
+    return {"report": output}
+```
+
+`inputs` enthält die benannten Eingänge. Ein einzelner Eingang ist ein
+`Artifact`, ein Anschluss mit `multiple: true` eine Liste von Artefakten.
+Optionale leere Einzeleingänge sind `None`. Python-Unterpakete und relative
+Hilfsimporte wie `from .helper import convert` werden unterstützt. Ein `Artifact` besitzt `path`,
+`type` und `metadata`. Eingänge sind Arbeitskopien; Ergebnisse müssen unter
+`context.output` liegen. `context.artifact(name, type, metadata)` legt eine
+Ausgabebeschreibung an und erzeugt nötige Unterordner. Das Skript schreibt die
+Datei selbst. `context.path(name)`, `context.package`, `context.resources` und
+`context.log(text)` stehen ebenfalls zur Verfügung.
+
+Der Rückgabewert enthält jeden deklarierten Ausgang, jeweils als Artefakt oder
+Liste. Ein optionaler Ausgang (`required: false`) darf eine leere Liste liefern;
+Pflichtausgänge benötigen mindestens eine Datei. Unterstützte Typen sind `image`
+(PNG), `spritesheet` (PNG mit Rasterdaten),
+`gif`, `html`, `json` und `file`. `file` akzeptiert alle Dateitypen.
+Ein Mehrfachausgang benötigt einen Mehrfacheingang. `map` verarbeitet jede
+verbundene Quellrevision; `collect` erhält alle verbundenen Ergebnisse eines
+Assets, beispielsweise die Bilder für einen Vergleich.
+
+PNG-/Spritesheet-Bausteine sollten die mitgegebenen Herkunfts-, Geometrie- und
+Timingdaten erhalten. Das SDK bietet `images(artifact)` zum Zerlegen eines
+bekannten Rasters und `sheet(context, frames, metadata, name, grid=...)` zum
+Zusammensetzen samt konsistenten Maßen. Es errät kein Raster aus Dateinamen.
+Beliebige Dateien und Berichte benötigen keine Bildmetadaten.
+
+## Manifest und Teilabläufe
+
+Der Vertrag `studio-tool-package-v1` enthält Paket-ID, Name, Version,
+Beschreibung, Python-Haupt-/Nebenversion, festgelegte Bibliotheken, Dateiliste,
+Bausteine und Teilabläufe. Jeder Baustein benennt Python-Datei, Einstieg,
+Ausführungsart, Anschlüsse, Parameter und benötigte Asset-Fähigkeiten.
+Parameter können Zahlen, Ganzzahlen, Schalter, Text, Auswahlen oder
+Ressourcenverweise sein. Sie erzeugen die Eigenschaftenfelder im Canvas.
+
+Ausgänge deklarieren beispielsweise:
+
+```json
+{"report": {"type": "json", "directory": "Ergebnisse/Berichte", "publish": true}}
+```
+
+Ein Teilablauf verwendet `studio-pipeline-v2`, genau einen Asset-Eingang und
+benannte Ausgänge auf ausgewählte innere Knoten. `local:<baustein-id>` und
+`local-flow:<ablauf-id>` verweisen auf Einträge desselben Pakets. Externe
+Verwendungen enthalten einen Paket-Inhaltshash. Dadurch bleiben alte Abläufe
+reproduzierbar, auch wenn der Code im Editor geändert wird. Rekursive Abläufe
+und Zyklen werden abgewiesen; die Verschachtelung ist auf 16 Ebenen begrenzt.
+
+Die maschinenlesbaren Verträge stehen unter
+[Werkzeugpaket](../../../../schemas/asset-studio/tool-package-v1.json),
+[Ablauf](../../../../schemas/asset-studio/pipeline-recipe-v2.json),
+[Austauschpaket](../../../../schemas/asset-studio/workflow-bundle-v1.json) und
+[Assetdefinition](../../../../schemas/asset-studio/asset-definition-v2.json).
+Zusätzlich prüft das Domain-Modell Beziehungen, Porttypen und Ressourcen.
+
+## Python-Umgebungen und Diagnose
+
+Umgebungen liegen im geöffneten Projekt unter `.asset-studio/environments/`.
+Sie verwenden `venv` ohne Systempakete und dieselbe Python-Haupt-/Nebenversion
+wie Studio. Der Schlüssel berücksichtigt Python, Plattform und die im Manifest
+festgelegten Bibliotheken. Identische Anforderungen teilen eine Umgebung;
+abweichende Anforderungen erhalten getrennte Umgebungen. Die Studio-Installation
+und das System-Python erhalten dabei keine zusätzlichen Skriptbibliotheken.
+
+Bibliotheken müssen als `Name==Version` angegeben sein. Die Einrichtung
+installiert Wheel-Dateien über pip, protokolliert die aufgelösten Versionen und
+Downloadhashes und legt eine lokale `requirements.lock` an. Vor einem Job werden
+Interpreter und installierter Bibliotheksbestand gegen den Nachweis geprüft.
+Fehlende passende Wheels oder eine andere verlangte Python-Version werden als
+Fehler gemeldet. **Umgebung einrichten / reparieren** baut eine beschädigte
+Umgebung neu auf. Der Import selbst installiert nichts.
+
+Die Diagnose nennt fehlende Paketdateien, Syntaxfehler und fehlende Python-Module
+mit Datei und Zeile. Fehlende Imports auf Modulebene blockieren die Freigabe.
+Imports innerhalb von Funktionen oder Bedingungen werden als bedingt gemeldet;
+ob sie benötigt werden, prüft anschließend der konkrete Testlauf.
+
+Der Python-Editor zeigt Dateien, Zeilennummern, Syntaxhervorhebung und den
+Vergleich mit der veröffentlichten Paketversion. **Fehlerkontext kopieren**
+stellt Manifest, ausgewählte Datei und Diagnose für einen KI-Agenten oder
+externen Editor bereit. Vorschläge werden als Entwurf eingefügt, geprüft und
+getestet; es erfolgt keine automatische Übermittlung an einen KI-Dienst.
+
+Python läuft mit den Benutzerrechten des Studios. Die separate
+Bibliotheksumgebung ist keine Sicherheits-Sandbox. Eine Freigabe gilt nur für
+den geprüften Pakethash und wird nicht in andere Projekte übertragen.
+
+## Vollständiger Import und Export
+
+- Ein einzelnes Paket-ZIP enthält `manifest.json` und alle deklarierten Dateien.
+- Der Export aus der Bibliothek enthält zusätzlich transitiv benötigte Pakete
+  und Ressourcen in einem Werkzeugbündel mit `toolkit.json`.
+- Der Ablaufexport enthält `workflow.json`, alle benötigten Werkzeugpakete,
+  Hilfsmodule und deklarierte Ressourcen. Asset-Zuweisungen und Quellbilder
+  bleiben projektspezifisch.
+- Die Importvorschau meldet fehlende Dateien, Pakete und Ressourcen. Ein
+  unvollständiger Ablauf kann als blockierter Entwurf übernommen und repariert
+  werden. Archive mit Elternpfaden, Symlinks oder nicht deklarierten Dateien werden
+  abgewiesen. Grenzen: 16 MiB je Datei, 128 MiB je Archiv, 2048 Archivdateien.
+- Installierte Umgebungen, lokale Codefreigaben und Zugangsdaten werden nicht
+  exportiert. Auf dem Zielrechner wird die Umgebung aus den festgelegten direkten
+  Anforderungen neu eingerichtet. Der dort aufgelöste transitive Bestand kann
+  von einem früheren lokalen Nachweis abweichen und erhält einen eigenen Nachweis.
 
 ## Lesbare Projektablage
 
@@ -52,10 +176,7 @@ Projektordner/
 ├── .pipelines/
 │   └── Skalierung/
 │       ├── Skalierung.md
-│       ├── rezept.json
-│       └── Pakete/python-proportional-scale/
-│           ├── manifest.json
-│           └── scale.py
+│       └── rezept.json
 ├── Projektweite Inhalte/
 │   ├── Projektweite Inhalte.md
 │   └── Assets/
@@ -72,13 +193,17 @@ Projektordner/
 │               └── Wächter/
 │                   ├── Wächter.md
 │                   ├── Dokumente/…  # weitere Dokumente und Notizen
-│                   ├── Quellen/
+│                   ├── source/walk/          # einzelne Posenbilder, 1×1
+│                   ├── spritesheets/walk/    # gelieferte Raster
+│                   ├── masks/
+│                   │   ├── source/walk/
+│                   │   └── spritesheets/walk/
+│                   ├── previews/
+│                   │   ├── gif/              # GIFs, Metadaten und Galerie
+│                   │   └── video/            # vorbereiteter Zielordner
 │                   └── Ergebnisse/
-│                       ├── aktuell.json
-│                       └── scaled/
-│                           ├── index.md  # Dateilinks und Bildvorschauen
-│                           ├── waechter--<Buildkennung>.png
-│                           └── waechter--<Buildkennung>.json
+│                       ├── walk/ComicLow/    # deklarierte Bausteinausgabe
+│                       └── aktuell.json
 └── Akt 2/…
 ```
 
@@ -99,13 +224,25 @@ Bilder. Eine zusätzliche Verwendung eines Assets erzeugt keine weitere Ablage.
 
 Eine Pipeline hat ihren eigenen Rezeptordner. Ihre Bildausgaben gehören immer
 zum verarbeiteten Asset, auch bei Sammelausführungen über mehrere Kapitel.
-Ergebnisse werden nach ihrem tatsächlichen Profil eingeordnet. Der Zusatz im
+Die vier Posenbereiche verwenden dieselben Exportnamen: `source`, `spritesheets`,
+`masks/source` und `masks/spritesheets`. Neue Posen ergänzen alle vier Ordner;
+Umbenennen eines Exportnamens verschiebt die zugehörigen verwalteten Quellen und
+Masken. Richtungen bleiben über die zugehörigen Metadaten eindeutig zugeordnet;
+zusätzliche Richtungsordner werden nicht angelegt.
+Statische Quellen liegen direkt unter `source`; verarbeitete PNGs verwenden die
+im Ablauf deklarierten Ausgabeordner. Bereits veröffentlichte historische Builds behalten ihre
+registrierten Pfade.
+Ergebnisse werden nach den deklarierten Baustein-/Ablaufausgängen eingeordnet. Der Zusatz im
 Dateinamen unterscheidet unveränderliche Buildstände; `aktuell.json` benennt den
 letzten vollständig veröffentlichten Lauf. Ältere Dateien bleiben erhalten.
 Der geprüfte Aktualitätsstatus in Studio berücksichtigt spätere Rezeptänderungen.
 
 Die sichtbaren Quellen sind eigenständige Kopien der importierten Revisionen.
-Dateien in `Quellen`, `Ergebnisse` und `Pakete` werden nicht als veränderbare
+Verwaltete Dateien aus dem bisherigen Ordner `Quellen` werden beim Abgleich in
+den passenden Posenbereich verschoben. Fremde Dateien und leere frühere Ordner
+bleiben erhalten; es gibt keine pauschale Bereinigung.
+Dateien in `source`, `spritesheets`, `masks`, `previews`, `Ergebnisse` und `Pakete`
+werden nicht als veränderbare
 Hardlinks auf Originale angelegt. Bearbeiten einer sichtbaren Python-Datei
 aktiviert den Code nicht: Die geänderte Datei muss ausdrücklich neu registriert
 und freigegeben werden. Extern veränderte verwaltete Dateien werden beim
@@ -114,10 +251,11 @@ Ersetzen als Konflikt behandelt und nicht still überschrieben.
 `.asset-studio/jobs` und `.asset-studio/objects` bleiben interne Arbeits- und
 Cacheablagen. Zwischenstände fehlgeschlagener Läufe werden nicht zu aktuellen
 Asset-Ergebnissen. Die sichtbaren Bilddateien werden erst nach erfolgreicher
-PNG-/Metadatenprüfung und vollständigem Lauf veröffentlicht. Es gibt keine
+PNG-/GIF-/Metadatenprüfung und vollständigem Lauf veröffentlicht. Es gibt keine
 pauschale Ordnerbereinigung und keine automatische Freigabe für das Spiel.
 
-Migration 8 ergänzt lokale Pfad- und Besitzlisten, Migration 9 die Markdown-Dateizuordnung. SQLite wird vor der Migration
+Migration 8 ergänzt lokale Pfad- und Besitzlisten, Migration 9 die Markdown-Dateizuordnung,
+Migration 10 Werkzeugpakete, Entwürfe und Dateiveröffentlichungen. SQLite wird vor der Migration
 nach der bestehenden Konvention gesichert. Beim regulären Öffnen älterer Projekte
 wird die Ablage ergänzt, ohne Bilder neu zu berechnen. Dateiänderungen haben
 ein Wiederaufnahmejournal: Schlägt eine Transaktion fehl, werden ihre eigenen
@@ -161,7 +299,7 @@ Neu ins Dateisystem gelegte Dokumente werden bewusst über **Markdown importiere
 aufgenommen. Es gibt keinen Hintergrund-Dateiwächter.
 
 Jeder veröffentlichte Ergebnisordner erhält `index.md` mit einer Tabelle
-**Datei | Vorschau**, relativen PNG-Links und eingebetteten Bildern. Die Tabelle
+**Datei | Vorschau**, relativen Datei-Links und Bildvorschauen für Bilder/GIFs. Die Tabelle
 zeigt die Ergebnisse des letzten vollständig veröffentlichten Laufs; ältere
 Bildstände werden nicht gelöscht. Eigene Absätze außerhalb der Automatikmarkierung
 bleiben auch in diesen Übersichten erhalten. Die App öffnet verlinkte Bereichs-
@@ -173,98 +311,19 @@ Vertrag erhalten. Der konzeptionelle `.db`-Ordner ist keine zweite Datenbank.
 Die lesbare Navigation beginnt bei `Index.md`; Job-UUIDs sind kein Arbeitsverzeichnis
 für die Asset-Verwaltung.
 
-## Mitgelieferte Pakete und optionale Werkzeuge
+## Betriebsgrenzen und Kompatibilität
 
-Unter `src/etherfood_studio/packages/` liegen die deklarativen Manifeste und
-Python-Verarbeitung für Grafikprofile, Frame-Aufbereitung/-Auswahl und Farben.
-Die bestehende PyGameTools-Verarbeitung wird wiederverwendet. Die Pakete nutzen
-den gemeinsamen Bildadapter und Job-Runner. Rezept-IDs, Operationen, Profile und
-Timing bleiben kompatibel; ein geänderter Werkzeughash macht alte Cache-Ergebnisse
-sichtbar veraltet, berechnet aber beim Öffnen keine Bilder neu.
+Neue Bausteine benötigen keine Änderung am Anwendungskern, solange sie den
+Datei-/Paketvertrag einhalten. Das SDK ist für dateibasierte Verarbeitung
+vorgesehen; frei ausführbare GUI-Erweiterungen gehören nicht zum neuen Vertrag.
+Die ältere Verarbeitung und ihre Revisionen bleiben für Migration und
+historische Ergebnisse lesbar. Neue Abläufe verwenden den generischen Worker.
 
-Die Parameterbeschriftungen, Modusbedingungen, Ressourcenbindungen und optionalen
-Aktionen kommen aus den Manifesten. **Projektprofile …** gehört zum Grafikpaket.
-**Referenzen / Materialien / Masken …** erscheint unter **Pipeline / Werkzeuge**
-am Asset, wenn dessen wirksame aktive Pipeline den Farbschritt enthält. Die
-bestehenden Referenz- und Maskendaten bleiben erhalten. Ein Malprogramm oder
-obligatorischer Maskeneditor ist nicht Bestandteil des Umbaus.
+Ausführung und Prozessabbruch verwenden den vorhandenen Linux-Runner.
+Quellen, Ergebnisse und generierte Umgebungen sind lokale Projektdaten und
+gehören nicht ins Repository. Die sichtbare Ablage bleibt eine verwaltete
+Projektion des Katalogs; externe Ordnerumbenennungen sind keine automatischen
+Projektänderungen. Alte Dateien werden nicht pauschal gelöscht.
 
-**Pipelines ausführen …** öffnet den echten Bild-Dry-run. Die technische
-Cache-Diagnose bleibt unter **Technische Werkzeuge → Cache-Diagnose …** zugänglich.
-Sie zählt nicht als Grafikverarbeitung.
-
-Ein zweites importierbares Beispiel liegt unter
-`tools/AssetManager/examples/pipeline_frames/manifest.json`. Es wählt vorhandene
-Frames aus und trennt Zielframes, FPS und Dauer. Beide Beispiele können über
-denselben Canvas-Import, dieselbe Freigabe und dieselben Eigenschaften verwendet
-werden; es gibt dafür keine neue Spezialoberfläche.
-
-## Erweiterungsvertrag v2
-
-Das [Manifest-Schema](../../../../schemas/asset-studio/pipeline-manifest-v2.json)
-und `PluginService.validate_manifest` beschreiben den Vertrag. Ein Paket besteht
-derzeit aus einem JSON-Manifest und genau einer benachbarten Python-Datei. Der
-Import kopiert beide in das Projekt; andere Projekte teilen keine Registrierung
-oder lokale Vertrauensfreigabe.
-
-Der Verarbeitungseinstieg lautet:
-
-```python
-def apply(image, metadata, parameters):
-    # Echte Verarbeitung auf einer RGBA-Arbeitskopie.
-    return result_image, {"frame_size": [width, height], "profile": "scaled"}
-```
-
-`metadata` enthält die geprüfte Eingangsgeometrie. Der Host erlaubt begrenzte
-Änderungen an Frame-Größe, Raster, vorhandener Frameauswahl, Zuschnitt, Profil
-und Timing. Quellrevision, Quellhash, Slot, Anker und logische Größe bleiben
-gebunden. Abgeleitete Pixelanker, Maßstäbe und Dauer berechnet und prüft der
-Host. Neue Quellframes oder Animationseinstellungen für Einzelbilder werden
-abgelehnt. Das tatsächliche PNG muss zur gemeldeten Geometrie passen.
-
-Die deklarative Parameterliste erzeugt Eigenschaftenfelder einschließlich
-Beschriftung und Erklärung. `visible_if`, `disabled_if` und `choice_labels`
-steuern deklarativ Modusfelder und verständliche Auswahlnamen. Eine optionale Aktion erklärt `id`, `name` und
-`entry_point`. Ihre Funktion erhält `(parent, parameters)` und gibt geprüfte
-Parameter oder `None` zurück. Optional benennt `scope` den Kontext `step`
-(Standard), `recipe` oder `asset`. Die beiden letzteren erhalten
-`(context, parameters, parent)`; der Kontext enthält den Projektdienst und die
-Rezept-/Asset-ID. Assetdienste bearbeiten ihre Ressourcen über bestehende
-Dienste; Änderungen an Rezeptparametern erfolgen im Pipeline-Editor.
-Der Anwendungskern enthält keinen neuen
-Skalierungsdialog. Ohne Codefreigabe sowie nach Widerruf oder Entfernen der
-Registrierung bietet der Canvas die Paketaktionen nicht an. Gespeicherte
-Rezepte bleiben bei fehlendem Werkzeug als blockierte Entwürfe erhalten.
-
-Bloßes Lesen, Importieren, Anzeigen oder Freigeben eines Pakets importiert
-keinen fremden Python-Code. Bildverarbeitung läuft nach ausdrücklichem Start
-im bestehenden Worker mit Timeout, Abbruch und Ergebnisprüfung. Eine optionale
-interaktive Paketoberfläche läuft erst nach ihrem Aufruf im GUI-Prozess.
-**Beide Prozesse sind keine Sicherheits-Sandbox.** Nur vertrauenswürdigen Code
-freigeben. Paketversion, Codehash und Manifest werden in den Bildauftrag
-eingefroren. Abhängigkeiten werden geprüft, nicht automatisch installiert.
-
-## Kompatibilität und verbleibende Grenzen
-
-- v1-Erweiterungen behalten ihren Vertrag: `apply(image, parameters)` mit einem
-  gleich großen RGBA-Ergebnis. Es findet keine automatische Vertragsumdeutung statt.
-- Die mitgelieferten Grafik-, Frame- und Farboperationen sowie die vorhandenen
-  CLI-Werkzeuge bleiben benutzbar. Mitgelieferte Pakete sind Teil der geprüften
-  Anwendung; fremder Python-Code nutzt den gesonderten Import-/Freigabevertrag.
-- v2 hat derzeit einen Bildeingang und einen Bildausgang mit Metadaten. Allgemeine
-  Mehrfacheingänge, mehrere Dateien pro Schritt, zusätzliche Paketmodule und
-  ein freies Docking-System für UI-Erweiterungen sind noch nicht implementiert.
-- Der Rezept-Export enthält weiterhin keinen Python-Code und keine Freigaben.
-  Für den Transfer des Skripts Manifest und Python-Datei getrennt weitergeben
-  und im Zielprojekt ausdrücklich importieren; die Quellen bleiben dort separat.
-- Die lesbare Ablage ist eine verwaltete Darstellung des Katalogs, kein
-  bidirektionaler Dateisystem-Editor. Manuelles Umbenennen von Kartenordnern
-  außerhalb Studios wird nicht automatisch als Projektänderung übernommen.
-- Alte Ergebnisstände und interne Jobdateien werden nicht automatisch bereinigt.
-  Die zusätzliche sichtbare Kopie benötigt entsprechend Speicherplatz.
-- Aufgaben und Issues bleiben Katalogeinträge mit Kanban-Bedienung. Die Markdown-
-  Dokumentation stellt ihren aktuellen Status dar; sie ist kein zweiter Task-Editor.
-- Ausführung bleibt wie beim vorhandenen Runner auf Linux beschränkt.
-
-Prüfergebnisse und Wiederherstellungsstand stehen im
-[Umbauplan](../plans/asset-studio-skriptplattform-korrektur.md).
+Der [Arbeitsplan](../plans/asset-studio-ablaufeditor.md) dokumentiert Umfang,
+Migration und tatsächlich ausgeführte Prüfungen.

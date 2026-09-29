@@ -12,6 +12,7 @@ from ..domain.builds import (
 from ..domain.models import StudioError
 from ..domain.pipeline_recipes import blockers, validate_recipe
 from ..domain.sources import expected_sources
+from ..packages import artifacts
 from ..pipelines.image_adapter import ImageAdapter
 from ..pipelines.image_processing import finish_metadata, legacy_modules
 from ..pipelines.fingerprints import digest
@@ -41,11 +42,11 @@ class RecipeBuildService:
                 continue
             row = {"asset_id": asset.id, "title": asset.title}
             try:
-                binding = self.pipelines.resolve(asset.id)
+                binding = self.pipelines.resolve(asset.id, recipe_id)
                 if not binding or recipe_id and binding["recipe"].id != recipe_id:
                     row.update(state="excluded", reason="Keine passende wirksame Zuweisung")
                 else:
-                    plan = self.plan(asset.id)
+                    plan = self.plan(asset.id, recipe_id)
                     if any(v.required for v in plan.variants):
                         row.update(state="affected", reason="Geprüfter Ausführungsplan", plan=plan)
                     else:
@@ -56,11 +57,17 @@ class RecipeBuildService:
             rows.append(row)
         return rows
 
-    def plan(self, asset_id):
+    def plan(self, asset_id, recipe_id=None):
         self.color_bindings = {}
-        binding = self.pipelines.resolve(asset_id)
+        binding = self.pipelines.resolve(asset_id, recipe_id)
         require(binding is not None, "Dem Asset ist keine Pipeline zugewiesen.")
         record, recipe = binding["recipe"], binding["data"]
+        from ..domain.tool_contract import is_workflow
+
+        if is_workflow(recipe):
+            from .tool_builds import ToolBuildService
+
+            return ToolBuildService(self.project).plan(asset_id, binding)
         manifests = self.pipelines.manifests()
         reasons = blockers(recipe, manifests)
         require(not reasons, "; ".join(reasons))
@@ -210,7 +217,7 @@ class RecipeBuildService:
                         f"{prefix}/{step['id']}/{key}/{count}", None, False)
                                     for key in requested if key not in targets)
                 else:
-                    if operation in {"prepare8", "prepare16", "frames"}:
+                    if operation in {"prepare8", "prepare16", "frames", "gif"}:
                         require(metadata["kind"] == "spritesheet",
                                 "Einzelbilder haben keine Frame-Aufbereitung oder FPS.")
                     if operation.startswith("prepare"):
@@ -229,7 +236,7 @@ class RecipeBuildService:
                         count = None  # A script's actual frame selection is verified in the worker.
                     outgoing.append((node_key, profile_key, count))
             streams[step["id"]] = outgoing
-            if step["id"] not in nonleaves:
+            if step["id"] not in nonleaves or artifacts(operation):
                 for node, key, count in outgoing:
                     frame_key = count if count is not None else "dynamic"
                     variants.append(VariantTarget(f"{prefix}/{step['id']}/{key}/{frame_key}", node))
@@ -288,7 +295,8 @@ class RecipeBuildService:
                  "prepare16": "geometry"}.get(operation, "color")
         return BuildNode(key, stage, inputs=tuple(inputs), dependencies=dependencies,
             parameters=canonical(parameters), tools=tool_plan.tool_hashes,
-            outputs=(OutputSpec("image.png", "image"), OutputSpec("metadata.json", "timing")),
+            outputs=tuple(OutputSpec(name, "timing" if name.endswith(".json") else "image")
+                          for name in tool_plan.outputs),
             adapter=adapter.identifier, source_ids=() if upstream else (source.id,))
 
     def managed_resources(self, settings, roles, recipe, source, mode):

@@ -87,8 +87,12 @@ class FramReduceHelpAdapter(DiagnosticAdapter):
 
 
 from .image_adapter import ImageAdapter
+from .tool_adapter import ToolAdapter
 
-REGISTRY = {a.identifier: a for a in (DiagnosticAdapter(), FramReduceHelpAdapter(), ImageAdapter())}
+REGISTRY = {
+    a.identifier: a
+    for a in (DiagnosticAdapter(), FramReduceHelpAdapter(), ImageAdapter(), ToolAdapter())
+}
 
 
 def adapter_for(identifier: str):

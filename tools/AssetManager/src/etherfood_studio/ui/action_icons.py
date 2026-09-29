@@ -32,7 +32,7 @@ def action_icon(name: str) -> QIcon:
         glyph = "minus"
     elif any(word in name for word in ("run", "jobs", "build")):
         glyph = "play"
-    elif name in {"canvas", "search", "folder", "package", "computer", "globe", "file"}:
+    elif name in {"canvas", "pipeline", "search", "folder", "package", "computer", "globe", "file"}:
         glyph = name
     else:
         choices = (
@@ -87,6 +87,13 @@ def action_icon(name: str) -> QIcon:
             path.lineTo(8, 27)
             path.closeSubpath()
             painter.drawPath(path)
+        elif glyph == "pipeline":
+            painter.drawLine(9, 9, 23, 9)
+            painter.drawLine(23, 9, 23, 23)
+            painter.drawLine(23, 23, 9, 23)
+            painter.setBrush(QColor(color("base")))
+            for x, y in ((3, 3), (19, 3), (3, 19)):
+                painter.drawRoundedRect(QRectF(x, y, 10, 10), 2, 2)
         elif glyph == "canvas":
             painter.drawRoundedRect(QRectF(3, 4, 11, 9), 2, 2)
             painter.drawRoundedRect(QRectF(18, 19, 11, 9), 2, 2)

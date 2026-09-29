@@ -108,12 +108,14 @@ class CardItem(QGraphicsRectItem):
         self.resize(width, height)
 
     def apply_appearance(self) -> None:
-        fill = theme_color("global_card" if self.kind == "global" else "base")
+        special = self.kind in {"global", "project"}
+        fill = theme_color(self.kind + "_card" if special else "base")
         if hasattr(self, "content_color"):
             fill = content_color(self.content_color)
         self.setBrush(QColor(fill))
         self.setPen(QPen(QColor(theme_color(
-            "global_border" if self.kind == "global" else "border")), 1.5))
+            self.kind + "_border" if special else "border")),
+            3 if self.kind == "project" else 1.5))
         for (child, text), name in zip(self.texts, ("muted", "text", "warning_text")):
             child.setBrush(QColor(theme_color(name)))
         for port in self.ports.values():
@@ -127,7 +129,7 @@ class CardItem(QGraphicsRectItem):
             self.icon.setPixmap(status_icon(self.status, issue=self.kind == "issue").pixmap(
                 52 if self.kind == "issue" else 26, 26))
         elif hasattr(self, "icon"):
-            size = 26 if hasattr(self, "content_color") else 16
+            size = getattr(self, "icon_size", 26 if hasattr(self, "content_color") else 16)
             self.icon.setPixmap(kind_icon(self.kind).pixmap(size, size))
 
     def shape(self) -> QPainterPath:
@@ -215,6 +217,9 @@ class IconCardItem(CardItem):
         self.view.open_requested.emit(self.identifier)
         event.accept()
 
+    def resize(self, width, height):
+        super().resize(144, 62)
+
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         clicked = self.pos() == self.before
         super().mouseReleaseEvent(event)
@@ -222,3 +227,45 @@ class IconCardItem(CardItem):
                 and len(self.view.selected_ids()) == 1 \
                 and not event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             self.view.open_requested.emit(self.identifier)
+
+
+class ProjectItem(CardItem):
+    """Stable visual root, independent of historic user-resized card dimensions."""
+
+    WIDTH, HEIGHT = 520, 140
+
+    def __init__(self, identifier, title, summary, view):
+        super().__init__(identifier, title, "project", summary, view, self.WIDTH, self.HEIGHT)
+        self.grip.hide()
+        font = self.texts[1][0].font()
+        font.setPointSizeF(font.pointSizeF() + 4)
+        font.setBold(True)
+        self.texts[1][0].setFont(font)
+        self.texts[2][0].setPos(12, 92)
+        self.resize(self.WIDTH, self.HEIGHT)
+
+    def resize(self, width, height):
+        super().resize(self.WIDTH, self.HEIGHT)
+
+
+class WorkflowIconItem(CardItem):
+    """Large asset or output symbol with four usable connection points."""
+
+    WIDTH, HEIGHT = 200, 140
+
+    def __init__(self, identifier, title, kind, summary, view):
+        self.icon_size = 48
+        super().__init__(identifier, title, kind, summary, view, self.WIDTH, self.HEIGHT)
+        self.grip.hide()
+        self.icon.setPos(76, 12)
+        self.texts[0][0].hide()
+        self.texts[1][0].setPos(12, 72)
+        self.texts[2][0].setPos(12, 105)
+        self.resize(self.WIDTH, self.HEIGHT)
+
+    def resize(self, width, height):
+        super().resize(self.WIDTH, self.HEIGHT)
+
+    def mouseDoubleClickEvent(self, event):
+        self.view.open_requested.emit(self.identifier)
+        event.accept()

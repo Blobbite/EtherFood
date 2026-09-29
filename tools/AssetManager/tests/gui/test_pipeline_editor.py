@@ -108,7 +108,7 @@ def test_project_context_and_card_creation_undo(tmp_path, qt_app, monkeypatch):
     owner = project.project().id
     menu = window.navigation.menu(owner)
     names = {a.objectName() for a in menu.actions()}
-    assert {"context_pipeline_new", "context_pipeline_template", "context_pipeline_import"} <= names
+    assert {"context_pipeline_new", "context_workflow_open", "context_pipeline_import"} <= names
     menu.deleteLater()
     opened = []
     monkeypatch.setattr(window, "open_pipeline", opened.append)
@@ -175,25 +175,26 @@ def test_legacy_canvas_keeps_visual_context_without_executable_edges(editor, tmp
     dialog.reject()
 
 
-def test_imported_card_undo_archives_copy_without_touching_original(editor, monkeypatch):
+def test_imported_card_undo_archives_copy_without_touching_original(editor, monkeypatch, tmp_path):
+    from etherfood_studio.ui.processing import ProcessingWorkspace
+    from etherfood_studio.application.tool_exchange import ToolExchange
+    from PySide6.QtWidgets import QFileDialog
+
     project = editor.project
-    window = MainWindow(QSettings())
-    window.project, window.commands = project, Commands(project)
-    copied = PipelineService(project).create("Importierte Kopie", "graphics")
-    monkeypatch.setattr("etherfood_studio.ui.pipeline_exchange_dialogs.import_pipeline",
-                        lambda *_args: copied)
-    monkeypatch.setattr(window, "prepare_content_change", lambda: True)
-    monkeypatch.setattr(window, "refresh", lambda: None)
-    monkeypatch.setattr(window, "select_card", lambda _id: None)
-    monkeypatch.setattr(window, "open_pipeline", lambda _id: None)
-    window.import_pipeline()
-    window.commands.undo()
+    commands = Commands(project)
+    workspace = ProcessingWorkspace(project, commands=commands)
+    archive = tmp_path / "workflow.zip"
+    ToolExchange(project).export(editor.identifier, archive)
+    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a: (str(archive), ""))
+    monkeypatch.setattr(QMessageBox, "exec", lambda self: QMessageBox.Ok)
+    workspace.import_package()
+    copied = workspace.current.record
+    commands.undo()
     assert project.catalog.get(copied.id).archived
     assert not project.catalog.get(editor.record.id).archived
-    window.commands.redo()
+    commands.redo()
     assert not project.catalog.get(copied.id).archived
-    window.project = None
-    window.close()
+    workspace.deleteLater()
 
 
 def asset_workspace(editor, *, preset="texture"):
@@ -230,7 +231,7 @@ def register_plugin(project, tmp_path, *, large_integer=False, precise_number=Fa
     return identifier
 
 
-def test_asset_workspace_all_build_buttons_open_real_pipeline_dialog(editor, monkeypatch):
+def test_asset_workspace_processing_buttons_have_moved_to_workflow_editor(editor, monkeypatch):
     workspace = asset_workspace(editor)
     seen = []
 
@@ -246,9 +247,8 @@ def test_asset_workspace_all_build_buttons_open_real_pipeline_dialog(editor, mon
         if name == "asset_pipeline_results":
             workspace.tabs.setCurrentIndex(4)
         action = workspace.findChild(QPushButton, name)
-        assert action is not None and action.isEnabled()
-        QTest.mouseClick(action, Qt.LeftButton)
-    assert seen == [(editor.project, workspace.identifier, None, workspace)] * 3
+        assert action is None
+    assert not seen
     assert editor.project.catalog.db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 0
     workspace.reject()
     workspace.deleteLater()
@@ -274,7 +274,7 @@ def test_asset_workspace_invalid_requirements_show_error_without_raising(editor,
     monkeypatch.setattr("etherfood_studio.ui.asset_workspace.show_error",
                         lambda parent, error: errors.append(str(error)))
     monkeypatch.setattr(PipelineRunDialog, "exec", lambda self: opened.append(self) or 0)
-    workspace.editor.frames.setText("0")
+    workspace.editor.poses.item(0, 5).setText("0")
     try:
         workspace.run_pipeline()
         assert errors and not opened
@@ -310,11 +310,16 @@ def test_profile_dialog_custom_profile_reaches_recipe_and_asset_forms(editor, mo
     assert editor.save()
     assert editor.service.recipe(editor.identifier).data["recipe"]["profiles"] == ["map_thumbnail"]
     workspace = asset_workspace(editor)
-    assert "map_thumbnail" in workspace.editor.graphics
-    assert workspace.editor.graphics["map_thumbnail"].text() == "Kartenvorschau"
-    assert "nicht als Pflichtausgabe" in workspace.editor.graphics["comic_mid"].toolTip()
+    assert not hasattr(workspace.editor, "graphics")
+    migrated = PipelineService(editor.project).recipe(editor.identifier).data["recipe"]
+    assert migrated["contract"] == "studio-pipeline-v2"
+    assert any(node["parameters"].get("profile") == "map_thumbnail" for node in migrated["steps"])
     workspace.deleteLater()
-    profile = ProfileService(editor.project).profiles()["map_thumbnail"]
+    profile = next(
+        node["parameters"]
+        for node in migrated["steps"]
+        if node["parameters"].get("profile") == "map_thumbnail"
+    )
     assert profile["value"] == 0.125 and profile["mode"] == "factor"
 
 
@@ -389,8 +394,7 @@ def test_context_actions_project_only_and_archive_restore_preserve_recipe(tmp_pa
     project.catalog.save_layout(recipe.id, {"x": 71, "y": 82, "w": 270, "h": 150})
     original, layout = deepcopy(recipe.data), project.catalog.layout(recipe.id)
     window.refresh()
-    create_actions = {"context_pipeline_new", "context_pipeline_template",
-                      "context_pipeline_import"}
+    create_actions = {"context_pipeline_new", "context_workflow_open", "context_pipeline_import"}
     for record in (project.catalog.get(service.global_id), act, asset, recipe):
         menu = window.navigation.menu(record.id)
         assert not create_actions.intersection(a.objectName() for a in menu.actions())

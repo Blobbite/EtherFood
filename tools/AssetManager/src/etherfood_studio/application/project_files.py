@@ -12,6 +12,7 @@ from ..storage.blob_store import BlobStore, file_hash
 from ..storage.file_changes import FileChanges
 from ..storage.paths import RESERVED, safe_target
 from ..storage.sqlite_repository import canonical
+from .pipeline_outputs import image_directory
 
 
 def component(title):
@@ -63,6 +64,33 @@ class ProjectFiles:
                 parent /= "Assets"
             parent /= self.asset_type(card)
         return parent
+
+    @staticmethod
+    def pose_folder(card, slot):
+        pose_id = slot.get("pose_id")
+        if pose_id is None:
+            return ""
+        poses = card.data.get("asset_definition", {}).get("poses", [])
+        return next((pose["export_name"] for pose in poses if pose["id"] == pose_id),
+                    "archived-" + pose_id[:12])
+
+    def relocate(self, change, owner, name):
+        """Move an existing managed revision when its pose folder changes."""
+        if (owner, name) in self.files:
+            return
+        candidates = [(path, digest) for (key, path), digest in self.files.items()
+                      if key == owner and Path(path).name == Path(name).name]
+        if len(candidates) != 1:
+            return
+        old, digest = candidates[0]
+        source = safe_target(self.root, str(Path(self.targets[owner]) / old))
+        target = safe_target(self.root, str(Path(self.targets[owner]) / name))
+        require(source.is_file() and file_hash(source) == digest,
+                "Verwaltete Quelle wurde extern geändert; Ablage bleibt erhalten: " + old)
+        change.move(source, target)
+        self.catalog.db.execute("UPDATE managed_files SET path=? WHERE owner_id=? AND path=?",
+                                (name, owner, old))
+        self.files[(owner, name)] = self.files.pop((owner, old))
 
     def sync(self, change):
         cards = self.project.cards(include_archived=True)
@@ -145,10 +173,21 @@ class ProjectFiles:
                     self.copy(change, card.id, directory + "/" + manifest.get("source", "step.py"),
                               plugins.store.path_for(plugin["code_hash"]), plugin["code_hash"])
             if card.kind == "asset":
-                for name in ("Quellen", "Ergebnisse"):
+                for name in ("source", "spritesheets", "masks/source", "masks/spritesheets",
+                             "previews/gif", "previews/video", "Ergebnisse"):
                     change.mkdir(self.path(card.id) / name)
+                for pose in card.data.get("asset_definition", {}).get("poses", []):
+                    for name in ("source", "spritesheets", "masks/source", "masks/spritesheets"):
+                        change.mkdir(self.path(card.id) / name / pose["export_name"])
+                if not card.archived and card.data.get("asset_definition", {}).get(
+                    "schema_version"
+                ) in {1, 2}:
+                    from .asset_pipelines import AssetPipelines
+                    for name in AssetPipelines(self.project).directories(card.id):
+                        change.mkdir(self.path(card.id) / name)
         for source in self.catalog.records(include_archived=True):
-            if source.kind != "source_revision" or source.owner_id not in by_id:
+            if source.kind not in {"source_revision", "mask_revision"} or \
+                    source.owner_id not in by_id:
                 continue
             data = source.data
             if data.get("verification") != "verified" or "sha256" not in data:
@@ -156,9 +195,18 @@ class ProjectFiles:
             blob = BlobStore(self.catalog, self.root).path_for(data["sha256"])
             if not blob.is_file():
                 continue  # Unavailable sources keep their existing catalog status on open.
-            name = component(Path(data["original_name"]).stem) + "--" + source.id[:12]
-            self.copy(change, source.owner_id, "Quellen/" + name + ".png", blob, data["sha256"])
-            self.json(change, source.owner_id, "Quellen/" + name + ".json",
+            if "slot" not in data:
+                continue
+            folder = "source" if data["slot"]["kind"] == "single_image" else "spritesheets"
+            if source.kind == "mask_revision":
+                folder = "masks/" + folder
+            folder = str(Path(folder) / self.pose_folder(by_id[source.owner_id], data["slot"]))
+            name = component(Path(data.get("original_name", source.title)).stem)
+            name = folder + "/" + name + "--" + source.id[:12]
+            for suffix in (".png", ".json"):
+                self.relocate(change, source.owner_id, name + suffix)
+            self.copy(change, source.owner_id, name + ".png", blob, data["sha256"])
+            self.json(change, source.owner_id, name + ".json",
                       {"source_id": source.id, **data})
         runs = [r for r in self.catalog.records() if r.kind == "build" and
                 r.data.get("contract") == "studio-build-run-v1" and
@@ -201,6 +249,11 @@ class ProjectFiles:
 
         report = run.data
         snapshot = json.loads(report["plan"]["snapshot"])
+        if "publications" in snapshot:
+            from .tool_results import ToolResultService
+
+            ToolResultService(self.project).publish(self, change, run)
+            return
         actual = {row["node"]: row for row in report["actual"]}
         prepared = {}
         # Verify every final file before copying any of a historical run's outputs.
@@ -212,7 +265,8 @@ class ProjectFiles:
                 build = self.catalog.get(actual[variant["node"]]["build_id"])
                 existing = self.catalog.db.execute(
                     "SELECT 1 FROM asset_publications WHERE build_id=?", (build.id,)).fetchone()
-                if not existing or run.id in self.catalog.projection_builds:
+                if not existing or run.id in self.catalog.projection_builds or any(
+                        item["path"] == "preview.gif" for item in build.data["outputs"]):
                     prepared[build.id] = RecipeResultService(self.project).metadata(
                         build, published=bool(existing))
         except (StudioError, OSError, ValueError, KeyError, TypeError):
@@ -237,7 +291,10 @@ class ProjectFiles:
                 source = self.catalog.get(meta["source_revision"])
                 name = component(Path(source.data["original_name"]).stem)
                 name += "--" + build.data["input_fingerprint"][:12]
-                relative = "Ergebnisse/" + component(meta["profile"]) + "/" + name + ".png"
+                card = self.catalog.get(run.owner_id)
+                folder = image_directory(meta["kind"], self.pose_folder(card, meta["slot"]),
+                                         component(meta["profile"]))
+                relative = str(Path(folder) / (name + ".png"))
                 directory = safe_target(self.root, artifact["image_path"]).parent
                 require(self.files.get((run.owner_id, relative)) in {None, meta["image_sha256"]},
                         "Buildkennung kollidiert mit einer bestehenden Bildausgabe.")
@@ -254,6 +311,17 @@ class ProjectFiles:
             artifacts.append({"variant": variant["key"], "build_id": build.id,
                               "image_path": relative,
                               "metadata_path": str(Path(relative).with_suffix(".json"))})
+            output_names = {item["path"] for item in build.data["outputs"]}
+            if "preview.gif" in output_names:
+                from .recipe_results import RecipeResultService
+                preview = RecipeResultService(self.project).preview(build)
+                name = Path(relative).stem + ".gif"
+                preview_path = preview["directory"] + "/" + name
+                self.copy(change, run.owner_id, preview_path,
+                          safe_target(self.root, preview["path"]), preview["sha256"])
+                self.json(change, run.owner_id, str(Path(preview_path).with_suffix(".json")),
+                          {k: v for k, v in preview.items() if k != "path"})
+                artifacts[-1]["preview_path"] = preview_path
         self.json(change, run.owner_id, "Ergebnisse/aktuell.json", {
             "contract": "studio-asset-results-v1", "asset_id": run.owner_id,
             "run_id": run.id, "recipe_id": snapshot.get("recipe_id"),

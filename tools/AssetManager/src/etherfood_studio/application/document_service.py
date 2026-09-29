@@ -164,9 +164,9 @@ class DocumentService:
                     return {"kind": "document", "id": row["id"], "path": candidate}
             for row in self.catalog.db.execute("SELECT * FROM managed_files"):
                 if candidate == self.project.files.path(row["owner_id"]) / row["path"] and \
-                        candidate.suffix in {".md", ".png"} and candidate.is_file() and \
+                        candidate.suffix in {".md", ".png", ".gif"} and candidate.is_file() and \
                         file_hash(candidate) == row["sha256"]:
-                    return {"kind": "image" if candidate.suffix == ".png" else "index",
+                    return {"kind": "image" if candidate.suffix in {".png", ".gif"} else "index",
                             "path": candidate}
         except (StudioError, OSError, ValueError):
             pass

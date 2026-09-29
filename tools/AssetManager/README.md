@@ -1,10 +1,10 @@
 # EtherFood Asset Studio
 
 Lokales Verwaltungswerkzeug neben dem bestehenden `PyGameTools/`.
-Die ersten vier Arbeitspakete umfassen Katalog, sichere Dateiablage,
-Projektkarten, Dokumente/Aufgaben und einen PySide6-Desktop.
-Projektlokale Canvas-Bildpipelines sind inzwischen angebunden;
-Godot-Bereitstellung und persönliche Pipeline-Abnahme bleiben getrennt offen.
+Der PySide6-Desktop enthält Katalog, Projektkarten, Dokumente/Aufgaben und
+**Verarbeitung → Ablaufeditor**. Kleine Python-Bausteine und verschachtelte
+Werkzeugpakete bilden dort Bild-/Dateiverarbeitungsketten. Python-Editor,
+Import/Export, Diagnose und getrennte Bibliotheksumgebungen sind integriert.
 
 Vom Repository-Stamm starten:
 
@@ -25,7 +25,9 @@ im Projekt festgelegten Versionen.
 Diagnose, Studio- und Pipeline-Tests. Für Tests ohne Qt: `test --core`.
 
 - [Entwicklung und Voraussetzungen](../../docs/system/development/asset-studio/DEVELOPMENT.md)
-- [Anleitung zur ersten Sichtprüfung](../../docs/system/development/asset-studio/SICHTPRUEFUNG.md)
+- [Ablaufeditor verwenden](../../docs/system/development/asset-studio/PIPELINES.md)
+- [Eigene Python-Bausteine und Werkzeugpakete](../../docs/system/development/asset-studio/SKRIPTPAKETE.md)
+- [Historische Sichtprüfung nach Paket 4](../../docs/system/development/asset-studio/SICHTPRUEFUNG.md)
 - [Architektur und aktueller Stand](../../docs/system/development/asset-studio/index.md)
 
 `works/EtherFood_Codex_Aufgabenplan/` bleibt das ursprüngliche, hashgeprüfte

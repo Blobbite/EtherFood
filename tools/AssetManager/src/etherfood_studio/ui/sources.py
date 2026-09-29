@@ -2,7 +2,8 @@
 
 from PySide6.QtCore import Signal, QSize, Qt
 from PySide6.QtWidgets import (
-    QHBoxLayout, QHeaderView, QMessageBox, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
+    QHBoxLayout, QHeaderView, QMessageBox, QTableWidget, QTableWidgetItem,
+    QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
 from ..application.source_import import SourceImportService
@@ -36,6 +37,17 @@ class SourcesPanel(QWidget):
         layout = QVBoxLayout(self)
         self.summary = label("", "source_delivery_summary")
         layout.addWidget(self.summary)
+        self.overview = QTableWidget(0, 7)
+        self.overview.setObjectName("pose_delivery_overview")
+        self.overview.setHorizontalHeaderLabels([
+            "Pose", "Source · 1×1", "Spritesheets", "Masken · Source",
+            "Masken · Spritesheets", "GIF", "Video",
+        ])
+        self.overview.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.overview.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.overview.verticalHeader().hide()
+        self.overview.setMaximumHeight(260)
+        layout.addWidget(self.overview)
         self.matrix = QTreeWidget()
         self.matrix.setObjectName("source_delivery_matrix")
         self.matrix.setHeaderLabels([
@@ -78,7 +90,8 @@ class SourcesPanel(QWidget):
         required = [r for r in rows if r["required"]]
         available = sum(r["state"] == "imported" for r in required)
         self.summary.setText(f"{available}/{len(required)} benötigte Quellen importiert. "
-            "Import erzeugt keine Varianten oder Freigabe. Neue Lieferungen ersetzen bewusst.")
+            "Oben: vollständiger Lieferstand je Pose. Unten: Dateien und Revisionen.")
+        self.refresh_overview()
         groups = dict.fromkeys([*(p.id for p in definition.poses),
                                *(r["key"].pose_id for r in rows),
                                *(r.data["slot"]["pose_id"] for r in revisions)])
@@ -138,6 +151,60 @@ class SourcesPanel(QWidget):
     def _action(self, item, title, name, call) -> None:
         item.setSizeHint(0, QSize(0, 30))
         self.matrix.setItemWidget(item, 7, button(title, name, call))
+
+    def refresh_overview(self):
+        from ..application.asset_deliveries import AssetDeliveries
+
+        poses = AssetDeliveries(self.assets.project).poses(self.identifier)
+        # Qt deletes replaced index widgets later; keep automation names unique meanwhile.
+        for row in range(self.overview.rowCount()):
+            for column in range(self.overview.columnCount()):
+                previous = self.overview.cellWidget(row, column)
+                if previous:
+                    previous.setObjectName("")
+        self.overview.setRowCount(len(poses))
+        self.overview.setFixedHeight(min(260, 32 + len(poses) * 34))
+        for index, pose in enumerate(poses):
+            self.overview.setItem(index, 0, QTableWidgetItem(pose["name"]))
+            for kind, column in (("single_image", 1), ("spritesheet", 2)):
+                rows = [r for r in pose["rows"] if r["key"].kind == kind]
+                present = sum(r["state"] == "imported" for r in rows)
+                caption = f"{present}/{len(rows)} · hinzufügen" if rows else "Nicht benötigt"
+                action = button(caption, f"delivery_{kind}_{pose['id']}",
+                    lambda checked=False, keys=tuple(r["key"] for r in rows):
+                    self.request_import(keys))
+                action.setEnabled(bool(rows))
+                self.overview.setCellWidget(index, column, action)
+                needed = [r for r in rows if r["mask"] != "not_required"]
+                ready = sum(r["mask"] == "ready" for r in needed)
+                pending = sum(r["mask"] not in {"missing", "ready"} for r in needed)
+                caption = f"{ready}/{len(needed)} bereit" if needed else "Nicht benötigt"
+                if pending:
+                    caption += f" · {pending} prüfen"
+                source_id = next((r["revision"].id for r in rows if r["revision"]), None)
+                action = button(caption, f"delivery_masks_{kind}_{pose['id']}",
+                    lambda checked=False, key=source_id: self.open_masks(key))
+                action.setEnabled(bool(needed) and bool(source_id) and self.include_import)
+                action.setToolTip("Masken dieser Pose prüfen" if source_id else
+                                  "Zuerst die passende Quelle importieren")
+                self.overview.setCellWidget(index, column + 2, action)
+            required = sum(r["key"].kind == "spritesheet" for r in pose["rows"])
+            self.overview.setItem(index, 5, QTableWidgetItem(
+                f"{pose['gifs']}/{required} aktuell" if required else "Nicht benötigt"))
+            self.overview.setItem(index, 6, QTableWidgetItem("Ordner vorbereitet"))
+
+    def open_masks(self, source_id=None):
+        from .reference_materials import ReferenceMaterialsDialog
+
+        dialog = ReferenceMaterialsDialog(self.assets.project, self.identifier, self)
+        dialog.pages.setCurrentIndex(2)
+        if source_id:
+            dialog.mask_source.setCurrentIndex(dialog.mask_source.findData(source_id))
+        dialog.exec()
+        if dialog.changed:
+            self.refresh()
+            self.changed.emit()
+        dialog.deleteLater()
 
     def _deliveries(self, parent, pose_id, required, history, active) -> None:
         if not history:

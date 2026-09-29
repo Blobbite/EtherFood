@@ -12,10 +12,18 @@ STATE_NAMES = {
     "stale": "Nachweis veraltet", "not_required": "Nicht erforderlich",
 }
 STEP_NAMES = {
-    "document": "Dokumentation", "source": "Quelldaten", "mask": "Materialmaske",
-    "color": "Farben", "frames": "Frame-Ableitung", "scale": "Grafikstufen",
-    "checks": "Technische Prüfung", "review": "Sichtabnahme", "godot": "Godot-Test",
-    "runtime": "Spielintegration", "dependencies": "Abhängigkeiten",
+    "document": "Dokumentation",
+    "source": "Quelldaten",
+    "mask": "Materialmaske",
+    "color": "Farben",
+    "frames": "Frame-Ableitung",
+    "scale": "Grafikstufen",
+    "checks": "Technische Prüfung",
+    "review": "Sichtabnahme",
+    "godot": "Godot-Test",
+    "runtime": "Spielintegration",
+    "dependencies": "Abhängigkeiten",
+    "processing": "Verarbeitung",
 }
 
 
@@ -70,6 +78,27 @@ class StatusService:
             result["source"] = StepStatus("source", "waiting_external",
                 f"{len(required) - len(missing)}/{len(required)} benötigte Quellen importiert. "
                 f"Externe Lieferung fehlt oder ist ungeprüft: {detail}.")
+        if record.data.get("asset_definition", {}).get("schema_version") == 2:
+            source = result["source"]
+            ready = source.state == "passed"
+            result = {
+                "source": source,
+                "processing": StepStatus(
+                    "processing",
+                    "ready" if ready else "blocked",
+                    (
+                        "Ablauf und Ergebnisstatus unter Verarbeitung prüfen."
+                        if ready
+                        else "Zuerst die benötigten Originalquellen bereitstellen."
+                    ),
+                ),
+            }
+            for key, description in (
+                ("review", "Sichtabnahme bleibt ein gesonderter Nachweis."),
+                ("godot", "Noch keine Godot-Freigabe."),
+                ("runtime", "Noch nicht ins Spiel übernommen."),
+            ):
+                result[key] = StepStatus(key, "blocked", description)
         blockers = [edge["target_id"] for edge in self.project.catalog.relations()
                     if edge["kind"] == "depends_on" and edge["source_id"] == identifier]
         if blockers:
@@ -81,6 +110,8 @@ class StatusService:
 
     def summary(self, identifier: str) -> str:
         record = self.project.catalog.get(identifier)
+        if record.archived:
+            return "Inhalt archiviert · Zum Bearbeiten wiederherstellen."
         if record.kind == "pipeline":
             if record.archived:
                 return "Pipeline archiviert · Zum Bearbeiten wiederherstellen."

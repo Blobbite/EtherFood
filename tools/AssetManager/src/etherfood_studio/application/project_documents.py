@@ -266,6 +266,9 @@ class ProjectDocuments:
                     for artifact in current["artifacts"]:
                         paths.add(directory / artifact["image_path"])
                         paths.add((directory / artifact["image_path"]).parent / "index.md")
+                        if artifact.get("preview_path"):
+                            paths.add(directory / artifact["preview_path"])
+                            paths.add((directory / artifact["preview_path"]).parent / "index.md")
             elif card.kind == "pipeline":
                 paths.add(directory / "rezept.json")
         for path in sorted(paths):
@@ -289,6 +292,8 @@ class ProjectDocuments:
         if not current:
             return lines + ["Noch keine geprüften Pipeline-Ausgaben veröffentlicht."]
         profiles = sorted({str(Path(a["image_path"]).parent) for a in current["artifacts"]})
+        profiles += sorted({str(Path(a["preview_path"]).parent) for a in current["artifacts"]
+                            if a.get("preview_path")})
         lines += ["- " + self.link(base, self.files.path(card.id) / profile / "index.md",
                                   Path(profile).name) for profile in profiles]
         return lines + ["", "Letzter vollständig veröffentlichter Lauf: `" + current["run_id"] +
@@ -300,7 +305,12 @@ class ProjectDocuments:
         expected = self.files.files.get((owner, name))
         if not expected or not path.is_file() or file_hash(path) != expected:
             return None
-        return json.loads(path.read_text(encoding="utf-8"))
+        result = json.loads(path.read_text(encoding="utf-8"))
+        if result.get("contract") == "studio-workflow-publication-v1":
+            result["artifacts"] = [
+                {**item, "image_path": item["path"]} for item in result["artifacts"]
+            ]
+        return result
 
     def markdown(self, change, owner, name, body):
         body = START + "\n" + body.rstrip() + "\n" + END + "\n"
@@ -352,6 +362,9 @@ class ProjectDocuments:
             groups = {}
             for artifact in current["artifacts"]:
                 groups.setdefault(str(Path(artifact["image_path"]).parent), []).append(artifact)
+                if artifact.get("preview_path"):
+                    groups.setdefault(str(Path(artifact["preview_path"]).parent), []).append(
+                        {**artifact, "image_path": artifact["preview_path"]})
             for directory, artifacts in groups.items():
                 base = self.files.path(card.id) / directory / "index.md"
                 body = "# " + text(Path(directory).name) + "\n\n"

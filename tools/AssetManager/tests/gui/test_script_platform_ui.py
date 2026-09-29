@@ -13,6 +13,9 @@ from PySide6.QtWidgets import QApplication, QComboBox, QFileDialog, QDoubleSpinB
 
 from etherfood_studio.application.pipeline_service import PipelineService
 from etherfood_studio.application.plugin_service import PluginService
+from etherfood_studio.application.recipe_builds import RecipeBuildService
+from etherfood_studio.application.tool_environments import ToolEnvironments
+from etherfood_studio.application.tool_packages import ToolPackageService
 from etherfood_studio.ui.main_window import MainWindow
 from etherfood_studio.ui.package_actions import invoke
 from etherfood_studio.ui.pipeline_editor import PipelineEditor
@@ -21,16 +24,19 @@ from etherfood_studio.ui.pipeline_auxiliary import PipelineRunWorker
 from etherfood_studio.domain.models import StudioError
 
 from test_script_platform import EXAMPLE, asset, import_scale
+from test_tool_packages import offline_pillow
 
 
-def test_canvas_package_import_fields_action_undo_worker_and_folder(tmp_path, qt_app, monkeypatch):
+def test_canvas_package_import_fields_action_undo_worker_and_folder(
+        tmp_path, qt_app, monkeypatch, offline_pillow):
     window = MainWindow(QSettings(str(tmp_path / "settings.ini"), QSettings.IniFormat))
     root = tmp_path / "project"
     root.mkdir()
     window.new_project(root, "Skript-Canvas")
     project = window.project
     opened = []
-    monkeypatch.setattr(window, "open_pipeline", opened.append)
+    monkeypatch.setattr(window.processing, "open",
+                        lambda kind, identifier: opened.append(identifier))
     monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a, **k: (str(EXAMPLE), "JSON"))
     def accept_import(dialog):
         dialog.import_copy()
@@ -42,14 +48,16 @@ def test_canvas_package_import_fields_action_undo_worker_and_folder(tmp_path, qt
     assert len(opened) == 1
     recipe = project.catalog.get(opened[0])
     assert recipe.id in window.canvas.items_by_id
-    plugins = PluginService(project)
-    identifier = "python:proportional-scale"
-    assert plugins.details(identifier)["approved_hash"] is None
+    tools = ToolPackageService(project)
+    identifier = recipe.data["recipe"]["steps"][1]["operation"]
+    digest = identifier.split(":")[1]
+    assert not tools.details(digest)["approved"]
     editor = PipelineEditor(project, recipe.id)
     try:
         editor.show()
         qt_app.processEvents()
-        assert editor.operations.currentData() == identifier
+        assert editor.operations.findData(identifier) >= 0
+        editor.fit_steps()
         for item in editor.canvas.items_by_id.values():
             visible = editor.canvas.mapToScene(editor.canvas.viewport().rect()).boundingRect()
             assert visible.contains(item.sceneBoundingRect())
@@ -58,13 +66,12 @@ def test_canvas_package_import_fields_action_undo_worker_and_folder(tmp_path, qt
         assert editor.findChild(QDoubleSpinBox, "pipeline_parameter_factor").value() == 0.5
         assert editor.findChild(QPushButton, "pipeline_action_presets") is None
         assert editor.findChild(QPushButton, "pipeline_profiles") is None
-        plugins.approve(identifier, plugins.details(identifier)["code_hash"])
+        tools.approve(digest)
+        ToolEnvironments(project).prepare(tools.details(digest)["manifest"])
         editor.render()
-        assert editor.findChild(QPushButton, "pipeline_action_presets") is not None
-        monkeypatch.setattr("etherfood_studio.ui.package_actions.invoke",
-            lambda service, key, action, parameters, parent, **kwargs:
-                {**parameters, "factor": 0.25})
-        editor.package_action(node, "presets")
+        assert editor.findChild(QPushButton, "pipeline_action_presets") is None
+        editor.findChild(QDoubleSpinBox, "pipeline_parameter_factor").setValue(0.25)
+        editor.findChild(QDoubleSpinBox, "pipeline_parameter_factor").editingFinished.emit()
         assert editor.state["recipe"]["steps"][1]["parameters"]["factor"] == 0.25
         editor.undo()
         assert editor.state["recipe"]["steps"][1]["parameters"]["factor"] == 0.5
@@ -82,7 +89,7 @@ def test_canvas_package_import_fields_action_undo_worker_and_folder(tmp_path, qt
         worker.result.connect(finished.append)
         worker.run()
         assert finished[0]["reports"][0]["report"]["published"]
-        assert list((project.files.path(record.id) / "Ergebnisse/scaled").glob("*.png"))
+        assert list((project.files.path(record.id) / "Ergebnisse/Einzelbild/scaled").glob("*.png"))
         paths = []
         monkeypatch.setattr("etherfood_studio.ui.navigation.QDesktopServices.openUrl",
                             lambda url: paths.append(url.toLocalFile()) or True)
@@ -90,9 +97,11 @@ def test_canvas_package_import_fields_action_undo_worker_and_folder(tmp_path, qt
         next(a for a in menu.actions() if a.objectName() == "context_folder").trigger()
         assert paths == [str(project.files.path(record.id))]
         menu.deleteLater()
-        plugins.revoke(identifier)
+        tools.revoke(digest)
         editor.render()
         assert editor.findChild(QPushButton, "pipeline_action_presets") is None
+        with pytest.raises(StudioError, match="nicht freigegeben"):
+            RecipeBuildService(project).plan(record.id, recipe.id)
     finally:
         editor.baseline = deepcopy(editor.state)
         editor.reject()

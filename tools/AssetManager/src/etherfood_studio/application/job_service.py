@@ -48,6 +48,30 @@ class JobService:
         parameters = parameters or {}
         adapter_object = adapter_for(adapter)
         adapter_object.validate(parameters)
+        if adapter == "studio-tool":
+            from .tool_packages import ToolPackageService
+            from .tool_environments import ToolEnvironments
+            from ..pipelines.fingerprints import digest
+
+            if parameters["manifest"] is not None:
+                package = ToolPackageService(self.project).trusted(parameters["package_hash"])
+                environments = ToolEnvironments(self.project)
+                receipt = environments.verify(package["manifest"])
+                if (
+                    package["manifest"] != parameters["manifest"]
+                    or str(environments.executable(package["manifest"])) != parameters["python"]
+                    or digest(receipt) != parameters["environment"]
+                    or not any(
+                        b.name == "package.zip" and b.sha256 == package["archive_hash"]
+                        for b in bindings
+                    )
+                ):
+                    raise StudioError("integrity", "Skriptauftrag passt nicht zu Paket/Umgebung.")
+            else:
+                if parameters["metadata"]["source_revision"] not in source_ids:
+                    raise StudioError(
+                        "validation", "Quellauftrag benötigt eine registrierte Quelle."
+                    )
         if adapter == "studio-image" and parameters.get("operation") == "plugin":
             from .plugin_service import PluginService
             from ..domain.pipeline_recipes import validate_parameters

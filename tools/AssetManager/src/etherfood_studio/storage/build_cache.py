@@ -55,18 +55,29 @@ class BuildCache:
         job = JobStore(self.catalog).get(job_id)
         if job["status"] != "succeeded":
             raise StudioError("integrity", "Unvollständige Aufträge sind kein Cache.")
-        if (job["request"]["adapter"] != node.adapter or job["request"]["owner_id"] != owner or
-                node.adapter == "studio-image" and
-                job["request"]["parameters"] != node.parameters or
-                tuple(tuple(v) for v in job["request"]["tool_hashes"]) != node.tools):
+        if (
+            job["request"]["adapter"] != node.adapter
+            or job["request"]["owner_id"] != owner
+            or node.adapter in {"studio-image", "studio-tool"}
+            and job["request"]["parameters"] != node.parameters
+            or tuple(tuple(v) for v in job["request"]["tool_hashes"]) != node.tools
+        ):
             raise StudioError("integrity", "Auftrag passt nicht zum geplanten Adapter/Werkzeug.")
         expected = tuple(o.path for o in node.outputs)
         directory = safe_target(self.root, f".asset-studio/jobs/{job_id}/output")
         files = verify_files(directory, expected, job["result"]["files"])
-        data = {"contract": "studio-build-v1", "node_key": node.key, "stage": node.stage,
-                "input_fingerprint": fingerprint, "result_digest": digest(files),
-                "outputs": files, "dependencies": dependencies, "job_id": job_id,
-                "diagnostic": node.adapter != "studio-image", "tools": list(node.tools)}
+        data = {
+            "contract": "studio-build-v1",
+            "node_key": node.key,
+            "stage": node.stage,
+            "input_fingerprint": fingerprint,
+            "result_digest": digest(files),
+            "outputs": files,
+            "dependencies": dependencies,
+            "job_id": job_id,
+            "diagnostic": node.adapter not in {"studio-image", "studio-tool"},
+            "tools": list(node.tools),
+        }
         with self.catalog.transaction():
             title = "Diagnosebuild" if data["diagnostic"] else "Bildbuild"
             record = self.catalog.create("build", title + " · " + node.stage, owner, data)

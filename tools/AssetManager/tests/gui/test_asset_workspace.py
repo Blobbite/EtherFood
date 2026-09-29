@@ -60,8 +60,16 @@ def test_asset_actions_stay_out_of_project_toolbar_in_all_display_modes(window, 
         qt_app.processEvents()
         names = {action.objectName() for action in window.project_toolbar.actions()}
         assert not {"new_asset", "asset_workspace"}.intersection(names)
-        assert {"new_project", "open_project", "create_demo", "undo", "redo",
-                "show_jobs", "show_build_plan"}.issubset(names)
+        assert {
+            "new_project",
+            "open_project",
+            "create_demo",
+            "undo",
+            "redo",
+            "show_jobs",
+            "image_pipeline",
+        }.issubset(names)
+        assert "show_build_plan" not in names
 
 
 def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
@@ -76,7 +84,7 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         wizard.editor.add_pose(new_pose("stand"))
         QTest.mouseClick(wizard.preview, Qt.MouseButton.LeftButton)
         assert "8 benötigte Quellen" in wizard.summary.text()
-        assert "200 geplante Varianten" in wizard.summary.text()
+        assert "Ausgabevarianten werden im Ablaufeditor" in wizard.summary.text()
         QTest.mouseClick(wizard.commit, Qt.MouseButton.LeftButton)
 
     QTimer.singleShot(0, create_npc)
@@ -89,8 +97,8 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
     assert len(definition.poses) == 2
     root = window.project.catalog.path.parent
     assert not (root / ".asset-studio/jobs").exists()
-    assert not (root / ".asset-studio/objects").exists()
-    assert not list((window.project.files.path(identifier) / "Quellen").iterdir())
+    assert not [row for row in window.project.catalog.records() if row.kind == "source_revision"]
+    assert not list((window.project.files.path(identifier) / "source").rglob("*.png"))
     source = tmp_path / "npc_walk_N_4x4.png"
     Image.new("RGBA", (16, 16), (50, 170, 70, 255)).save(source)
     monkeypatch.setattr(QFileDialog, "getOpenFileNames", lambda *args: ([str(source)], ""))
@@ -99,7 +107,7 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
     def import_one():
         dialog = QApplication.activeModalWidget()
         assert isinstance(dialog, SourceImportDialog)
-        assert dialog.pose_id == definition.poses[0].id
+        assert dialog.pose_id is None
         QTest.mouseClick(dialog.choose, Qt.MouseButton.LeftButton)
         dialog.table.cellWidget(0, 4).setCurrentText("4x4")
         QTest.mouseClick(dialog.check_button, Qt.MouseButton.LeftButton)
@@ -119,14 +127,17 @@ def test_actual_four_direction_npc_partial_import_reopen_and_same_id(
         assert not workspace.tabs.isTabEnabled(5)  # No automatic Godot/sight approval.
         assert "0/8" in workspace.workflow.toPlainText()
         workspace.tabs.setCurrentIndex(2)
-        action = workspace.editor.poses.cellWidget(0, 8)
         assert workspace.editor.poses.horizontalHeaderItem(7).text() == "Anker Y"
-        assert action.text() == "Spritesheets hinzufügen … · 0/4"
+        assert workspace.editor.poses.columnCount() == 8
+        workspace.tabs.setCurrentIndex(1)
+        action = workspace.sources.findChild(QPushButton, "source_add")
         QTimer.singleShot(0, import_one)
         QTest.mouseClick(action, Qt.MouseButton.LeftButton)
         assert "1/8" in workspace.workflow.toPlainText()
         assert "1/8" in workspace.sources.summary.text()
-        assert action.text() == "Spritesheets hinzufügen … · 1/4"
+        delivered = workspace.sources.findChild(QPushButton,
+            "delivery_spritesheet_" + definition.poses[0].id)
+        assert delivered.text().startswith("1/4")
         workspace.documents.create_document("NPC-Notiz")
         workspace.documents.editor.setPlainText("Gehört zu derselben Karte")
         workspace.documents.save()
@@ -217,30 +228,18 @@ def test_workspace_unsaved_requirements_and_note_guards(window, qt_app, monkeypa
     workspace.deleteLater()
 
 
-def test_pose_import_saves_pending_requirements_only_after_confirmation(
-        window, qt_app, monkeypatch):
+def test_pose_configuration_only_saves_requirements_without_import(window, qt_app):
     assets = AssetService(window.project)
     owner = next(c.id for c in window.project.cards() if c.kind == "global")
     record = window.project.create_card("asset", "Noch ohne Anforderungen", owner)
     dialog = AssetSettingsDialog(assets, record.id)
     dialog.show()
     dialog.directions.setText("N,O,S,W")
-    action = dialog.poses.cellWidget(0, 8)
+    assert dialog.poses.columnCount() == 8
     before = window.project.catalog.export_snapshot()
-    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.No)
-    QTest.mouseClick(action, Qt.MouseButton.LeftButton)
     assert window.project.catalog.export_snapshot() == before and not dialog.changed
-
-    def close_import():
-        importing = QApplication.activeModalWidget()
-        assert isinstance(importing, SourceImportDialog)
-        assert importing.definition.directions == ("N", "O", "S", "W")
-        importing.reject()
-
-    monkeypatch.setattr(QMessageBox, "question", lambda *args: QMessageBox.StandardButton.Yes)
-    QTimer.singleShot(0, close_import)
-    QTest.mouseClick(action, Qt.MouseButton.LeftButton)
-    assert dialog.changed and "0/4" in action.text()
+    dialog.save()
+    assert dialog.changed
     assert assets.definition(record.id).directions == ("N", "O", "S", "W")
     assert SourceImportService(assets).revisions(record.id) == []
     dialog.close()

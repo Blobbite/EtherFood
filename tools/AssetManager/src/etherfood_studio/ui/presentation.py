@@ -18,7 +18,7 @@ def kind_icon(kind: str) -> QIcon:
     from .action_icons import action_icon
     return action_icon({"project": "computer", "global": "globe", "act": "folder",
                         "chapter": "folder", "package": "package",
-                        "pipeline": "settings"}.get(kind, "file"))
+                        "pipeline": "pipeline"}.get(kind, "file"))
 
 
 def record_icon(record) -> QIcon:

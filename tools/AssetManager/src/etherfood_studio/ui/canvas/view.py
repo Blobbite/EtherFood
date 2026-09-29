@@ -15,7 +15,7 @@ from ..presentation import DOCUMENT_COLOR
 from ..appearance import appearance
 from ..theme import color as theme_color
 from .edges import EdgeItem, curve, place_labels
-from .items import CardItem, IconCardItem, KIND_NAMES
+from .items import CardItem, IconCardItem, KIND_NAMES, ProjectItem
 
 
 class Canvas(QGraphicsView):
@@ -105,8 +105,10 @@ class Canvas(QGraphicsView):
             if card.kind == "note":
                 positions[identifier] |= {"w": 144, "h": 62}
             if card.kind == "pipeline":
-                positions[identifier] |= {"w": 340, "h": 145}
-            cursor += 170 if card.kind == "pipeline" else 125
+                positions[identifier] |= {"w": 144, "h": 62}
+            if card.kind == "project":
+                positions[identifier] |= {"w": ProjectItem.WIDTH, "h": ProjectItem.HEIGHT}
+            cursor += 175 if card.kind == "project" else 125
             children = [row for row in cards if row.owner_id == identifier]
             children.sort(key=lambda row: (
                 {"pipeline": 0, "global": 1}.get(row.kind, 2),
@@ -117,11 +119,20 @@ class Canvas(QGraphicsView):
                                            else 1))
 
         arrange(project.project().id, 0)
+        def rendered_layout(identifier):
+            value = positions[identifier] | project.catalog.layout(identifier)
+            kind = project.catalog.get(identifier).kind
+            fixed = {"project": (ProjectItem.WIDTH, ProjectItem.HEIGHT),
+                     "pipeline": (144, 62), "note": (144, 62)}
+            if kind in fixed:
+                value |= dict(zip(("w", "h"), fixed[kind]))
+            return value
+
         occupied = []
         for card in cards:
             if card.id not in positions:
                 continue
-            value = positions[card.id] | project.catalog.layout(card.id)
+            value = rendered_layout(card.id)
             occupied.append(QRectF(value["x"], value["y"], value["w"], value["h"]))
         for record in contents:
             saved = project.catalog.layout(record.id)
@@ -132,7 +143,7 @@ class Canvas(QGraphicsView):
         for record in ordered:
             if record.owner_id not in positions:
                 continue
-            owner = positions[record.owner_id] | project.catalog.layout(record.owner_id)
+            owner = rendered_layout(record.owner_id)
             offset = 0
             while True:
                 box = QRectF(owner["x"] + owner["w"] + 35 + offset % 4 * 170,
@@ -169,6 +180,14 @@ class Canvas(QGraphicsView):
             if card.kind == "note":
                 item = IconCardItem(card.id, card.title, "note", "Notizbereich öffnen", self,
                                     NOTE_COLORS["yellow"][1])
+            elif card.kind == "pipeline":
+                item = IconCardItem(card.id, card.title, "pipeline", statuses.summary(card.id),
+                                    self)
+            elif card.kind == "project":
+                summary = "Projektaufbau · " + " · ".join(
+                    f"{sum(r.kind == kind for r in cards)} {name}" for kind, name in
+                    (("act", "Akte"), ("pipeline", "Pipelines"), ("asset", "Assets")))
+                item = ProjectItem(card.id, card.title, summary, self)
             else:
                 item = CardItem(card.id, card.title, card.kind, statuses.summary(card.id), self,
                                 layout.get("w", 250), layout.get("h", 100))
@@ -246,7 +265,8 @@ class Canvas(QGraphicsView):
             return
         for edge in self.edges_by_id.values():
             edge.update_geometry()
-        self.label_rects = place_labels(list(self.edges_by_id.values()), [
+        self.label_rects = place_labels([edge for edge in self.edges_by_id.values()
+                                        if edge.caption.isVisible()], [
             item.mapRectToScene(item.rect()).adjusted(-10, -10, 10, 10)
             for item in self.items_by_id.values()
         ])
